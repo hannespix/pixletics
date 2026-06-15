@@ -31,10 +31,18 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   abgespielt werden.
 - **Sprachansagen** (deutsche Sprachausgabe) und **Signaltöne** – einzeln
   abschaltbar.
-- **Spotify** (optional): Musik läuft im Browser mit, lässt sich aus der App
-  steuern (Play/Pause/Weiter/Zurück) und wird bei Sprachansagen automatisch
-  leiser (während des Countdowns durchgehend). Benötigt Spotify Premium und
-  eine eigene Client-ID (Einrichtung im Spotify-Tab beschrieben).
+- **Musik** (Tab „Musik"): zwei Optionen –
+  - **Internet-Radio**: kuratierte Sender nach Genre (ROCK ANTENNE, FM4,
+    SomaFM u. a.), **ohne Login/Key/Premium**. Eigene Sender (HTTPS-Stream-URL)
+    lassen sich hinzufügen und bearbeiten.
+  - **Spotify** (optional): läuft im Browser mit, steuerbar aus der App
+    (Play/Pause/Weiter/Zurück). Benötigt Spotify Premium und eine eigene
+    Client-ID (Einrichtung im Musik-Tab beschrieben).
+  Beide werden bei Sprachansagen automatisch leiser (während des Countdowns
+  durchgehend).
+- **Teilen & Sichern**: Übungen, Sets, Sender und Einstellungen als
+  **komprimierten Link** teilen (Kollege öffnet ihn → Import per Klick) oder
+  als **JSON-Datei** exportieren/importieren. Läuft komplett ohne Server.
 - **Bildschirm bleibt an** während des Workouts (Wake Lock, sofern vom Browser
   unterstützt).
 
@@ -48,7 +56,7 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
 
 ## Spotify einrichten (optional)
 
-Im Tab „Spotify“ ist die einmalige Einrichtung beschrieben:
+Im Tab „Musik“ (Bereich Spotify) ist die einmalige Einrichtung beschrieben:
 App im [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 anlegen, die angezeigte Redirect-URI eintragen, „Web Playback SDK“ aktivieren
 und die Client-ID in die App kopieren.
@@ -68,5 +76,7 @@ assets/js/
   audio.js       – Töne (WebAudio) & Sprachausgabe
   engine.js      – Ablaufplan & Phasen-Zustandsmaschine
   spotify.js     – Spotify-Anbindung (PKCE + Web Playback SDK)
+  radio.js       – Internet-Radio (HTML5-Audio)
+  share.js       – Teilen/Sichern (komprimierter Link & Datei)
   main.js        – UI & Verdrahtung
 ```

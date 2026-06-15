@@ -1,8 +1,13 @@
 import { DEFAULT_REPS } from './exercises.js';
-import { loadSets, saveSets, loadConfig, saveConfig, loadExercises, saveExercises, uid } from './store.js';
+import {
+  loadSets, saveSets, loadConfig, saveConfig,
+  loadExercises, saveExercises, loadStations, saveStations, uid,
+} from './store.js';
 import { initAudio, sound, speak, cancelSpeech, setSpeechHooks } from './audio.js';
 import { buildSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { Spotify } from './spotify.js';
+import { Radio } from './radio.js';
+import { encodeShare, decodeShare } from './share.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -11,11 +16,15 @@ const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 let exercises = loadExercises();          // editierbare Übungs-Bibliothek
 let exerciseMap = {};                      // id -> Übung (zur Laufzeit)
 let sets = loadSets();
+let stations = loadStations();             // Radio-Sender
 let config = loadConfig();
 let selectedSetIds = []; // Reihenfolge = Abspielreihenfolge
 let editorSetId = null;
 let editorExId = null;   // gerade bearbeitete Übung (null = neue)
+let editorStationId = null; // gerade bearbeiteter Sender (null = neuer)
+let lastStationId = null;   // zuletzt gestarteter Sender (für Runner-Toggle)
 const spotify = new Spotify();
+const radio = new Radio();
 const engine = new WorkoutEngine();
 let wakeLock = null;
 
@@ -441,6 +450,214 @@ function renderNowPlaying(state) {
   if (rs && !$('#runner').hidden) rs.textContent = `🎵 ${track.name} – ${track.artists?.map((a) => a.name).join(', ')}`;
 }
 
+// ================ RADIO ================
+function renderRadio() {
+  const host = $('#radio-list');
+  if (!host) return;
+  host.innerHTML = '';
+  if (!stations.length) {
+    host.innerHTML = '<p class="muted">Noch keine Sender. Lege mit „+ Sender“ welche an.</p>';
+    return;
+  }
+  // Nach Genre gruppieren.
+  const byGenre = {};
+  stations.forEach((s) => {
+    const g = s.genre || 'Sonstige';
+    (byGenre[g] ||= []).push(s);
+  });
+  Object.keys(byGenre).sort().forEach((genre) => {
+    const head = document.createElement('div');
+    head.className = 'radio-genre';
+    head.textContent = genre;
+    host.appendChild(head);
+    byGenre[genre].forEach((st) => {
+      const isCur = radio.current?.id === st.id && radio.playing;
+      const row = document.createElement('div');
+      row.className = 'radio-item' + (isCur ? ' playing' : '');
+      row.innerHTML = `
+        <button class="radio-play" title="${isCur ? 'Stoppen' : 'Abspielen'}">${isCur ? '⏹' : '▶'}</button>
+        <div class="radio-body">
+          <div class="radio-name">${escapeHtml(st.name)}</div>
+          <div class="radio-url muted small">${escapeHtml(st.url)}</div>
+        </div>
+        <button class="icon-btn radio-edit" title="Bearbeiten">✎</button>`;
+      row.querySelector('.radio-play').addEventListener('click', () => {
+        if (radio.current?.id === st.id && radio.playing) {
+          radio.stop();
+        } else {
+          lastStationId = st.id;
+          radio.play(st);
+        }
+      });
+      row.querySelector('.radio-edit').addEventListener('click', () => openStationEditor(st.id));
+      host.appendChild(row);
+    });
+  });
+}
+
+function renderRadioNow(state) {
+  const host = $('#radio-now');
+  if (!host) return;
+  const name = radio.current?.name || '';
+  if (state === 'error') {
+    host.innerHTML = `<span class="status-dot"></span><span class="muted small">Sender „${escapeHtml(name)}“ nicht erreichbar – evtl. kein HTTPS-Direktstream.</span>`;
+  } else if (state === 'loading') {
+    host.innerHTML = `<span class="status-dot"></span><span class="muted small">Verbinde mit „${escapeHtml(name)}“ …</span>`;
+  } else if (radio.playing) {
+    host.innerHTML = `<span class="status-dot on"></span><span class="small">▶ ${escapeHtml(name)}</span>`;
+  } else {
+    host.innerHTML = '<span class="muted small">Kein Sender aktiv. Tippe oben auf ▶.</span>';
+  }
+  const rs = $('#runner-spotify');
+  if (rs && radio.playing && !$('#runner').hidden) rs.textContent = `📻 ${name}`;
+}
+
+function openStationEditor(stId) {
+  editorStationId = stId;
+  const st = stId ? stations.find((s) => s.id === stId) : null;
+  $('#station-editor-title').textContent = st ? 'Sender bearbeiten' : 'Neuer Sender';
+  $('#station-name').value = st?.name || '';
+  $('#station-genre').value = st?.genre || '';
+  $('#station-url').value = st?.url || '';
+  $('#btn-delete-station').style.visibility = st ? 'visible' : 'hidden';
+  $('#station-editor').hidden = false;
+}
+
+function closeStationEditor() {
+  $('#station-editor').hidden = true;
+  editorStationId = null;
+}
+
+function saveStationEditor() {
+  const name = $('#station-name').value.trim();
+  const url = $('#station-url').value.trim();
+  if (!name || !url) {
+    alert('Bitte Name und Stream-URL angeben.');
+    return;
+  }
+  if (!/^https:\/\//i.test(url)) {
+    alert('Die Stream-URL muss mit https:// beginnen (HTTP wird vom Browser blockiert).');
+    return;
+  }
+  const data = { name, genre: $('#station-genre').value.trim() || 'Sonstige', url };
+  if (editorStationId) {
+    const st = stations.find((s) => s.id === editorStationId);
+    if (st) Object.assign(st, data);
+  } else {
+    stations.push({ id: uid('st'), ...data });
+  }
+  saveStations(stations);
+  closeStationEditor();
+  renderRadio();
+}
+
+function deleteStationEditor() {
+  if (!editorStationId) return;
+  const st = stations.find((s) => s.id === editorStationId);
+  if (!confirm(`Sender „${st?.name || ''}“ wirklich löschen?`)) return;
+  if (radio.current?.id === editorStationId) radio.stop();
+  stations = stations.filter((s) => s.id !== editorStationId);
+  saveStations(stations);
+  closeStationEditor();
+  renderRadio();
+}
+
+// ================ TEILEN & SICHERN ================
+function gatherShareData() {
+  return { v: 1, exercises, sets, stations, config };
+}
+
+function applyShareData(data) {
+  if (!data || typeof data !== 'object') throw new Error('Ungültige Daten.');
+  if (Array.isArray(data.exercises)) {
+    exercises = data.exercises.map((e) => ({ ...e, reps: e.reps || DEFAULT_REPS }));
+    saveExercises(exercises);
+    rebuildExerciseMap();
+  }
+  if (Array.isArray(data.sets)) {
+    sets = data.sets.map((s) => ({ ...s, exercises: [...(s.exercises || [])] }));
+    saveSets(sets);
+    selectedSetIds = [];
+  }
+  if (Array.isArray(data.stations)) {
+    stations = data.stations;
+    saveStations(stations);
+  }
+  if (data.config && typeof data.config === 'object') {
+    config = { ...config, ...data.config };
+    saveConfig(config);
+  }
+  // Alles neu aufbauen.
+  bindConfig();
+  renderPicker();
+  renderSetsList();
+  renderExercisesList();
+  renderRadio();
+  updatePlanSummary();
+}
+
+async function createShareLink() {
+  try {
+    const payload = await encodeShare(gatherShareData());
+    const url = `${location.origin}${location.pathname}#share=${payload}`;
+    const out = $('#share-output');
+    out.value = url;
+    out.hidden = false;
+    out.focus();
+    out.select();
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      copied = true;
+    } catch {}
+    alert(copied ? 'Teilen-Link wurde kopiert! 🔗' : 'Teilen-Link erstellt – unten markiert, bitte kopieren.');
+  } catch (err) {
+    alert('Konnte keinen Link erstellen: ' + err.message);
+  }
+}
+
+function exportFile() {
+  const blob = new Blob([JSON.stringify(gatherShareData(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'freeletics-timer-konfiguration.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function importFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(String(reader.result));
+      if (!confirm('Import ersetzt deine Übungen, Sets und Sender. Fortfahren?')) return;
+      applyShareData(data);
+      alert('Import erfolgreich. ✅');
+    } catch (err) {
+      alert('Datei konnte nicht gelesen werden: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Beim Laden geteilte Daten aus dem Link (#share=…) übernehmen.
+async function handleShareHash() {
+  const m = location.hash.match(/#share=(.+)$/);
+  if (!m) return;
+  try {
+    const data = await decodeShare(m[1]);
+    if (confirm('Geteilte Konfiguration importieren? Ersetzt deine Übungen, Sets und Sender.')) {
+      applyShareData(data);
+      alert('Geteilte Konfiguration übernommen. ✅');
+    }
+  } catch (err) {
+    console.warn('Share-Import fehlgeschlagen', err);
+  } finally {
+    history.replaceState({}, document.title, location.origin + location.pathname);
+  }
+}
+
 // ================ RUNNER ================
 async function startWorkout() {
   initAudio();
@@ -563,6 +780,7 @@ function stopRunner() {
   engine.stop();
   cancelSpeech();
   spotify.unduck();
+  radio.unduck();
   releaseWakeLock();
   $('#runner').hidden = true;
 }
@@ -580,7 +798,7 @@ $('#btn-prev-track').addEventListener('click', () => spotify.previous());
 $('#btn-sp-toggle').addEventListener('click', () => spotify.togglePlay());
 $('#btn-next-track').addEventListener('click', () => spotify.next());
 
-// ---------------- Sprachansage duckt Spotify ----------------
+// ---------------- Sprachansage duckt die Musik (Spotify + Radio) ----------------
 // Beim schnellen Runterzählen folgen viele kurze Ansagen aufeinander. Damit die
 // Musik nicht zwischen den Zahlen kurz wieder laut wird, wird das Lautmachen
 // verzögert: Startet innerhalb der Wartezeit die nächste Ansage, bleibt es leise.
@@ -591,13 +809,17 @@ setSpeechHooks({
       clearTimeout(unduckTimer);
       unduckTimer = null;
     }
-    if (config.duckSpotify && spotify.ready) spotify.duck();
+    if (!config.duckSpotify) return;
+    if (spotify.ready) spotify.duck();
+    if (radio.playing) radio.duck();
   },
   end: () => {
     if (unduckTimer) clearTimeout(unduckTimer);
     unduckTimer = setTimeout(() => {
       unduckTimer = null;
-      if (config.duckSpotify && spotify.ready) spotify.unduck();
+      if (!config.duckSpotify) return;
+      if (spotify.ready) spotify.unduck();
+      radio.unduck();
     }, 1200);
   },
 });
@@ -607,6 +829,28 @@ $('#btn-new-ex').addEventListener('click', () => openExEditor(null));
 $('#btn-close-ex-editor').addEventListener('click', closeExEditor);
 $('#btn-save-ex').addEventListener('click', saveExEditor);
 $('#btn-delete-ex').addEventListener('click', deleteExEditor);
+
+// ---------------- Radio / Sender-Editor: Buttons ----------------
+$('#btn-new-station').addEventListener('click', () => openStationEditor(null));
+$('#btn-close-station-editor').addEventListener('click', closeStationEditor);
+$('#btn-save-station').addEventListener('click', saveStationEditor);
+$('#btn-delete-station').addEventListener('click', deleteStationEditor);
+$('#btn-radio-toggle').addEventListener('click', () => {
+  if (radio.playing) {
+    radio.stop();
+  } else {
+    const st = stations.find((s) => s.id === lastStationId) || stations[0];
+    if (st) {
+      lastStationId = st.id;
+      radio.play(st);
+    }
+  }
+});
+
+// ---------------- Teilen & Sichern: Buttons ----------------
+$('#btn-share-link').addEventListener('click', createShareLink);
+$('#btn-export').addEventListener('click', exportFile);
+$('#import-file').addEventListener('change', (e) => importFile(e.target.files[0]));
 
 // ---------------- Wake Lock (Bildschirm an) ----------------
 async function requestWakeLock() {
@@ -635,14 +879,25 @@ async function init() {
   renderPicker();
   renderSetsList();
   renderExercisesList();
+  renderRadio();
   setupSortable();
   updatePlanSummary();
   renderSpotify();
 
+  // Radio-Status -> UI
+  radio.onState = (state) => {
+    renderRadio();
+    renderRadioNow(state);
+  };
+  renderRadioNow();
+
+  // Geteilte Konfiguration aus dem Link (#share=…) übernehmen.
+  await handleShareHash();
+
   // Spotify-Redirect verarbeiten (falls wir gerade von Spotify zurückkommen)
   try {
     if (await spotify.handleRedirect()) {
-      switchView('spotify');
+      switchView('musik');
       await spotify.initPlayer();
       renderSpotify();
     }

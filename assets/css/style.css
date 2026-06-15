@@ -184,6 +184,28 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .status-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 6px; }
 .status-dot.on { background: var(--green); }
 
+/* ---------- Radio ---------- */
+.radio-list { display: grid; gap: 8px; }
+.radio-genre { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 14px 0 2px; }
+.radio-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--card-2); border: 1px solid #313847; border-radius: 10px; }
+.radio-item.playing { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.radio-item .radio-play {
+  width: 42px; height: 42px; flex: none; border-radius: 50%; border: 1px solid #3a4256;
+  background: var(--bg-2); color: var(--text); font-size: 16px; cursor: pointer; display: grid; place-items: center;
+}
+.radio-item .radio-body { flex: 1; min-width: 0; }
+.radio-item .radio-name { font-weight: 700; }
+.radio-item .radio-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Teilen & Sichern ---------- */
+.share-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.share-actions label.btn { cursor: pointer; }
+.share-output {
+  width: 100%; margin-top: 10px; box-sizing: border-box; resize: vertical;
+  background: var(--bg-2); border: 1px solid #313847; color: var(--text);
+  border-radius: 10px; padding: 10px; font-size: 12px; font-family: inherit;
+}
+
 /* ---------- Runner ---------- */
 .runner {
   position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column;

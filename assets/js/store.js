@@ -4,6 +4,18 @@ import { DEFAULT_SETS, DEFAULT_EXERCISES, DEFAULT_REPS } from './exercises.js';
 const SETS_KEY = 'freeletics.sets.v2';
 const CONFIG_KEY = 'freeletics.config.v2';
 const EXERCISES_KEY = 'freeletics.exercises.v1';
+const STATIONS_KEY = 'freeletics.stations.v1';
+
+// Kuratierte Radio-Sender (alle HTTPS-Direktstreams, werbefrei/werbearm).
+// Nutzer können eigene Sender hinzufügen/bearbeiten.
+export const DEFAULT_STATIONS = [
+  { id: 'st-rockantenne', name: 'ROCK ANTENNE',          genre: 'Rock',        url: 'https://stream.rockantenne.de/rockantenne/stream/mp3' },
+  { id: 'st-fm4',         name: 'FM4 (ORF)',             genre: 'Alternative', url: 'https://orf-live.ors-shoutcast.at/fm4-q2a' },
+  { id: 'st-indiepop',    name: 'SomaFM Indie Pop Rocks', genre: 'Indie',      url: 'https://ice2.somafm.com/indiepop-128-mp3' },
+  { id: 'st-power',       name: 'SomaFM PowerStation',   genre: 'Energie',     url: 'https://ice2.somafm.com/powerstation-128-mp3' },
+  { id: 'st-beat',        name: 'SomaFM Beat Blender',   genre: 'Electronic',  url: 'https://ice2.somafm.com/beatblender-128-mp3' },
+  { id: 'st-groove',      name: 'SomaFM Groove Salad',   genre: 'Chill',       url: 'https://ice2.somafm.com/groovesalad-128-mp3' },
+];
 
 export const DEFAULT_CONFIG = {
   workSeconds: 30,    // Dauer einer Übung (Belastung)
@@ -38,6 +50,21 @@ export function loadExercises() {
 
 export function saveExercises(exercises) {
   localStorage.setItem(EXERCISES_KEY, JSON.stringify(exercises));
+}
+
+// ---------------- Radio-Sender ----------------
+export function loadStations() {
+  const raw = localStorage.getItem(STATIONS_KEY);
+  if (!raw) {
+    const copy = DEFAULT_STATIONS.map((s) => ({ ...s }));
+    saveStations(copy);
+    return copy;
+  }
+  return safeParse(raw, []);
+}
+
+export function saveStations(stations) {
+  localStorage.setItem(STATIONS_KEY, JSON.stringify(stations));
 }
 
 // ---------------- Sets ----------------
