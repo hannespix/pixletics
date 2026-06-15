@@ -880,22 +880,19 @@ function runnerHandlers(steps) {
       const persona = currentPersona();
       const name = config.coachName;
       if (step.phase === PHASE.PREPARE) {
-        // Kombinierter Pause-/Vorbereitungsblock: Modus ansagen + Vorschau-Spruch.
+        // Nur den Modus ansagen. Pausenspruch, „nächste Übung“ + Erklärung und
+        // Countdown kommen zeitlich gestaffelt in onSecond.
         const active = workoutActiveRest && step.lap >= 2;
-        const key = step.rep > 1 ? 'again' : 'next';
-        const upcoming = line(persona, key, { ex: ex.name, name }); // „was kommt“-Spruch
         if (active) {
-          // Aktivpause (Zirkel ab Runde 2): Runde um die Halle + Vorschau.
+          // Aktivpause (Zirkel ab Runde 2): Runde um die Halle.
           setPhaseUI('Aktivpause', ex, '🏃');
           $('#exercise-cue').textContent = 'Eine Runde um die Halle laufen 🏃';
           if (config.beeps) sound.rest();
-          if (config.voice) speak(`Aktivpause! Eine Runde um die Halle laufen. ${upcoming}`, { interrupt: true });
+          if (config.voice) speak('Aktivpause! Eine Runde um die Halle laufen.', { interrupt: true });
         } else {
           setPhaseUI('Pause', ex, '⏸️');
           if (config.beeps) sound.rest();
-          // Modus „Pause“ ansagen (zu Beginn „Bereit“) + Vorschau-Spruch.
-          const mode = index === 0 ? 'Bereit.' : 'Pause.';
-          if (config.voice) speak(`${mode} ${upcoming}`, { interrupt: true });
+          if (config.voice) speak(index === 0 ? 'Bereit machen.' : 'Pause.', { interrupt: true });
         }
         showNextAfter(steps, index);
       } else if (step.phase === PHASE.WORK) {
@@ -926,10 +923,29 @@ function runnerHandlers(steps) {
           if (config.beeps) sound.tick();
           if (config.voice) speak(String(secondsLeft));
         }
-      } else {
-        // prepare / rest: letzte 3 Sekunden ticken
-        if (secondsLeft <= 3 && config.beeps) sound.tick();
-        if (step.phase === PHASE.PREPARE && secondsLeft <= 3 && config.voice) speak(String(secondsLeft));
+      } else if (step.phase === PHASE.PREPARE) {
+        // Pausen-Ansagen gestaffelt: (Pause kam schon) → cooler Pausenspruch →
+        // nächste Übung + Spruch + Erklärung → Countdown.
+        const persona = currentPersona();
+        const ex = exerciseMap[step.exId];
+        const name = config.coachName;
+        const active = workoutActiveRest && step.lap >= 2;
+        // 1) kurz nach „Pause“ ein cooler Pausenspruch (bei Aktivpause läuft man).
+        if (config.voice && !active && duration >= 8 && secondsLeft === duration - 3) {
+          speak(line(persona, 'rest'));
+        }
+        // 2) etwas später: nächste Übung ansagen + passender Spruch + Erklärung.
+        const nextAt = Math.max(4, duration - 9);
+        if (secondsLeft === nextAt && config.voice && ex) {
+          const spruch = line(persona, 'mid', { ex: ex.name, name });
+          const cue = ex.cue ? ` ${ex.cue}.` : '';
+          speak(`Als Nächstes: ${ex.name}. ${spruch}.${cue}`);
+        }
+        // 3) letzte 3 Sekunden: Start-Countdown.
+        if (secondsLeft <= 3) {
+          if (config.beeps) sound.tick();
+          if (config.voice) speak(String(secondsLeft));
+        }
       }
     },
     onTick({ step, remainingMs, secondsLeft, sessionRemaining }) {
