@@ -10,13 +10,16 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
 
 ## Funktionen
 
-- **Intervall-Training**: Standardmäßig 60 Sek. Übung, 30 Sek. Pause, 10 Sek.
-  Vorbereitung – frei einstellbar. Das Programm füllt automatisch die
-  gewünschte Gesamtdauer (Standard: 1 Stunde).
-- **Ablauf pro Übung**: Ansage „Nächste Runde: …“ → 10-Sekunden-Countdown →
-  Startsignal → Übung (mit „Noch 30 Sekunden“-Ansage und Countdown der letzten
-  Sekunden) → Pausensymbol mit Pause. Danach geht es mit der nächsten Übung
-  weiter.
+- **Intervall-Training**: Standardmäßig 30 Sek. Übung, 30 Sek. Pause, 10 Sek.
+  Vorbereitung, **2 Wiederholungen pro Übung** – alles frei einstellbar. Das
+  Programm füllt automatisch die gewünschte Gesamtdauer.
+- **Ablauf pro Übung**: Ansage „Nächste Runde: …“ (bzw. „Nochmal: …“ bei der
+  Wiederholung) → 10-Sekunden-Countdown → Startsignal → Übung (mit „Noch 15
+  Sekunden“-Ansage und lautem Countdown der letzten 10 Sekunden) → Pause.
+  Danach geht es mit der nächsten Übung weiter. Am **Ende des Workouts** gibt
+  es Applaus. 👏
+- **Wiederholungen**: Jede Übung wird standardmäßig 2× hintereinander
+  ausgeführt, bevor die nächste folgt (einstellbar).
 - **Übungssets**: Mehrere Sets anlegen, Übungen per Checkliste auswählen und
   per **Drag & Drop** (Maus oder Touch) in die gewünschte Reihenfolge bringen.
   Beim Training lassen sich mehrere Sets auswählen, die nacheinander

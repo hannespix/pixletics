@@ -21,6 +21,7 @@ export const EXERCISES = [
   { id: 'wallsit',      name: 'Wandsitzen',         area: 'Beine',      emoji: '🧱', cue: 'Oberschenkel waagerecht halten' },
   { id: 'twists',       name: 'Russian Twists',     area: 'Bauch',      emoji: '🌀', cue: 'Oberkörper von Seite zu Seite' },
   { id: 'diamond',      name: 'Enge Liegestütze',   area: 'Trizeps',    emoji: '🔷', cue: 'Hände eng, Diamantform' },
+  { id: 'tricepdips',   name: 'Trizeps-Dips',       area: 'Trizeps',    emoji: '🪑', cue: 'An Kiste/Stuhl, Ellbogen nach hinten beugen' },
   { id: 'jumpsquats',   name: 'Strecksprünge',      area: 'Beine',      emoji: '⚡', cue: 'Aus der Kniebeuge explosiv springen' },
   { id: 'plankjacks',   name: 'Plank Jacks',        area: 'Core',       emoji: '↔️', cue: 'Im Plank Beine auf/zu springen' },
   { id: 'crunches',     name: 'Crunches',           area: 'Bauch',      emoji: '🔵', cue: 'Schulterblätter leicht anheben' },
@@ -33,6 +34,24 @@ export const EXERCISE_MAP = Object.fromEntries(EXERCISES.map((e) => [e.id, e]));
 
 // Vordefinierte Beispiel-Sets, die beim ersten Start angelegt werden.
 export const DEFAULT_SETS = [
+  {
+    id: 'set-freeletics',
+    name: 'Freeletics Programm',
+    // Ganzkörper-Zirkel, bewusst nach Muskelgruppen abwechselnd sortiert,
+    // damit die 2 Wiederholungen pro Übung nicht dieselbe Gruppe überlasten.
+    exercises: [
+      'jacks',       // Aufwärmen / Cardio
+      'squats',      // Beine
+      'pushups',     // Brust / Drücken
+      'lunges',      // Beine
+      'tricepdips',  // Trizeps (an der Kiste)
+      'wallsit',     // Beine (statisch, an der Wand)
+      'climbers',    // Core / Cardio
+      'situps',      // Bauch
+      'plank',       // Core (statisch)
+      'burpees',     // Ganzkörper-Finisher
+    ],
+  },
   {
     id: 'set-ganzkoerper',
     name: 'Ganzkörper Klassiker',
