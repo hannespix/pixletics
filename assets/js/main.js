@@ -60,6 +60,7 @@ function bindConfig() {
   const map = {
     'cfg-work': 'workSeconds',
     'cfg-rest': 'restSeconds',
+    'cfg-repeats': 'repeatsPerExercise',
     'cfg-prepare': 'prepareSeconds',
     'cfg-total': 'totalMinutes',
   };
@@ -98,7 +99,7 @@ function updatePlanSummary() {
     el.textContent = 'Wähle oben mindestens ein Set aus.';
     return;
   }
-  el.textContent = `≈ ${rounds} Runden · ${pool.length} Übungen im Pool · ${config.totalMinutes} Min geplant`;
+  el.textContent = `≈ ${rounds} Runden · ${pool.length} Übungen × ${config.repeatsPerExercise} Wdh. · ${config.totalMinutes} Min geplant`;
 }
 
 // ================ SETS VIEW ================
@@ -354,11 +355,16 @@ function runnerHandlers(steps) {
     onPhase(step, index) {
       const ex = EXERCISE_MAP[step.exId];
       bg.className = 'runner-bg ' + step.phase;
-      $('#runner-round').textContent = `Runde ${step.round} / ${steps.totalRounds}`;
+      const repInfo = step.repsTotal > 1 ? ` · Satz ${step.rep}/${step.repsTotal}` : '';
+      $('#runner-round').textContent = `Runde ${step.round} / ${steps.totalRounds}${repInfo}`;
 
       if (step.phase === PHASE.PREPARE) {
         setPhaseUI('Bereit machen', ex, '⏱️');
-        if (config.voice) speak(`Nächste Runde: ${ex.name}`, { interrupt: true });
+        // Zweite (oder weitere) Wiederholung derselben Übung gesondert ansagen.
+        if (config.voice) {
+          const ansage = step.rep > 1 ? `Nochmal: ${ex.name}` : `Nächste Runde: ${ex.name}`;
+          speak(ansage, { interrupt: true });
+        }
         showNext(steps, index);
       } else if (step.phase === PHASE.WORK) {
         setPhaseUI('Los!', ex, '');
@@ -374,11 +380,15 @@ function runnerHandlers(steps) {
     },
     onSecond({ step, secondsLeft, duration }) {
       if (step.phase === PHASE.WORK) {
-        if (secondsLeft === 30 && duration > 35) {
-          if (config.voice) speak('Noch 30 Sekunden');
+        // Ansage „Noch 15 Sekunden“ (nur wenn die Übung lang genug ist).
+        if (secondsLeft === 15 && duration > 18) {
+          if (config.voice) speak('Noch 15 Sekunden');
         }
-        if (secondsLeft <= 3 && config.beeps) sound.tick();
-        if (secondsLeft <= 3 && config.voice) speak(String(secondsLeft));
+        // Letzte 10 Sekunden laut runterzählen + ticken.
+        if (secondsLeft <= 10) {
+          if (config.beeps) sound.tick();
+          if (config.voice) speak(String(secondsLeft));
+        }
       } else {
         // prepare / rest: letzte 3 Sekunden ticken
         if (secondsLeft <= 3 && config.beeps) sound.tick();
@@ -406,7 +416,7 @@ function runnerHandlers(steps) {
       $('#big-timer').textContent = '✓';
       $('#exercise-cue').textContent = 'Workout abgeschlossen';
       $('#next-up').textContent = '';
-      if (config.beeps) sound.done();
+      if (config.beeps) sound.applause();
       if (config.voice) speak('Geschafft! Sehr gut gemacht.', { interrupt: true });
       releaseWakeLock();
     },
@@ -450,6 +460,7 @@ $('#btn-pause').addEventListener('click', () => {
   if (engine.paused) cancelSpeech();
 });
 $('#btn-prev-track').addEventListener('click', () => spotify.previous());
+$('#btn-sp-toggle').addEventListener('click', () => spotify.togglePlay());
 $('#btn-next-track').addEventListener('click', () => spotify.next());
 
 // ---------------- Sprachansage duckt Spotify ----------------

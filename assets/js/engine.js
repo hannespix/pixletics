@@ -3,22 +3,34 @@
 
 export const PHASE = { PREPARE: 'prepare', WORK: 'work', REST: 'rest', DONE: 'done' };
 
-// Baut die Schrittliste. Übungen werden in Reihenfolge durchlaufen und so oft
-// wiederholt, bis die Gesamtdauer (totalMinutes) erreicht ist.
+// Baut die Schrittliste. Jede Übung wird zunächst `repeatsPerExercise`-mal
+// hintereinander ausgeführt, danach folgt die nächste Übung. Diese Sequenz wird
+// in Reihenfolge durchlaufen und so oft wiederholt, bis die Gesamtdauer
+// (totalMinutes) erreicht ist.
 export function buildSchedule(exerciseIds, config) {
   const { workSeconds, restSeconds, prepareSeconds, totalMinutes } = config;
+  const repeats = Math.max(1, config.repeatsPerExercise || 1);
   const cycle = prepareSeconds + workSeconds + restSeconds;
   const totalSeconds = totalMinutes * 60;
   const maxRounds = Math.max(1, Math.floor(totalSeconds / cycle));
   const steps = [];
   if (!exerciseIds.length) return steps;
+
+  // Jede Übung mit ihren Wiederholungen zu einer Sequenz aufblähen,
+  // z. B. [A, A, B, B, …] bei 2 Wiederholungen pro Übung.
+  const sequence = [];
+  for (const exId of exerciseIds) {
+    for (let r = 0; r < repeats; r++) sequence.push({ exId, rep: r + 1, repsTotal: repeats });
+  }
+
   for (let i = 0; i < maxRounds; i++) {
-    const exId = exerciseIds[i % exerciseIds.length];
+    const item = sequence[i % sequence.length];
+    const meta = { exId: item.exId, rep: item.rep, repsTotal: item.repsTotal, round: i + 1 };
     const isLast = i === maxRounds - 1;
-    steps.push({ phase: PHASE.PREPARE, exId, duration: prepareSeconds, round: i + 1 });
-    steps.push({ phase: PHASE.WORK, exId, duration: workSeconds, round: i + 1 });
+    steps.push({ phase: PHASE.PREPARE, duration: prepareSeconds, ...meta });
+    steps.push({ phase: PHASE.WORK, duration: workSeconds, ...meta });
     // Letzte Pause weglassen – Programm endet mit der Übung.
-    if (!isLast) steps.push({ phase: PHASE.REST, exId, duration: restSeconds, round: i + 1 });
+    if (!isLast) steps.push({ phase: PHASE.REST, duration: restSeconds, ...meta });
   }
   // Metadaten: Gesamtdauer & Rundenanzahl
   steps.totalRounds = maxRounds;

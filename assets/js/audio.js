@@ -62,6 +62,33 @@ export const sound = {
     tone({ freq: 880, duration: 0.2, when: 0.2 });
     tone({ freq: 1180, duration: 0.4, when: 0.4 });
   },
+  // Applaus: gefiltertes Rauschen mit an-/abschwellender Hüllkurve,
+  // klingt wie ein klatschendes Publikum.
+  applause: () => {
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const duration = 2.4;
+    const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      // Sporadische Spitzen erzeugen einzelne „Klatscher“ im Rauschen.
+      data[i] = (Math.random() * 2 - 1) * (Math.random() < 0.35 ? 1 : 0.25);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1700;
+    filter.Q.value = 0.6;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.4, t0 + 0.2);   // schnell anschwellen
+    g.gain.setValueAtTime(0.4, t0 + 1.3);                 // halten
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration); // ausklingen
+    src.connect(filter).connect(g).connect(ctx.destination);
+    src.start(t0);
+    src.stop(t0 + duration);
+  },
 };
 
 let onSpeakStart = null;

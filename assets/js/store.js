@@ -1,17 +1,18 @@
 // Persistenz über localStorage: Übungssets und Einstellungen.
 import { DEFAULT_SETS } from './exercises.js';
 
-const SETS_KEY = 'freeletics.sets.v1';
-const CONFIG_KEY = 'freeletics.config.v1';
+const SETS_KEY = 'freeletics.sets.v2';
+const CONFIG_KEY = 'freeletics.config.v2';
 
 export const DEFAULT_CONFIG = {
-  workSeconds: 60,    // Dauer einer Übung
-  restSeconds: 30,    // Pause zwischen den Übungen
-  prepareSeconds: 10, // Countdown vor jeder Übung
-  totalMinutes: 60,   // Gesamtdauer des Programms
-  voice: true,        // Sprachansagen an/aus
-  beeps: true,        // Signaltöne an/aus
-  duckSpotify: true,  // Spotify bei Ansagen leiser
+  workSeconds: 30,       // Dauer einer Übung (Belastung)
+  restSeconds: 30,       // Pause zwischen den Übungen
+  prepareSeconds: 10,    // Countdown vor jeder Übung
+  repeatsPerExercise: 2, // Wie oft jede Übung hintereinander wiederholt wird
+  totalMinutes: 60,      // Gesamtdauer des Programms
+  voice: true,           // Sprachansagen an/aus
+  beeps: true,           // Signaltöne an/aus
+  duckSpotify: true,     // Spotify bei Ansagen leiser
 };
 
 function safeParse(raw, fallback) {
