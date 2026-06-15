@@ -13,6 +13,7 @@ import { buildSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
+import { GooeyMorph } from './gooey.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -1045,8 +1046,54 @@ function escapeHtml(str = '') {
   return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// ---------------- Intro-Splash (Gooey-Morph) ----------------
+function initSplash() {
+  const splash = $('#splash');
+  if (!splash) return;
+  const done = () => {
+    splash.classList.add('hide');
+    setTimeout(() => splash.remove(), 650);
+  };
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    done();
+    return;
+  }
+  const morph = new GooeyMorph({
+    stage: $('#splash-stage'),
+    layerA: $('#splash-a'),
+    layerB: $('#splash-b'),
+    blur: document.querySelector('#goo-splash feGaussianBlur'),
+    matrix: document.querySelector('#goo-splash feColorMatrix'),
+    filterId: 'goo-splash',
+    maxBlur: 26,
+    gooStd: 13,
+  });
+  let finished = false;
+  const skip = () => {
+    if (finished) return;
+    finished = true;
+    morph.stop();
+    done();
+  };
+  splash.addEventListener('click', skip);
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  (async () => {
+    await wait(550);
+    if (finished) return;
+    await morph.morph(1450); // pixletics -> workout timer
+    if (finished) return;
+    await wait(750);
+    if (!finished) {
+      finished = true;
+      done();
+    }
+  })();
+}
+
 // ---------------- Init ----------------
 async function init() {
+  initSplash();
   bindConfig();
   bindVoiceSettings();
   renderPicker();
