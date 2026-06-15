@@ -11,12 +11,13 @@ const SEED_KEY = 'freeletics.seed.v1';
 // auf Erreichbarkeit/Audio-Antwort geprüft). Nutzer können eigene hinzufügen.
 // np = SomaFM-Kanal-ID für die „Now Playing“-Anzeige (nur SomaFM liefert sie
 // im Browser CORS-frei; andere Sender zeigen nur Name/Genre).
+// ROCK ANTENNE steht bewusst zuerst = Standard-Internetradio.
 export const DEFAULT_STATIONS = [
+  { id: 'st-rockantenne',   name: 'ROCK ANTENNE',       genre: 'Rock',        url: 'https://stream.rockantenne.de/rockantenne/stream/mp3' },
+  { id: 'st-ra-metal',      name: 'ROCK ANTENNE Heavy Metal', genre: 'Metal', url: 'https://stream.rockantenne.de/heavy-metal/stream/mp3' },
   { id: 'st-bigfm-workout', name: 'bigFM Workout',      genre: 'Workout',     url: 'https://streams.bigfm.de/bigfm-workout-128-mp3' },
   { id: 'st-sunshine',      name: 'sunshine live',      genre: 'Dance/Electro', url: 'https://stream.sunshine-live.de/live/mp3-192/' },
   { id: 'st-technobase',    name: 'TechnoBase.FM',      genre: 'Techno',      url: 'https://listen.technobase.fm/tunein-mp3' },
-  { id: 'st-rockantenne',   name: 'ROCK ANTENNE',       genre: 'Rock',        url: 'https://stream.rockantenne.de/rockantenne/stream/mp3' },
-  { id: 'st-ra-metal',      name: 'ROCK ANTENNE Heavy Metal', genre: 'Metal', url: 'https://stream.rockantenne.de/heavy-metal/stream/mp3' },
   { id: 'st-bigfm',         name: 'bigFM',              genre: 'Hip-Hop',     url: 'https://streams.bigfm.de/bigfm-deutschland-128-mp3' },
   { id: 'st-soma-defcon',   name: 'SomaFM DEF CON',     genre: 'Electro/Industrial', url: 'https://ice1.somafm.com/defcon-128-mp3', np: 'defcon' },
   { id: 'st-soma-trip',     name: 'SomaFM The Trip',    genre: 'Prog House',  url: 'https://ice1.somafm.com/thetrip-128-mp3', np: 'thetrip' },
@@ -115,7 +116,7 @@ export function uid(prefix = 'set') {
 // kommen sie nicht zurück.
 export function ensureDefaultsSeeded() {
   const applied = safeParse(localStorage.getItem(SEED_KEY), []);
-  if (applied.includes('content-v2')) return;
+  if (applied.includes('content-v3')) return;
 
   // Fehlende Zirkel-Stationen zur Übungs-Bibliothek hinzufügen (eigene behalten).
   const exercises = loadExercises();
@@ -129,11 +130,13 @@ export function ensureDefaultsSeeded() {
   });
   if (exChanged) saveExercises(exercises);
 
-  // Kuratierte Sets (3× Freeletics + Zirkel) und Power-Sender setzen.
-  saveSets(DEFAULT_SETS.map((s) => ({ ...s, exercises: [...s.exercises] })));
+  // Kuratierte Sets nur beim Erststart setzen (vorhandene nicht überschreiben).
+  if (!applied.includes('content-v2')) {
+    saveSets(DEFAULT_SETS.map((s) => ({ ...s, exercises: [...s.exercises] })));
+  }
+  // Power-Sender (ROCK ANTENNE zuerst) setzen/aktualisieren.
   saveStations(DEFAULT_STATIONS.map((s) => ({ ...s })));
 
-  if (!applied.includes('zirkel-v1')) applied.push('zirkel-v1');
-  applied.push('content-v2');
+  ['zirkel-v1', 'content-v2', 'content-v3'].forEach((k) => { if (!applied.includes(k)) applied.push(k); });
   localStorage.setItem(SEED_KEY, JSON.stringify(applied));
 }

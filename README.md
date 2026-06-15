@@ -67,8 +67,14 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   - **Spotify** (optional): läuft im Browser mit, steuerbar aus der App
     (Play/Pause/Weiter/Zurück). Benötigt Spotify Premium und eine eigene
     Client-ID (Einrichtung im Musik-Tab beschrieben).
-  Beide werden bei Sprachansagen automatisch leiser (während des Countdowns
-  durchgehend).
+  Beide werden bei Sprachansagen automatisch **sanft (≈0,5 s) leiser geblendet**
+  und danach wieder hoch (während des Countdowns durchgehend leise). **ROCK
+  ANTENNE** ist das Standard-Internetradio.
+
+## Credits
+
+Applaus-Sound: „Applause i" von Wikimedia Commons (**Public Domain**), gekürzt
+und nach WAV konvertiert (`assets/audio/applause.wav`).
 - **Teilen & Sichern**: Übungen, Sets, Sender und Einstellungen als
   **komprimierten Link** teilen (Kollege öffnet ihn → Import per Klick) oder
   als **JSON-Datei** exportieren/importieren. Läuft komplett ohne Server.

@@ -2,6 +2,13 @@
 // Erfordert Spotify Premium und eine eigene Client-ID (Spotify Developer Dashboard).
 // Läuft komplett im Browser ohne Server.
 
+// Optional fest eingebaute Client-ID: Ist sie gesetzt, müssen Nutzer KEINEN
+// Key mehr eingeben – sie klicken nur noch „Mit Spotify verbinden“ und melden
+// sich mit ihrem Account an. Leer = manueller Modus (jeder trägt eigene ID ein).
+// Spotify erlaubt keinen Zugriff ohne registrierte App/Client-ID – diese eine
+// ID muss also einmalig im Spotify Developer Dashboard angelegt werden.
+export const DEFAULT_CLIENT_ID = '';
+
 const SCOPES = [
   'streaming',
   'user-read-email',
@@ -51,10 +58,14 @@ export class Spotify {
   }
 
   get clientId() {
-    return localStorage.getItem(LS.clientId) || '';
+    return DEFAULT_CLIENT_ID || localStorage.getItem(LS.clientId) || '';
   }
   set clientId(v) {
-    localStorage.setItem(LS.clientId, v.trim());
+    localStorage.setItem(LS.clientId, (v || '').trim());
+  }
+  // true, wenn eine Client-ID fest eingebaut ist → „ohne Key“-Modus (nur Login).
+  get keyless() {
+    return !!DEFAULT_CLIENT_ID;
   }
 
   get redirectUri() {
@@ -235,20 +246,34 @@ export class Spotify {
     await this.player.previousTrack();
   }
 
-  // Macht Spotify während einer Ansage leiser und stellt danach wieder her.
+  // Lautstärke weich über ~0,5 s faden (statt schlagartig).
+  _fadeVol(target, ms = 500) {
+    if (!this.player) return;
+    if (this._fadeTimer) clearInterval(this._fadeTimer);
+    this.player.getVolume().then((start) => {
+      const steps = Math.max(1, Math.round(ms / 60));
+      let i = 0;
+      this._fadeTimer = setInterval(() => {
+        i += 1;
+        const v = start + (target - start) * (i / steps);
+        this.player.setVolume(Math.max(0, Math.min(1, v))).catch(() => {});
+        if (i >= steps) { clearInterval(this._fadeTimer); this._fadeTimer = null; }
+      }, 60);
+    }).catch(() => {});
+  }
+
+  // Macht Spotify während einer Ansage sanft leiser und stellt danach wieder her.
   async duck() {
     if (!this.player) return;
     try {
-      const v = await this.player.getVolume();
-      if (this._duckRestore == null) this._duckRestore = v;
-      await this.player.setVolume(Math.min(v, 0.15));
+      if (this._duckRestore == null) this._duckRestore = await this.player.getVolume();
+      this._fadeVol(Math.min(this._duckRestore, 0.15), 500);
     } catch {}
   }
   async unduck() {
     if (!this.player || this._duckRestore == null) return;
-    try {
-      await this.player.setVolume(this._duckRestore);
-    } catch {}
+    const target = this._duckRestore;
     this._duckRestore = null;
+    this._fadeVol(target, 500);
   }
 }

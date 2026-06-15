@@ -523,12 +523,13 @@ function renderSpotify() {
   $('#redirect-uri').textContent = spotify.redirectUri;
   const panel = $('#spotify-panel');
   const connected = spotify.isConnected();
+  const keyless = spotify.keyless; // ID fest eingebaut → kein Key-Feld nötig
   panel.innerHTML = `
     <div class="sp-row">
-      <input id="sp-client" placeholder="Spotify Client ID" value="${escapeHtml(spotify.clientId)}" />
+      ${keyless ? '' : `<input id="sp-client" placeholder="Spotify Client ID" value="${escapeHtml(spotify.clientId)}" />`}
       ${connected
         ? '<button class="btn btn-danger" id="sp-logout">Trennen</button>'
-        : '<button class="btn btn-primary" id="sp-connect">Verbinden</button>'}
+        : `<button class="btn btn-primary" id="sp-connect">${keyless ? '▶ Mit Spotify verbinden' : 'Verbinden'}</button>`}
     </div>
     <p class="muted small"><span class="status-dot ${connected ? 'on' : ''}"></span>${connected ? 'Verbunden' : 'Nicht verbunden'}</p>
     <div class="sp-now" id="sp-now"></div>
@@ -541,7 +542,7 @@ function renderSpotify() {
   $('#sp-client')?.addEventListener('change', (e) => (spotify.clientId = e.target.value));
   $('#sp-connect')?.addEventListener('click', async () => {
     try {
-      spotify.clientId = $('#sp-client').value;
+      if (!keyless && $('#sp-client')) spotify.clientId = $('#sp-client').value;
       await spotify.login();
     } catch (err) {
       alert(err.message);

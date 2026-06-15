@@ -47,6 +47,42 @@ export function initAudio() {
   }
   if (ctx && ctx.state === 'suspended') ctx.resume();
   loadVoices();
+  unlockApplause();
+}
+
+// Echte (gemeinfreie) Applaus-Datei. Wird über ein HTML-Audio-Element gespielt
+// und beim ersten Tippen „freigeschaltet“ (wichtig für iOS).
+let applauseEl = null;
+function ensureApplause() {
+  if (!applauseEl && typeof Audio !== 'undefined') {
+    applauseEl = new Audio('assets/audio/applause.wav');
+    applauseEl.preload = 'auto';
+    applauseEl.volume = 0.9;
+  }
+  return applauseEl;
+}
+function unlockApplause() {
+  const a = ensureApplause();
+  if (!a || a._unlocked) return;
+  a.muted = true;
+  const pr = a.play();
+  if (pr && pr.then) {
+    pr.then(() => { a.pause(); a.currentTime = 0; a.muted = false; a._unlocked = true; })
+      .catch(() => { a.muted = false; });
+  }
+}
+function playApplauseFile() {
+  const a = ensureApplause();
+  if (!a) return false;
+  try {
+    a.muted = false;
+    a.currentTime = 0;
+    const pr = a.play();
+    if (pr && pr.catch) pr.catch(() => applauseSynth());
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // Stimmen laden, ohne AudioContext anzulegen (z. B. schon beim Seitenstart,
@@ -148,11 +184,15 @@ export const sound = {
     tone({ freq: 880, duration: 0.2, when: 0.2 });
     tone({ freq: 1180, duration: 0.4, when: 0.4 });
   },
-  // Applaus & Jubel: viele einzelne, scharfe Klatscher (statt durchgehendem
-  // Rauschen) ergeben einen realistischen Publikums-Applaus, dazu ein paar
-  // Jubel-Rufe. Wird live in einen Stereo-Puffer synthetisiert.
+  // Applaus: echte (gemeinfreie) Datei bevorzugt, synthetisch als Fallback.
   applause: () => {
-    if (!ctx) return;
+    if (!playApplauseFile()) applauseSynth();
+  },
+};
+
+// Synthetischer Applaus (Fallback): viele einzelne Klatscher + Jubel-Rufe.
+function applauseSynth() {
+  if (!ctx) return;
     const t0 = ctx.currentTime;
     const sr = ctx.sampleRate;
     const duration = 3.4;
@@ -212,8 +252,7 @@ export const sound = {
       o.connect(lp).connect(g2).connect(ctx.destination);
       o.start(st); o.stop(st + 0.5);
     });
-  },
-};
+}
 
 let onSpeakStart = null;
 let onSpeakEnd = null;

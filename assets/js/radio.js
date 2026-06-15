@@ -80,15 +80,29 @@ export class Radio {
     else this.play(station);
   }
 
-  // Bei Ansagen leiser machen und danach wiederherstellen.
+  // Lautstärke weich über ~0,5 s faden (statt schlagartig).
+  _fadeTo(target, ms = 500) {
+    if (this._fadeRaf) cancelAnimationFrame(this._fadeRaf);
+    const start = this.audio.volume;
+    const t0 = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / ms);
+      this.audio.volume = Math.max(0, Math.min(1, start + (target - start) * k));
+      this._fadeRaf = k < 1 ? requestAnimationFrame(step) : null;
+    };
+    this._fadeRaf = requestAnimationFrame(step);
+  }
+
+  // Bei Ansagen sanft leiser machen und danach wieder hochfaden.
   duck() {
     if (this._duckRestore == null) this._duckRestore = this.audio.volume;
-    this.audio.volume = Math.min(this.audio.volume, 0.12);
+    this._fadeTo(Math.min(this._duckRestore, 0.12), 500);
   }
   unduck() {
     if (this._duckRestore == null) return;
-    this.audio.volume = this._duckRestore;
+    const target = this._duckRestore;
     this._duckRestore = null;
+    this._fadeTo(target, 500);
   }
 
   setVolume(v) {
