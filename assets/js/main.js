@@ -808,6 +808,7 @@ async function startWorkout() {
   engine.h = runnerHandlers(steps);
 
   $('#runner').hidden = false;
+  pauseHeaderLoop(); // Logo-Schleife während des Workouts ruhen lassen
   requestWakeLock();
   engine.start();
 }
@@ -930,6 +931,7 @@ function stopRunner() {
   radio.unduck();
   releaseWakeLock();
   $('#runner').hidden = true;
+  resumeHeaderLoop(); // Logo-Schleife wieder aufnehmen
 }
 
 // Runner-Steuerung
@@ -1039,6 +1041,9 @@ function releaseWakeLock() {
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && !$('#runner').hidden && engine.running) requestWakeLock();
+  // Kopf-Logo-Schleife pausieren, wenn der Tab im Hintergrund ist (Akku/Performance).
+  if (document.hidden) pauseHeaderLoop();
+  else resumeHeaderLoop();
 });
 
 // ---------------- Helpers ----------------
@@ -1046,16 +1051,48 @@ function escapeHtml(str = '') {
   return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-// ---------------- Intro-Splash (Gooey-Morph) ----------------
+// ---------------- Logo-Animation (Gooey-Morph) ----------------
+const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const HEAD_LOOP = { duration: 2000, dwellA: 4200, dwellB: 2600 };
+let headerMorph = null;
+
+// Dauerhafter Ping-Pong im Kopfzeilen-Logo (pixletics ↔ workout timer).
+function startHeaderLoop() {
+  if (reducedMotion) return;
+  const stage = $('#brand-morph');
+  if (!stage) return;
+  if (!headerMorph) {
+    headerMorph = new GooeyMorph({
+      stage,
+      layerA: $('#brand-a'),
+      layerB: $('#brand-b'),
+      blur: document.querySelector('#goo-head feGaussianBlur'),
+      matrix: document.querySelector('#goo-head feColorMatrix'),
+      disp: document.querySelector('#goo-head feDisplacementMap'),
+      filterId: 'goo-head',
+      maxBlur: 6, gooStd: 3.4,
+      threshBase: 12, threshAmp: 14, offBase: -4, offAmp: -5,
+      dispBase: 1.1, dispAmp: 2.4, keepFilter: true,
+    });
+  }
+  headerMorph.loop(HEAD_LOOP);
+}
+function pauseHeaderLoop() {
+  headerMorph?.stopLoop();
+}
+function resumeHeaderLoop() {
+  if (headerMorph && !document.hidden && $('#runner')?.hidden) headerMorph.loop(HEAD_LOOP);
+}
+
+// Intro-Splash: Gooey-Ping-Pong pixletics → workout timer → pixletics, dann App.
 function initSplash() {
   const splash = $('#splash');
-  if (!splash) return;
   const done = () => {
-    splash.classList.add('hide');
-    setTimeout(() => splash.remove(), 650);
+    splash?.classList.add('hide');
+    setTimeout(() => splash?.remove(), 650);
+    startHeaderLoop();
   };
-  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  if (reduced) {
+  if (!splash || reducedMotion) {
     done();
     return;
   }
@@ -1065,29 +1102,32 @@ function initSplash() {
     layerB: $('#splash-b'),
     blur: document.querySelector('#goo-splash feGaussianBlur'),
     matrix: document.querySelector('#goo-splash feColorMatrix'),
+    disp: document.querySelector('#goo-splash feDisplacementMap'),
     filterId: 'goo-splash',
-    maxBlur: 26,
-    gooStd: 13,
+    maxBlur: 28, gooStd: 14,
+    threshBase: 20, threshAmp: 35, offBase: -9, offAmp: -12,
+    dispBase: 0, dispAmp: 9, keepFilter: false,
   });
   let finished = false;
-  const skip = () => {
+  const finish = () => {
     if (finished) return;
     finished = true;
     morph.stop();
     done();
   };
-  splash.addEventListener('click', skip);
+  splash.addEventListener('click', finish);
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   (async () => {
-    await wait(550);
+    await wait(500);
     if (finished) return;
-    await morph.morph(1450); // pixletics -> workout timer
+    await morph.morph(1900); // pixletics -> workout timer
     if (finished) return;
-    await wait(750);
-    if (!finished) {
-      finished = true;
-      done();
-    }
+    await wait(850);
+    if (finished) return;
+    await morph.morph(1700); // workout timer -> pixletics
+    if (finished) return;
+    await wait(350);
+    finish();
   })();
 }
 
