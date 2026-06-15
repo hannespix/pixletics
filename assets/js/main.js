@@ -1,0 +1,509 @@
+import { EXERCISES, EXERCISE_MAP } from './exercises.js';
+import { loadSets, saveSets, loadConfig, saveConfig, uid } from './store.js';
+import { initAudio, sound, speak, cancelSpeech, setSpeechHooks } from './audio.js';
+import { buildSchedule, WorkoutEngine, PHASE } from './engine.js';
+import { Spotify } from './spotify.js';
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+// ---------------- State ----------------
+let sets = loadSets();
+let config = loadConfig();
+let selectedSetIds = []; // Reihenfolge = Abspielreihenfolge
+let editorSetId = null;
+const spotify = new Spotify();
+const engine = new WorkoutEngine();
+let wakeLock = null;
+
+// ---------------- Tabs ----------------
+$$('#tabs .tab').forEach((tab) => {
+  tab.addEventListener('click', () => switchView(tab.dataset.view));
+});
+function switchView(view) {
+  $$('#tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.view === view));
+  $$('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${view}`));
+}
+
+// ================ TRAINING VIEW ================
+function renderPicker() {
+  const host = $('#set-picker');
+  host.innerHTML = '';
+  if (!sets.length) {
+    host.innerHTML = '<p class="muted">Noch keine Sets. Lege im Tab „Übungssets“ welche an.</p>';
+    return;
+  }
+  sets.forEach((set) => {
+    const order = selectedSetIds.indexOf(set.id);
+    const selected = order !== -1;
+    const item = document.createElement('div');
+    item.className = 'picker-item' + (selected ? ' selected' : '');
+    item.innerHTML = `
+      <div class="pi-check">${selected ? '✓' : ''}</div>
+      <div class="pi-body">
+        <div class="pi-name">${escapeHtml(set.name)}</div>
+        <div class="pi-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => EXERCISE_MAP[id]?.emoji || '').join(' ')}</div>
+      </div>
+      ${selected ? `<div class="order-badge">#${order + 1}</div>` : ''}`;
+    item.addEventListener('click', () => {
+      const idx = selectedSetIds.indexOf(set.id);
+      if (idx === -1) selectedSetIds.push(set.id);
+      else selectedSetIds.splice(idx, 1);
+      renderPicker();
+      updatePlanSummary();
+    });
+    host.appendChild(item);
+  });
+}
+
+function bindConfig() {
+  const map = {
+    'cfg-work': 'workSeconds',
+    'cfg-rest': 'restSeconds',
+    'cfg-prepare': 'prepareSeconds',
+    'cfg-total': 'totalMinutes',
+  };
+  for (const [id, key] of Object.entries(map)) {
+    const inp = $('#' + id);
+    inp.value = config[key];
+    inp.addEventListener('change', () => {
+      const v = Math.max(Number(inp.min), Math.min(Number(inp.max), Number(inp.value) || 0));
+      inp.value = v;
+      config[key] = v;
+      saveConfig(config);
+      updatePlanSummary();
+    });
+  }
+  const toggles = { 'cfg-voice': 'voice', 'cfg-beeps': 'beeps', 'cfg-duck': 'duckSpotify' };
+  for (const [id, key] of Object.entries(toggles)) {
+    const inp = $('#' + id);
+    inp.checked = config[key];
+    inp.addEventListener('change', () => {
+      config[key] = inp.checked;
+      saveConfig(config);
+    });
+  }
+}
+
+function selectedExerciseIds() {
+  return selectedSetIds.flatMap((id) => sets.find((s) => s.id === id)?.exercises || []);
+}
+
+function updatePlanSummary() {
+  const pool = selectedExerciseIds();
+  const cycle = config.prepareSeconds + config.workSeconds + config.restSeconds;
+  const rounds = Math.max(1, Math.floor((config.totalMinutes * 60) / cycle));
+  const el = $('#plan-summary');
+  if (!pool.length) {
+    el.textContent = 'Wähle oben mindestens ein Set aus.';
+    return;
+  }
+  el.textContent = `≈ ${rounds} Runden · ${pool.length} Übungen im Pool · ${config.totalMinutes} Min geplant`;
+}
+
+// ================ SETS VIEW ================
+function renderSetsList() {
+  const host = $('#sets-list');
+  host.innerHTML = '';
+  if (!sets.length) {
+    host.innerHTML = '<p class="muted">Noch keine Sets vorhanden.</p>';
+    return;
+  }
+  sets.forEach((set) => {
+    const row = document.createElement('div');
+    row.className = 'set-row';
+    row.innerHTML = `
+      <div>
+        <div class="sr-name">${escapeHtml(set.name)}</div>
+        <div class="sr-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => EXERCISE_MAP[id]?.name).filter(Boolean).join(', ') || '—'}</div>
+      </div>
+      <span class="icon-btn">✎</span>`;
+    row.addEventListener('click', () => openEditor(set.id));
+    host.appendChild(row);
+  });
+}
+
+$('#btn-new-set').addEventListener('click', () => {
+  const set = { id: uid(), name: 'Neues Set', exercises: [] };
+  sets.push(set);
+  saveSets(sets);
+  openEditor(set.id);
+});
+
+// ================ SET EDITOR ================
+function openEditor(setId) {
+  editorSetId = setId;
+  const set = sets.find((s) => s.id === setId);
+  if (!set) return;
+  $('#editor-name').value = set.name;
+  renderEditor();
+  $('#set-editor').hidden = false;
+}
+
+function currentSet() {
+  return sets.find((s) => s.id === editorSetId);
+}
+
+function renderEditor() {
+  const set = currentSet();
+  if (!set) return;
+  $('#chosen-count').textContent = `(${set.exercises.length})`;
+
+  // Gewählte Übungen (sortierbar)
+  const chosen = $('#chosen-list');
+  chosen.innerHTML = '';
+  set.exercises.forEach((exId) => {
+    const ex = EXERCISE_MAP[exId];
+    if (!ex) return;
+    const li = document.createElement('li');
+    li.className = 'ex-item';
+    li.dataset.id = exId;
+    li.innerHTML = `
+      <span class="handle" title="Ziehen zum Sortieren">⠿</span>
+      <span class="emoji">${ex.emoji}</span>
+      <span class="ex-name">${ex.name}<div class="ex-area">${ex.area}</div></span>
+      <button class="rm" title="Entfernen">✕</button>`;
+    li.querySelector('.rm').addEventListener('click', () => {
+      set.exercises = set.exercises.filter((id) => id !== exId);
+      saveSets(sets);
+      renderEditor();
+    });
+    chosen.appendChild(li);
+  });
+
+  // Bibliothek
+  const lib = $('#library-list');
+  lib.innerHTML = '';
+  EXERCISES.forEach((ex) => {
+    const inSet = set.exercises.includes(ex.id);
+    const li = document.createElement('li');
+    li.className = 'ex-item' + (inSet ? ' in-set' : '');
+    li.innerHTML = `
+      <span class="emoji">${ex.emoji}</span>
+      <span class="ex-name">${ex.name}<div class="ex-area">${ex.area}</div></span>
+      <span class="lib-check">${inSet ? '✓' : '＋'}</span>`;
+    li.addEventListener('click', () => {
+      if (set.exercises.includes(ex.id)) set.exercises = set.exercises.filter((id) => id !== ex.id);
+      else set.exercises.push(ex.id);
+      saveSets(sets);
+      renderEditor();
+    });
+    lib.appendChild(li);
+  });
+}
+
+// Drag & Drop Reihenfolge (zeiger-basiert, funktioniert mit Maus und Touch)
+function getDragAfter(listEl, y) {
+  const els = [...listEl.querySelectorAll('.ex-item:not(.dragging)')];
+  let closest = { offset: -Infinity, el: null };
+  for (const el of els) {
+    const box = el.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) closest = { offset, el };
+  }
+  return closest.el;
+}
+
+function setupSortable() {
+  const list = $('#chosen-list');
+  let dragging = null;
+  list.addEventListener('pointerdown', (e) => {
+    const handle = e.target.closest('.handle');
+    if (!handle) return;
+    dragging = handle.closest('.ex-item');
+    if (!dragging) return;
+    e.preventDefault();
+    dragging.classList.add('dragging');
+    dragging.setPointerCapture?.(e.pointerId);
+
+    const onMove = (ev) => {
+      const after = getDragAfter(list, ev.clientY);
+      if (after == null) list.appendChild(dragging);
+      else list.insertBefore(dragging, after);
+    };
+    const onUp = () => {
+      dragging.classList.remove('dragging');
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      // Reihenfolge aus DOM übernehmen
+      const set = currentSet();
+      if (set) {
+        set.exercises = [...list.querySelectorAll('.ex-item')].map((li) => li.dataset.id);
+        saveSets(sets);
+      }
+      dragging = null;
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  });
+}
+
+$('#editor-name').addEventListener('input', (e) => {
+  const set = currentSet();
+  if (set) {
+    set.name = e.target.value;
+    saveSets(sets);
+  }
+});
+$('#btn-save-set').addEventListener('click', closeEditor);
+$('#btn-close-editor').addEventListener('click', closeEditor);
+$('#btn-delete-set').addEventListener('click', () => {
+  if (!confirm('Dieses Set wirklich löschen?')) return;
+  sets = sets.filter((s) => s.id !== editorSetId);
+  selectedSetIds = selectedSetIds.filter((id) => id !== editorSetId);
+  saveSets(sets);
+  closeEditor();
+});
+function closeEditor() {
+  $('#set-editor').hidden = true;
+  editorSetId = null;
+  renderSetsList();
+  renderPicker();
+  updatePlanSummary();
+}
+
+// ================ SPOTIFY ================
+function renderSpotify() {
+  $('#redirect-uri').textContent = spotify.redirectUri;
+  const panel = $('#spotify-panel');
+  const connected = spotify.isConnected();
+  panel.innerHTML = `
+    <div class="sp-row">
+      <input id="sp-client" placeholder="Spotify Client ID" value="${escapeHtml(spotify.clientId)}" />
+      ${connected
+        ? '<button class="btn btn-danger" id="sp-logout">Trennen</button>'
+        : '<button class="btn btn-primary" id="sp-connect">Verbinden</button>'}
+    </div>
+    <p class="muted small"><span class="status-dot ${connected ? 'on' : ''}"></span>${connected ? 'Verbunden' : 'Nicht verbunden'}</p>
+    <div class="sp-now" id="sp-now"></div>
+    <div class="sp-controls" id="sp-controls" ${connected ? '' : 'hidden'}>
+      <button class="btn" id="sp-prev">⏮</button>
+      <button class="btn" id="sp-play">⏯</button>
+      <button class="btn" id="sp-next">⏭</button>
+    </div>`;
+
+  $('#sp-client')?.addEventListener('change', (e) => (spotify.clientId = e.target.value));
+  $('#sp-connect')?.addEventListener('click', async () => {
+    try {
+      spotify.clientId = $('#sp-client').value;
+      await spotify.login();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+  $('#sp-logout')?.addEventListener('click', () => {
+    spotify.logout();
+    renderSpotify();
+  });
+  $('#sp-prev')?.addEventListener('click', () => spotify.previous());
+  $('#sp-play')?.addEventListener('click', () => spotify.togglePlay());
+  $('#sp-next')?.addEventListener('click', () => spotify.next());
+
+  spotify.onState = (s) => renderNowPlaying(s);
+  if (connected && !spotify.player) spotify.initPlayer().catch(() => {});
+  if (spotify.state) renderNowPlaying(spotify.state);
+}
+
+function renderNowPlaying(state) {
+  const host = $('#sp-now');
+  if (!host) return;
+  const track = state?.track_window?.current_track;
+  if (!track) {
+    host.innerHTML = '<span class="muted small">Starte in der Spotify-App einen Song – er läuft dann hier weiter.</span>';
+    return;
+  }
+  host.innerHTML = `
+    <img src="${track.album?.images?.[0]?.url || ''}" alt="" />
+    <div>
+      <div style="font-weight:700">${escapeHtml(track.name)}</div>
+      <div class="muted small">${escapeHtml(track.artists?.map((a) => a.name).join(', ') || '')}</div>
+    </div>`;
+  // Runner-Anzeige aktualisieren
+  const rs = $('#runner-spotify');
+  if (rs && !$('#runner').hidden) rs.textContent = `🎵 ${track.name} – ${track.artists?.map((a) => a.name).join(', ')}`;
+}
+
+// ================ RUNNER ================
+async function startWorkout() {
+  initAudio();
+  const pool = selectedExerciseIds();
+  if (!pool.length) {
+    switchView('train');
+    alert('Bitte wähle mindestens ein Set mit Übungen aus.');
+    return;
+  }
+  const steps = buildSchedule(pool, config);
+  engine.load(steps);
+  engine.h = runnerHandlers(steps);
+
+  $('#runner').hidden = false;
+  requestWakeLock();
+  engine.start();
+}
+
+function fmtTime(ms) {
+  const total = Math.round(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function runnerHandlers(steps) {
+  const bg = $('#runner-bg');
+  return {
+    onPhase(step, index) {
+      const ex = EXERCISE_MAP[step.exId];
+      bg.className = 'runner-bg ' + step.phase;
+      $('#runner-round').textContent = `Runde ${step.round} / ${steps.totalRounds}`;
+
+      if (step.phase === PHASE.PREPARE) {
+        setPhaseUI('Bereit machen', ex, '⏱️');
+        if (config.voice) speak(`Nächste Runde: ${ex.name}`, { interrupt: true });
+        showNext(steps, index);
+      } else if (step.phase === PHASE.WORK) {
+        setPhaseUI('Los!', ex, '');
+        if (config.beeps) sound.start();
+        if (config.voice) speak('Los gehts', { interrupt: true });
+        $('#next-up').textContent = '';
+      } else if (step.phase === PHASE.REST) {
+        setPhaseUI('Pause', ex, '⏸️');
+        if (config.beeps) sound.rest();
+        if (config.voice) speak('Pause', { interrupt: true });
+        showNext(steps, index);
+      }
+    },
+    onSecond({ step, secondsLeft, duration }) {
+      if (step.phase === PHASE.WORK) {
+        if (secondsLeft === 30 && duration > 35) {
+          if (config.voice) speak('Noch 30 Sekunden');
+        }
+        if (secondsLeft <= 3 && config.beeps) sound.tick();
+        if (secondsLeft <= 3 && config.voice) speak(String(secondsLeft));
+      } else {
+        // prepare / rest: letzte 3 Sekunden ticken
+        if (secondsLeft <= 3 && config.beeps) sound.tick();
+        if (step.phase === PHASE.PREPARE && secondsLeft <= 3 && config.voice) speak(String(secondsLeft));
+      }
+    },
+    onTick({ step, remainingMs, secondsLeft, sessionRemaining }) {
+      const t = $('#big-timer');
+      const txt = String(secondsLeft).padStart(2, '0');
+      if (t.textContent !== txt) {
+        t.textContent = txt;
+        if (secondsLeft <= 5) {
+          t.classList.remove('pulse');
+          void t.offsetWidth;
+          t.classList.add('pulse');
+        }
+      }
+      $('#runner-session').textContent = `Noch ${fmtTime(sessionRemaining)}`;
+      const frac = 1 - sessionRemaining / (steps.totalSeconds * 1000);
+      $('#runner-progress-bar').style.width = `${Math.min(100, frac * 100)}%`;
+    },
+    onFinish() {
+      setPhaseUI('Geschafft! 🎉', null, '🏁');
+      $('#exercise-name').textContent = 'Sehr gut!';
+      $('#big-timer').textContent = '✓';
+      $('#exercise-cue').textContent = 'Workout abgeschlossen';
+      $('#next-up').textContent = '';
+      if (config.beeps) sound.done();
+      if (config.voice) speak('Geschafft! Sehr gut gemacht.', { interrupt: true });
+      releaseWakeLock();
+    },
+  };
+}
+
+function setPhaseUI(label, ex, icon) {
+  $('#phase-label').textContent = label;
+  $('#exercise-name').textContent = ex ? `${ex.emoji} ${ex.name}` : '';
+  $('#exercise-cue').textContent = ex ? ex.cue : '';
+  $('#phase-icon').textContent = icon || '';
+}
+
+function showNext(steps, index) {
+  // Nächste WORK-Phase finden
+  for (let i = index + 1; i < steps.length; i++) {
+    if (steps[i].phase === PHASE.WORK) {
+      const ex = EXERCISE_MAP[steps[i].exId];
+      $('#next-up').textContent = ex ? `Danach: ${ex.emoji} ${ex.name}` : '';
+      return;
+    }
+  }
+  $('#next-up').textContent = 'Letzte Übung – Endspurt!';
+}
+
+function stopRunner() {
+  engine.stop();
+  cancelSpeech();
+  spotify.unduck();
+  releaseWakeLock();
+  $('#runner').hidden = true;
+}
+
+// Runner-Steuerung
+$('#btn-start').addEventListener('click', startWorkout);
+$('#btn-close-runner').addEventListener('click', stopRunner);
+$('#btn-skip').addEventListener('click', () => engine.skip());
+$('#btn-pause').addEventListener('click', () => {
+  engine.toggle();
+  $('#btn-pause').textContent = engine.paused ? '▶' : '⏸';
+  if (engine.paused) cancelSpeech();
+});
+$('#btn-prev-track').addEventListener('click', () => spotify.previous());
+$('#btn-next-track').addEventListener('click', () => spotify.next());
+
+// ---------------- Sprachansage duckt Spotify ----------------
+setSpeechHooks({
+  start: () => {
+    if (config.duckSpotify && spotify.ready) spotify.duck();
+  },
+  end: () => {
+    if (config.duckSpotify && spotify.ready) spotify.unduck();
+  },
+});
+
+// ---------------- Wake Lock (Bildschirm an) ----------------
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+  } catch {}
+}
+function releaseWakeLock() {
+  try {
+    wakeLock?.release();
+  } catch {}
+  wakeLock = null;
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && !$('#runner').hidden && engine.running) requestWakeLock();
+});
+
+// ---------------- Helpers ----------------
+function escapeHtml(str = '') {
+  return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// ---------------- Init ----------------
+async function init() {
+  bindConfig();
+  renderPicker();
+  renderSetsList();
+  setupSortable();
+  updatePlanSummary();
+  renderSpotify();
+
+  // Spotify-Redirect verarbeiten (falls wir gerade von Spotify zurückkommen)
+  try {
+    if (await spotify.handleRedirect()) {
+      switchView('spotify');
+      await spotify.initPlayer();
+      renderSpotify();
+    }
+  } catch (err) {
+    console.warn(err);
+  }
+  // AudioContext bei erster Interaktion freischalten
+  document.body.addEventListener('pointerdown', () => initAudio(), { once: true });
+}
+
+init();
