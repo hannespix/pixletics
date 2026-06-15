@@ -1,10 +1,11 @@
 // Persistenz über localStorage: Übungen, Übungssets und Einstellungen.
-import { DEFAULT_SETS, DEFAULT_EXERCISES, DEFAULT_REPS } from './exercises.js';
+import { DEFAULT_SETS, DEFAULT_EXERCISES, DEFAULT_REPS, CIRCUIT_EXERCISES, CIRCUIT_SET } from './exercises.js';
 
 const SETS_KEY = 'freeletics.sets.v2';
 const CONFIG_KEY = 'freeletics.config.v2';
 const EXERCISES_KEY = 'freeletics.exercises.v1';
 const STATIONS_KEY = 'freeletics.stations.v1';
+const SEED_KEY = 'freeletics.seed.v1';
 
 // Kuratierte Radio-Sender (alle HTTPS-Direktstreams, werbefrei/werbearm).
 // Nutzer können eigene Sender hinzufügen/bearbeiten.
@@ -102,4 +103,36 @@ export function saveConfig(config) {
 
 export function uid(prefix = 'set') {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+// ---------------- Einmalige Migrationen ----------------
+// Fügt neu hinzugekommene Standard-Inhalte (z. B. das Zirkeltraining) einmalig
+// auch bei Bestandsnutzern hinzu, ohne deren eigene Übungen/Sets zu verändern.
+// Jede Migration läuft nur einmal – löscht der Nutzer Inhalte später wieder,
+// kommen sie nicht zurück.
+export function ensureDefaultsSeeded() {
+  const applied = safeParse(localStorage.getItem(SEED_KEY), []);
+  if (applied.includes('zirkel-v1')) return;
+
+  // Fehlende Zirkel-Stationen zur Bibliothek hinzufügen.
+  const exercises = loadExercises();
+  const have = new Set(exercises.map((e) => e.id));
+  let exChanged = false;
+  CIRCUIT_EXERCISES.forEach((e) => {
+    if (!have.has(e.id)) {
+      exercises.push({ ...e });
+      exChanged = true;
+    }
+  });
+  if (exChanged) saveExercises(exercises);
+
+  // Zirkel-Set anlegen, falls nicht vorhanden.
+  const sets = loadSets();
+  if (!sets.some((s) => s.id === CIRCUIT_SET.id)) {
+    sets.push({ ...CIRCUIT_SET, exercises: [...CIRCUIT_SET.exercises] });
+    saveSets(sets);
+  }
+
+  applied.push('zirkel-v1');
+  localStorage.setItem(SEED_KEY, JSON.stringify(applied));
 }

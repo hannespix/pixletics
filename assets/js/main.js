@@ -2,6 +2,7 @@ import { DEFAULT_REPS } from './exercises.js';
 import {
   loadSets, saveSets, loadConfig, saveConfig,
   loadExercises, saveExercises, loadStations, saveStations, uid,
+  ensureDefaultsSeeded,
 } from './store.js';
 import {
   initAudio, sound, speak, cancelSpeech, setSpeechHooks,
@@ -17,6 +18,7 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 // ---------------- State ----------------
+ensureDefaultsSeeded();                   // neue Standard-Inhalte (Zirkel) nachziehen
 let exercises = loadExercises();          // editierbare Übungs-Bibliothek
 let exerciseMap = {};                      // id -> Übung (zur Laufzeit)
 let sets = loadSets();
@@ -237,7 +239,14 @@ function selectedExercises() {
     .map((exId) => ({ exId, reps: exerciseMap[exId].reps || DEFAULT_REPS }));
 }
 
+function updateSettingsSummary() {
+  const el = $('#settings-summary');
+  if (!el) return;
+  el.textContent = `${config.workSeconds}/${config.restSeconds}s · ${config.totalMinutes}min`;
+}
+
 function updatePlanSummary() {
+  updateSettingsSummary();
   const pool = selectedExerciseIds();
   const cycle = config.prepareSeconds + config.workSeconds + config.restSeconds;
   const rounds = Math.max(1, Math.floor((config.totalMinutes * 60) / cycle));
@@ -560,7 +569,7 @@ function renderNowPlaying(state) {
   if (!host) return;
   const track = state?.track_window?.current_track;
   if (!track) {
-    host.innerHTML = '<span class="muted small">Tippe einmal auf ⏯, dann starte in der Spotify-App einen Song und wähle dort als Gerät „Freeletics Timer“. Er läuft dann hier weiter.</span>';
+    host.innerHTML = '<span class="muted small">Tippe einmal auf ⏯, dann starte in der Spotify-App einen Song und wähle dort als Gerät „pixletics“. Er läuft dann hier weiter.</span>';
     return;
   }
   host.innerHTML = `
@@ -746,7 +755,7 @@ function exportFile() {
   const blob = new Blob([JSON.stringify(gatherShareData(), null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'freeletics-timer-konfiguration.json';
+  a.download = 'pixletics-konfiguration.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
@@ -988,6 +997,32 @@ $('#btn-radio-toggle').addEventListener('click', () => {
 $('#btn-share-link').addEventListener('click', createShareLink);
 $('#btn-export').addEventListener('click', exportFile);
 $('#import-file').addEventListener('change', (e) => importFile(e.target.files[0]));
+
+// ---------------- Vollbild ----------------
+const fsSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+function toggleFullscreen() {
+  const el = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+  }
+}
+function updateFsButtons() {
+  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  $('#btn-fullscreen')?.classList.toggle('active', on);
+  $('#btn-fs-runner')?.classList.toggle('active', on);
+}
+if (!fsSupported) {
+  // Vollbild-API nicht verfügbar (z. B. iOS Safari) – Schalter ausblenden.
+  if ($('#btn-fullscreen')) $('#btn-fullscreen').hidden = true;
+  if ($('#btn-fs-runner')) $('#btn-fs-runner').hidden = true;
+} else {
+  $('#btn-fullscreen')?.addEventListener('click', toggleFullscreen);
+  $('#btn-fs-runner')?.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', updateFsButtons);
+  document.addEventListener('webkitfullscreenchange', updateFsButtons);
+}
 
 // ---------------- Wake Lock (Bildschirm an) ----------------
 async function requestWakeLock() {

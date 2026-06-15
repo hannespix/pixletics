@@ -127,32 +127,79 @@ export const sound = {
     tone({ freq: 880, duration: 0.2, when: 0.2 });
     tone({ freq: 1180, duration: 0.4, when: 0.4 });
   },
-  // Applaus: gefiltertes Rauschen mit an-/abschwellender Hüllkurve,
-  // klingt wie ein klatschendes Publikum.
+  // Applaus & Jubel: klatschendes Publikum + Mengen-„Aaah“ + ein paar
+  // aufsteigende Jubel-Pfiffe – klingt wie eine feiernde Menge.
   applause: () => {
     if (!ctx) return;
     const t0 = ctx.currentTime;
-    const duration = 2.4;
-    const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) {
-      // Sporadische Spitzen erzeugen einzelne „Klatscher“ im Rauschen.
-      data[i] = (Math.random() * 2 - 1) * (Math.random() < 0.35 ? 1 : 0.25);
-    }
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 1700;
-    filter.Q.value = 0.6;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.4, t0 + 0.2);   // schnell anschwellen
-    g.gain.setValueAtTime(0.4, t0 + 1.3);                 // halten
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration); // ausklingen
-    src.connect(filter).connect(g).connect(ctx.destination);
-    src.start(t0);
-    src.stop(t0 + duration);
+    const duration = 2.8;
+
+    // Rausch-Puffer-Helfer
+    const makeNoise = (peakProb = null) => {
+      const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) {
+        d[i] = peakProb == null
+          ? Math.random() * 2 - 1
+          : (Math.random() * 2 - 1) * (Math.random() < peakProb ? 1 : 0.22);
+      }
+      return buf;
+    };
+
+    // 1) Klatschen: gefiltertes Rauschen mit einzelnen „Klatschern“.
+    const clap = ctx.createBufferSource();
+    clap.buffer = makeNoise(0.35);
+    const clapFilter = ctx.createBiquadFilter();
+    clapFilter.type = 'bandpass';
+    clapFilter.frequency.value = 1800;
+    clapFilter.Q.value = 0.6;
+    const clapGain = ctx.createGain();
+    clapGain.gain.setValueAtTime(0.0001, t0);
+    clapGain.gain.exponentialRampToValueAtTime(0.4, t0 + 0.2);
+    clapGain.gain.setValueAtTime(0.4, t0 + 1.7);
+    clapGain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    clap.connect(clapFilter).connect(clapGain).connect(ctx.destination);
+    clap.start(t0); clap.stop(t0 + duration);
+
+    // 2) Jubel-Teppich: tieferes, rauschiges „Aaah“ der Menge mit lebendiger
+    //    Filterbewegung.
+    const roar = ctx.createBufferSource();
+    roar.buffer = makeNoise();
+    const roarFilter = ctx.createBiquadFilter();
+    roarFilter.type = 'bandpass';
+    roarFilter.frequency.setValueAtTime(700, t0);
+    roarFilter.frequency.linearRampToValueAtTime(920, t0 + 1.2);
+    roarFilter.frequency.linearRampToValueAtTime(650, t0 + 2.4);
+    roarFilter.Q.value = 0.8;
+    const roarGain = ctx.createGain();
+    roarGain.gain.setValueAtTime(0.0001, t0);
+    roarGain.gain.exponentialRampToValueAtTime(0.26, t0 + 0.4);
+    roarGain.gain.setValueAtTime(0.26, t0 + 1.9);
+    roarGain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    roar.connect(roarFilter).connect(roarGain).connect(ctx.destination);
+    roar.start(t0); roar.stop(t0 + duration);
+
+    // 3) Jubel-Pfiffe: ein paar versetzte, aufsteigende „Woo!“-Töne.
+    const whoops = [
+      { f0: 520, f1: 880,  t: 0.10 },
+      { f0: 600, f1: 1040, t: 0.55 },
+      { f0: 470, f1: 820,  t: 1.15 },
+      { f0: 660, f1: 1160, t: 1.70 },
+    ];
+    whoops.forEach(({ f0, f1, t }) => {
+      const st = t0 + t;
+      const o = ctx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f0, st);
+      o.frequency.exponentialRampToValueAtTime(f1, st + 0.18);
+      o.frequency.exponentialRampToValueAtTime(f0 * 0.9, st + 0.36);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, st);
+      g.gain.exponentialRampToValueAtTime(0.13, st + 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, st + 0.42);
+      o.connect(g).connect(ctx.destination);
+      o.start(st); o.stop(st + 0.46);
+    });
   },
 };
 

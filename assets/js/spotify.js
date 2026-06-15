@@ -174,7 +174,7 @@ export class Spotify {
     await this._loadSdk();
     return new Promise((resolve) => {
       this.player = new window.Spotify.Player({
-        name: 'Freeletics Timer',
+        name: 'pixletics',
         getOAuthToken: (cb) => this.getAccessToken().then((t) => cb(t)),
         volume: 0.6,
       });

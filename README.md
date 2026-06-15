@@ -1,6 +1,6 @@
-# Freeletics Timer
+# pixletics
 
-Ein browser-basierter Intervall-Timer für Freeletics-/Bodyweight-Workouts.
+Ein browser-basierter Intervall-Timer für Bodyweight- und Zirkeltraining.
 Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
 **https://hannespix.github.io/pixletics/**.
 
@@ -29,6 +29,11 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   per **Drag & Drop** (Maus oder Touch) in die gewünschte Reihenfolge bringen.
   Beim Training lassen sich mehrere Sets auswählen, die nacheinander
   abgespielt werden.
+- **Zirkeltraining**: Vorgefertigtes Set mit **15 Stationen** (Seilspringen,
+  Pendellauf, Rollbrett, Ringe, Bank, Sprossenwand, Kettlebell, Battle Ropes
+  u. v. m.) – jede Station wird pro Runde einmal „im Kreis“ absolviert.
+- **Vollbild**: Umschalter in der Kopfzeile und im Workout-Screen (sofern der
+  Browser die Fullscreen-API unterstützt).
 - **Sprachansagen** (deutsche Sprachausgabe) und **Signaltöne** – einzeln
   abschaltbar.
 - **Stimme & Coach** (im Training-Tab): wählbare **Coach-Charaktere** mit
