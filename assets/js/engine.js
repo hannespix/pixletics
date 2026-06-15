@@ -3,24 +3,25 @@
 
 export const PHASE = { PREPARE: 'prepare', WORK: 'work', REST: 'rest', DONE: 'done' };
 
-// Baut die Schrittliste. Jede Übung wird zunächst `repeatsPerExercise`-mal
-// hintereinander ausgeführt, danach folgt die nächste Übung. Diese Sequenz wird
-// in Reihenfolge durchlaufen und so oft wiederholt, bis die Gesamtdauer
+// Baut die Schrittliste. Jede Übung wird gemäß ihrer eigenen Wiederholungszahl
+// (`reps`) mehrfach hintereinander ausgeführt, danach folgt die nächste Übung.
+// Diese Sequenz wird durchlaufen und so oft wiederholt, bis die Gesamtdauer
 // (totalMinutes) erreicht ist.
-export function buildSchedule(exerciseIds, config) {
+// `items` ist ein Array aus { exId, reps }.
+export function buildSchedule(items, config) {
   const { workSeconds, restSeconds, prepareSeconds, totalMinutes } = config;
-  const repeats = Math.max(1, config.repeatsPerExercise || 1);
   const cycle = prepareSeconds + workSeconds + restSeconds;
   const totalSeconds = totalMinutes * 60;
   const maxRounds = Math.max(1, Math.floor(totalSeconds / cycle));
   const steps = [];
-  if (!exerciseIds.length) return steps;
+  if (!items.length) return steps;
 
-  // Jede Übung mit ihren Wiederholungen zu einer Sequenz aufblähen,
-  // z. B. [A, A, B, B, …] bei 2 Wiederholungen pro Übung.
+  // Jede Übung gemäß ihrer Wiederholungen aufblähen,
+  // z. B. [A, A, A, B, B, B, B, …] bei 3 bzw. 4 Wiederholungen.
   const sequence = [];
-  for (const exId of exerciseIds) {
-    for (let r = 0; r < repeats; r++) sequence.push({ exId, rep: r + 1, repsTotal: repeats });
+  for (const it of items) {
+    const reps = Math.max(1, it.reps || 1);
+    for (let r = 0; r < reps; r++) sequence.push({ exId: it.exId, rep: r + 1, repsTotal: reps });
   }
 
   for (let i = 0; i < maxRounds; i++) {

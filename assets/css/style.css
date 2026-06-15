@@ -107,6 +107,25 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .set-row:hover { border-color: #475066; }
 .set-row .sr-name { font-weight: 700; }
 .set-row .sr-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.set-row .ex-row-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.set-row .ex-row-main .emoji { font-size: 22px; flex: none; }
+.set-row .ex-row-end { display: flex; align-items: center; gap: 10px; flex: none; }
+
+/* Wiederholungs-Badge (×3, ×4 …) */
+.reps-badge {
+  font-size: 12px; font-weight: 700; color: var(--accent); flex: none;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid #3a4256;
+  border-radius: 999px; padding: 2px 8px;
+}
+
+/* Übungs-Editor-Formular */
+.ex-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.ex-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.ex-form input {
+  background: var(--bg-2); border: 1px solid #313847; color: var(--text);
+  font-size: 15px; padding: 10px 12px; border-radius: 10px;
+}
+.ex-form .ex-form-cue { grid-column: 1 / -1; }
 
 /* ---------- Modal / Editor ---------- */
 .modal {
@@ -209,4 +228,5 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 @media (max-width: 560px) {
   .editor-cols { grid-template-columns: 1fr; }
   .settings-grid { grid-template-columns: 1fr 1fr; }
+  .ex-form { grid-template-columns: 1fr 1fr; }
 }

@@ -15,6 +15,7 @@
     <nav class="tabs" id="tabs">
       <button class="tab active" data-view="train">Training</button>
       <button class="tab" data-view="sets">Übungssets</button>
+      <button class="tab" data-view="exercises">Übungen</button>
       <button class="tab" data-view="spotify">Spotify</button>
     </nav>
   </header>
@@ -33,7 +34,6 @@
         <div class="settings-grid">
           <label>Übung (Sek.)<input type="number" id="cfg-work" min="5" max="300" step="5" /></label>
           <label>Pause (Sek.)<input type="number" id="cfg-rest" min="0" max="180" step="5" /></label>
-          <label>Wdh. pro Übung<input type="number" id="cfg-repeats" min="1" max="10" step="1" /></label>
           <label>Vorbereitung (Sek.)<input type="number" id="cfg-prepare" min="0" max="30" step="1" /></label>
           <label>Gesamtdauer (Min.)<input type="number" id="cfg-total" min="1" max="120" step="1" /></label>
         </div>
@@ -57,6 +57,18 @@
         </div>
         <p class="muted">Tippe auf ein Set zum Bearbeiten. Hake die gewünschten Übungen an und ziehe sie per Drag &amp; Drop in die richtige Reihenfolge.</p>
         <div id="sets-list" class="sets-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ ÜBUNGEN ============ -->
+    <section class="view" id="view-exercises">
+      <div class="card">
+        <div class="row-between">
+          <h2>Übungen</h2>
+          <button class="btn" id="btn-new-ex">+ Neue Übung</button>
+        </div>
+        <p class="muted">Tippe auf eine Übung, um Name, Beschreibung, Emoji und Wiederholungen zu bearbeiten. Beidseitige Übungen (z. B. je Bein/Arm) stehen standardmäßig auf 4 Wiederholungen, sonst 3.</p>
+        <div id="exercises-list" class="sets-list"></div>
       </div>
     </section>
 
@@ -135,6 +147,27 @@
       <div class="row-between editor-actions">
         <button class="btn btn-danger" id="btn-delete-set">Set löschen</button>
         <button class="btn btn-primary" id="btn-save-set">Fertig</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ÜBUNGS-EDITOR (Modal) ============ -->
+  <div class="modal" id="exercise-editor" hidden>
+    <div class="modal-card">
+      <div class="row-between">
+        <h3 id="ex-editor-title">Übung bearbeiten</h3>
+        <button class="icon-btn" id="btn-close-ex-editor">✕</button>
+      </div>
+      <div class="ex-form">
+        <label class="ex-form-emoji">Emoji<input id="ex-emoji" maxlength="4" placeholder="🏋️" /></label>
+        <label class="ex-form-name">Name<input id="ex-name" placeholder="z. B. Kniebeugen" /></label>
+        <label>Bereich<input id="ex-area" placeholder="z. B. Beine" /></label>
+        <label>Wiederholungen<input type="number" id="ex-reps" min="1" max="6" step="1" /></label>
+        <label class="ex-form-cue">Beschreibung<input id="ex-cue" placeholder="kurzer Bewegungshinweis" /></label>
+      </div>
+      <div class="row-between editor-actions">
+        <button class="btn btn-danger" id="btn-delete-ex">Löschen</button>
+        <button class="btn btn-primary" id="btn-save-ex">Speichern</button>
       </div>
     </div>
   </div>

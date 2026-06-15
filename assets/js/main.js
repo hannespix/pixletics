@@ -1,5 +1,5 @@
-import { EXERCISES, EXERCISE_MAP } from './exercises.js';
-import { loadSets, saveSets, loadConfig, saveConfig, uid } from './store.js';
+import { DEFAULT_REPS } from './exercises.js';
+import { loadSets, saveSets, loadConfig, saveConfig, loadExercises, saveExercises, uid } from './store.js';
 import { initAudio, sound, speak, cancelSpeech, setSpeechHooks } from './audio.js';
 import { buildSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { Spotify } from './spotify.js';
@@ -8,13 +8,21 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 // ---------------- State ----------------
+let exercises = loadExercises();          // editierbare Übungs-Bibliothek
+let exerciseMap = {};                      // id -> Übung (zur Laufzeit)
 let sets = loadSets();
 let config = loadConfig();
 let selectedSetIds = []; // Reihenfolge = Abspielreihenfolge
 let editorSetId = null;
+let editorExId = null;   // gerade bearbeitete Übung (null = neue)
 const spotify = new Spotify();
 const engine = new WorkoutEngine();
 let wakeLock = null;
+
+function rebuildExerciseMap() {
+  exerciseMap = Object.fromEntries(exercises.map((e) => [e.id, e]));
+}
+rebuildExerciseMap();
 
 // ---------------- Tabs ----------------
 $$('#tabs .tab').forEach((tab) => {
@@ -42,7 +50,7 @@ function renderPicker() {
       <div class="pi-check">${selected ? '✓' : ''}</div>
       <div class="pi-body">
         <div class="pi-name">${escapeHtml(set.name)}</div>
-        <div class="pi-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => EXERCISE_MAP[id]?.emoji || '').join(' ')}</div>
+        <div class="pi-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => exerciseMap[id]?.emoji || '').join(' ')}</div>
       </div>
       ${selected ? `<div class="order-badge">#${order + 1}</div>` : ''}`;
     item.addEventListener('click', () => {
@@ -60,7 +68,6 @@ function bindConfig() {
   const map = {
     'cfg-work': 'workSeconds',
     'cfg-rest': 'restSeconds',
-    'cfg-repeats': 'repeatsPerExercise',
     'cfg-prepare': 'prepareSeconds',
     'cfg-total': 'totalMinutes',
   };
@@ -90,6 +97,13 @@ function selectedExerciseIds() {
   return selectedSetIds.flatMap((id) => sets.find((s) => s.id === id)?.exercises || []);
 }
 
+// Für den Ablaufplan: nur existierende Übungen mit ihrer Wiederholungszahl.
+function selectedExercises() {
+  return selectedExerciseIds()
+    .filter((exId) => exerciseMap[exId])
+    .map((exId) => ({ exId, reps: exerciseMap[exId].reps || DEFAULT_REPS }));
+}
+
 function updatePlanSummary() {
   const pool = selectedExerciseIds();
   const cycle = config.prepareSeconds + config.workSeconds + config.restSeconds;
@@ -99,7 +113,7 @@ function updatePlanSummary() {
     el.textContent = 'Wähle oben mindestens ein Set aus.';
     return;
   }
-  el.textContent = `≈ ${rounds} Runden · ${pool.length} Übungen × ${config.repeatsPerExercise} Wdh. · ${config.totalMinutes} Min geplant`;
+  el.textContent = `≈ ${rounds} Runden · ${pool.length} Übungen (Wdh. je Übung) · ${config.totalMinutes} Min geplant`;
 }
 
 // ================ SETS VIEW ================
@@ -116,7 +130,7 @@ function renderSetsList() {
     row.innerHTML = `
       <div>
         <div class="sr-name">${escapeHtml(set.name)}</div>
-        <div class="sr-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => EXERCISE_MAP[id]?.name).filter(Boolean).join(', ') || '—'}</div>
+        <div class="sr-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => exerciseMap[id]?.name).filter(Boolean).join(', ') || '—'}</div>
       </div>
       <span class="icon-btn">✎</span>`;
     row.addEventListener('click', () => openEditor(set.id));
@@ -154,15 +168,16 @@ function renderEditor() {
   const chosen = $('#chosen-list');
   chosen.innerHTML = '';
   set.exercises.forEach((exId) => {
-    const ex = EXERCISE_MAP[exId];
+    const ex = exerciseMap[exId];
     if (!ex) return;
     const li = document.createElement('li');
     li.className = 'ex-item';
     li.dataset.id = exId;
     li.innerHTML = `
       <span class="handle" title="Ziehen zum Sortieren">⠿</span>
-      <span class="emoji">${ex.emoji}</span>
-      <span class="ex-name">${ex.name}<div class="ex-area">${ex.area}</div></span>
+      <span class="emoji">${escapeHtml(ex.emoji)}</span>
+      <span class="ex-name">${escapeHtml(ex.name)}<div class="ex-area">${escapeHtml(ex.area)}</div></span>
+      <span class="reps-badge" title="Wiederholungen">×${ex.reps || DEFAULT_REPS}</span>
       <button class="rm" title="Entfernen">✕</button>`;
     li.querySelector('.rm').addEventListener('click', () => {
       set.exercises = set.exercises.filter((id) => id !== exId);
@@ -175,13 +190,13 @@ function renderEditor() {
   // Bibliothek
   const lib = $('#library-list');
   lib.innerHTML = '';
-  EXERCISES.forEach((ex) => {
+  exercises.forEach((ex) => {
     const inSet = set.exercises.includes(ex.id);
     const li = document.createElement('li');
     li.className = 'ex-item' + (inSet ? ' in-set' : '');
     li.innerHTML = `
-      <span class="emoji">${ex.emoji}</span>
-      <span class="ex-name">${ex.name}<div class="ex-area">${ex.area}</div></span>
+      <span class="emoji">${escapeHtml(ex.emoji)}</span>
+      <span class="ex-name">${escapeHtml(ex.name)}<div class="ex-area">${escapeHtml(ex.area)}</div></span>
       <span class="lib-check">${inSet ? '✓' : '＋'}</span>`;
     li.addEventListener('click', () => {
       if (set.exercises.includes(ex.id)) set.exercises = set.exercises.filter((id) => id !== ex.id);
@@ -191,6 +206,102 @@ function renderEditor() {
     });
     lib.appendChild(li);
   });
+}
+
+// ================ ÜBUNGEN (Bibliothek bearbeiten) ================
+function renderExercisesList() {
+  const host = $('#exercises-list');
+  if (!host) return;
+  host.innerHTML = '';
+  if (!exercises.length) {
+    host.innerHTML = '<p class="muted">Noch keine Übungen. Lege mit „+ Neue Übung“ welche an.</p>';
+    return;
+  }
+  exercises.forEach((ex) => {
+    const row = document.createElement('div');
+    row.className = 'set-row';
+    row.innerHTML = `
+      <div class="ex-row-main">
+        <span class="emoji">${escapeHtml(ex.emoji || '🏋️')}</span>
+        <div>
+          <div class="sr-name">${escapeHtml(ex.name)}</div>
+          <div class="sr-sub">${escapeHtml(ex.area || '')}${ex.cue ? ' · ' + escapeHtml(ex.cue) : ''}</div>
+        </div>
+      </div>
+      <div class="ex-row-end">
+        <span class="reps-badge" title="Wiederholungen">×${ex.reps || DEFAULT_REPS}</span>
+        <span class="icon-btn">✎</span>
+      </div>`;
+    row.addEventListener('click', () => openExEditor(ex.id));
+    host.appendChild(row);
+  });
+}
+
+function openExEditor(exId) {
+  editorExId = exId;
+  const ex = exId ? exerciseMap[exId] : null;
+  $('#ex-editor-title').textContent = ex ? 'Übung bearbeiten' : 'Neue Übung';
+  $('#ex-emoji').value = ex?.emoji || '';
+  $('#ex-name').value = ex?.name || '';
+  $('#ex-area').value = ex?.area || '';
+  $('#ex-cue').value = ex?.cue || '';
+  $('#ex-reps').value = ex?.reps || DEFAULT_REPS;
+  $('#btn-delete-ex').style.visibility = ex ? 'visible' : 'hidden';
+  $('#exercise-editor').hidden = false;
+}
+
+function closeExEditor() {
+  $('#exercise-editor').hidden = true;
+  editorExId = null;
+}
+
+function saveExEditor() {
+  const name = $('#ex-name').value.trim();
+  if (!name) {
+    alert('Bitte einen Namen für die Übung eingeben.');
+    return;
+  }
+  const reps = Math.max(1, Math.min(6, Number($('#ex-reps').value) || DEFAULT_REPS));
+  const data = {
+    name,
+    area: $('#ex-area').value.trim(),
+    emoji: $('#ex-emoji').value.trim() || '🏋️',
+    cue: $('#ex-cue').value.trim(),
+    reps,
+  };
+  if (editorExId) {
+    const ex = exerciseMap[editorExId];
+    if (ex) Object.assign(ex, data);
+  } else {
+    exercises.push({ id: uid('ex'), ...data });
+  }
+  saveExercises(exercises);
+  rebuildExerciseMap();
+  closeExEditor();
+  refreshExerciseDependents();
+}
+
+function deleteExEditor() {
+  if (!editorExId) return;
+  const ex = exerciseMap[editorExId];
+  if (!confirm(`Übung „${ex?.name || ''}“ wirklich löschen? Sie wird auch aus allen Sets entfernt.`)) return;
+  exercises = exercises.filter((e) => e.id !== editorExId);
+  // Auch aus allen Sets entfernen.
+  sets.forEach((s) => (s.exercises = s.exercises.filter((id) => id !== editorExId)));
+  saveExercises(exercises);
+  saveSets(sets);
+  rebuildExerciseMap();
+  closeExEditor();
+  refreshExerciseDependents();
+}
+
+// Nach Änderungen an Übungen alle abhängigen Ansichten aktualisieren.
+function refreshExerciseDependents() {
+  renderExercisesList();
+  renderSetsList();
+  renderPicker();
+  updatePlanSummary();
+  if (editorSetId) renderEditor();
 }
 
 // Drag & Drop Reihenfolge (zeiger-basiert, funktioniert mit Maus und Touch)
@@ -333,13 +444,13 @@ function renderNowPlaying(state) {
 // ================ RUNNER ================
 async function startWorkout() {
   initAudio();
-  const pool = selectedExerciseIds();
-  if (!pool.length) {
+  const items = selectedExercises();
+  if (!items.length) {
     switchView('train');
     alert('Bitte wähle mindestens ein Set mit Übungen aus.');
     return;
   }
-  const steps = buildSchedule(pool, config);
+  const steps = buildSchedule(items, config);
   engine.load(steps);
   engine.h = runnerHandlers(steps);
 
@@ -359,7 +470,7 @@ function runnerHandlers(steps) {
   const bg = $('#runner-bg');
   return {
     onPhase(step, index) {
-      const ex = EXERCISE_MAP[step.exId];
+      const ex = exerciseMap[step.exId];
       bg.className = 'runner-bg ' + step.phase;
       const repInfo = step.repsTotal > 1 ? ` · Satz ${step.rep}/${step.repsTotal}` : '';
       $('#runner-round').textContent = `Runde ${step.round} / ${steps.totalRounds}${repInfo}`;
@@ -440,7 +551,7 @@ function showNext(steps, index) {
   // Nächste WORK-Phase finden
   for (let i = index + 1; i < steps.length; i++) {
     if (steps[i].phase === PHASE.WORK) {
-      const ex = EXERCISE_MAP[steps[i].exId];
+      const ex = exerciseMap[steps[i].exId];
       $('#next-up').textContent = ex ? `Danach: ${ex.emoji} ${ex.name}` : '';
       return;
     }
@@ -470,14 +581,32 @@ $('#btn-sp-toggle').addEventListener('click', () => spotify.togglePlay());
 $('#btn-next-track').addEventListener('click', () => spotify.next());
 
 // ---------------- Sprachansage duckt Spotify ----------------
+// Beim schnellen Runterzählen folgen viele kurze Ansagen aufeinander. Damit die
+// Musik nicht zwischen den Zahlen kurz wieder laut wird, wird das Lautmachen
+// verzögert: Startet innerhalb der Wartezeit die nächste Ansage, bleibt es leise.
+let unduckTimer = null;
 setSpeechHooks({
   start: () => {
+    if (unduckTimer) {
+      clearTimeout(unduckTimer);
+      unduckTimer = null;
+    }
     if (config.duckSpotify && spotify.ready) spotify.duck();
   },
   end: () => {
-    if (config.duckSpotify && spotify.ready) spotify.unduck();
+    if (unduckTimer) clearTimeout(unduckTimer);
+    unduckTimer = setTimeout(() => {
+      unduckTimer = null;
+      if (config.duckSpotify && spotify.ready) spotify.unduck();
+    }, 1200);
   },
 });
+
+// ---------------- Übungen-Editor: Buttons ----------------
+$('#btn-new-ex').addEventListener('click', () => openExEditor(null));
+$('#btn-close-ex-editor').addEventListener('click', closeExEditor);
+$('#btn-save-ex').addEventListener('click', saveExEditor);
+$('#btn-delete-ex').addEventListener('click', deleteExEditor);
 
 // ---------------- Wake Lock (Bildschirm an) ----------------
 async function requestWakeLock() {
@@ -505,6 +634,7 @@ async function init() {
   bindConfig();
   renderPicker();
   renderSetsList();
+  renderExercisesList();
   setupSortable();
   updatePlanSummary();
   renderSpotify();
