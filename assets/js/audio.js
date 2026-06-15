@@ -127,78 +127,69 @@ export const sound = {
     tone({ freq: 880, duration: 0.2, when: 0.2 });
     tone({ freq: 1180, duration: 0.4, when: 0.4 });
   },
-  // Applaus & Jubel: klatschendes Publikum + Mengen-„Aaah“ + ein paar
-  // aufsteigende Jubel-Pfiffe – klingt wie eine feiernde Menge.
+  // Applaus & Jubel: viele einzelne, scharfe Klatscher (statt durchgehendem
+  // Rauschen) ergeben einen realistischen Publikums-Applaus, dazu ein paar
+  // Jubel-Rufe. Wird live in einen Stereo-Puffer synthetisiert.
   applause: () => {
     if (!ctx) return;
     const t0 = ctx.currentTime;
-    const duration = 2.8;
+    const sr = ctx.sampleRate;
+    const duration = 3.4;
+    const len = Math.floor(sr * duration);
+    const buf = ctx.createBuffer(2, len, sr);
 
-    // Rausch-Puffer-Helfer
-    const makeNoise = (peakProb = null) => {
-      const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) {
-        d[i] = peakProb == null
-          ? Math.random() * 2 - 1
-          : (Math.random() * 2 - 1) * (Math.random() < peakProb ? 1 : 0.22);
+    const claps = 620; // Anzahl einzelner „Hände“-Klatscher
+    for (let ch = 0; ch < 2; ch++) {
+      const data = buf.getChannelData(ch);
+      for (let k = 0; k < claps; k++) {
+        const t = Math.random() * duration;
+        const pos = Math.floor(t * sr);
+        // Lautstärke-Hüllkurve über die Zeit: schnell an, halten, ausklingen.
+        const ge = t < 0.35 ? t / 0.35 : (t > duration - 0.8 ? Math.max(0, (duration - t) / 0.8) : 1);
+        const amp = (0.5 + Math.random() * 0.5) * ge;
+        // Einzelner Klatscher: kurzer Rausch-Impuls mit sehr schnellem Abfall.
+        const clapLen = Math.floor(sr * (0.004 + Math.random() * 0.012));
+        for (let j = 0; j < clapLen && pos + j < len; j++) {
+          const env = Math.exp(-j / (clapLen * 0.3));
+          data[pos + j] += (Math.random() * 2 - 1) * amp * env * 0.16;
+        }
       }
-      return buf;
-    };
+    }
 
-    // 1) Klatschen: gefiltertes Rauschen mit einzelnen „Klatschern“.
-    const clap = ctx.createBufferSource();
-    clap.buffer = makeNoise(0.35);
-    const clapFilter = ctx.createBiquadFilter();
-    clapFilter.type = 'bandpass';
-    clapFilter.frequency.value = 1800;
-    clapFilter.Q.value = 0.6;
-    const clapGain = ctx.createGain();
-    clapGain.gain.setValueAtTime(0.0001, t0);
-    clapGain.gain.exponentialRampToValueAtTime(0.4, t0 + 0.2);
-    clapGain.gain.setValueAtTime(0.4, t0 + 1.7);
-    clapGain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    clap.connect(clapFilter).connect(clapGain).connect(ctx.destination);
-    clap.start(t0); clap.stop(t0 + duration);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    // Höhen betonen → klingt nach klatschenden Händen, nicht nach Rauschen.
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 900;
+    const peak = ctx.createBiquadFilter();
+    peak.type = 'peaking'; peak.frequency.value = 2400; peak.gain.value = 6; peak.Q.value = 0.7;
+    const g = ctx.createGain(); g.gain.value = 1.0;
+    src.connect(hp).connect(peak).connect(g).connect(ctx.destination);
+    src.start(t0); src.stop(t0 + duration);
 
-    // 2) Jubel-Teppich: tieferes, rauschiges „Aaah“ der Menge mit lebendiger
-    //    Filterbewegung.
-    const roar = ctx.createBufferSource();
-    roar.buffer = makeNoise();
-    const roarFilter = ctx.createBiquadFilter();
-    roarFilter.type = 'bandpass';
-    roarFilter.frequency.setValueAtTime(700, t0);
-    roarFilter.frequency.linearRampToValueAtTime(920, t0 + 1.2);
-    roarFilter.frequency.linearRampToValueAtTime(650, t0 + 2.4);
-    roarFilter.Q.value = 0.8;
-    const roarGain = ctx.createGain();
-    roarGain.gain.setValueAtTime(0.0001, t0);
-    roarGain.gain.exponentialRampToValueAtTime(0.26, t0 + 0.4);
-    roarGain.gain.setValueAtTime(0.26, t0 + 1.9);
-    roarGain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    roar.connect(roarFilter).connect(roarGain).connect(ctx.destination);
-    roar.start(t0); roar.stop(t0 + duration);
-
-    // 3) Jubel-Pfiffe: ein paar versetzte, aufsteigende „Woo!“-Töne.
+    // Jubel-Rufe („Woo!“) – ein paar versetzte, aufsteigende Töne.
     const whoops = [
-      { f0: 520, f1: 880,  t: 0.10 },
-      { f0: 600, f1: 1040, t: 0.55 },
-      { f0: 470, f1: 820,  t: 1.15 },
-      { f0: 660, f1: 1160, t: 1.70 },
+      { f0: 520, f1: 880,  t: 0.15 },
+      { f0: 610, f1: 1050, t: 0.60 },
+      { f0: 470, f1: 820,  t: 1.25 },
+      { f0: 660, f1: 1170, t: 1.90 },
+      { f0: 560, f1: 990,  t: 2.40 },
     ];
     whoops.forEach(({ f0, f1, t }) => {
       const st = t0 + t;
       const o = ctx.createOscillator();
-      o.type = 'triangle';
+      o.type = 'sawtooth';
       o.frequency.setValueAtTime(f0, st);
-      o.frequency.exponentialRampToValueAtTime(f1, st + 0.18);
-      o.frequency.exponentialRampToValueAtTime(f0 * 0.9, st + 0.36);
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0.0001, st);
-      g.gain.exponentialRampToValueAtTime(0.13, st + 0.06);
-      g.gain.exponentialRampToValueAtTime(0.0001, st + 0.42);
-      o.connect(g).connect(ctx.destination);
-      o.start(st); o.stop(st + 0.46);
+      o.frequency.exponentialRampToValueAtTime(f1, st + 0.2);
+      o.frequency.exponentialRampToValueAtTime(f0 * 0.92, st + 0.4);
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 1600;
+      const g2 = ctx.createGain();
+      g2.gain.setValueAtTime(0.0001, st);
+      g2.gain.exponentialRampToValueAtTime(0.09, st + 0.08);
+      g2.gain.exponentialRampToValueAtTime(0.0001, st + 0.45);
+      o.connect(lp).connect(g2).connect(ctx.destination);
+      o.start(st); o.stop(st + 0.5);
     });
   },
 };

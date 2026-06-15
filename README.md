@@ -29,14 +29,18 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   per **Drag & Drop** (Maus oder Touch) in die gewünschte Reihenfolge bringen.
   Beim Training lassen sich mehrere Sets auswählen, die nacheinander
   abgespielt werden.
+- **Pause = Pause + Vorbereitung**: Vor jeder Übung gibt es **einen** Block
+  (standardmäßig 30 s), in dem man sich erholt und **gleich zu Beginn die
+  nächste Übung angesagt** bekommt – so kann man sich mental vorbereiten.
 - **Freeletics-Sets**: Drei abwechslungsreiche Ganzkörper-Workouts (A · Kraft &
   Core, B · Cardio & Stabilität, C · Ganzkörper-Mix), sportphysiologisch
-  aufgebaut, je ~50–55 min bei 30/30/10.
+  aufgebaut (~45–55 min, Gesamtdauer einstellbar).
 - **Zirkeltraining**: Vorgefertigtes Set mit **15 Stationen** (Seilspringen,
   Pendellauf, Rollbrett, Ringe, Bank, Sprossenwand, Kettlebell, Battle Ropes
   u. v. m.) – jede Station wird pro Runde einmal „im Kreis“ absolviert. **Ab der
   2. Runde Aktivpause**: in jeder Pause eine Runde um die Halle laufen (wird
-  angesagt). Für ~15 min/Runde: 30 s Übung · 20 s Pause · 10 s Vorbereitung.
+  angesagt). Mit den Standardwerten (30 s Übung + 30 s Pause) dauert eine Runde
+  genau ~15 min.
 - **Vollbild**: Umschalter in der Kopfzeile und im Workout-Screen (sofern der
   Browser die Fullscreen-API unterstützt).
 - **Animiertes Logo**: Intro-Splash beim Start mit **Gooey-Morph** (das

@@ -34,8 +34,7 @@ body {
   border-bottom: 1px solid #262b36;
 }
 .topbar-right { display: flex; align-items: center; gap: 8px; }
-.brand { display: flex; align-items: center; gap: 9px; flex: none; }
-.brand-mark { width: auto; height: 24px; image-rendering: pixelated; flex: none; filter: drop-shadow(0 1px 5px rgba(255, 90, 54, 0.5)); }
+.brand { display: flex; align-items: center; flex: none; }
 .brand-morph {
   position: relative; width: 150px; height: 18px; flex: none;
   filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.55));
