@@ -301,6 +301,12 @@ function renderSpotify() {
   $('#sp-next')?.addEventListener('click', () => spotify.next());
 
   spotify.onState = (s) => renderNowPlaying(s);
+  spotify.onReady = () => {
+    // Sobald das Browser-Gerät bereit ist, beim nächsten Tippen das
+    // Audio-Element aktivieren – sonst blockiert v. a. iOS das Übertragen
+    // der Wiedergabe von der Spotify-App auf dieses Gerät.
+    document.body.addEventListener('pointerdown', () => spotify.activate(), { once: true });
+  };
   if (connected && !spotify.player) spotify.initPlayer().catch(() => {});
   if (spotify.state) renderNowPlaying(spotify.state);
 }
@@ -310,7 +316,7 @@ function renderNowPlaying(state) {
   if (!host) return;
   const track = state?.track_window?.current_track;
   if (!track) {
-    host.innerHTML = '<span class="muted small">Starte in der Spotify-App einen Song – er läuft dann hier weiter.</span>';
+    host.innerHTML = '<span class="muted small">Tippe einmal auf ⏯, dann starte in der Spotify-App einen Song und wähle dort als Gerät „Freeletics Timer“. Er läuft dann hier weiter.</span>';
     return;
   }
   host.innerHTML = `

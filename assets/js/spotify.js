@@ -209,14 +209,30 @@ export class Spotify {
     });
   }
 
+  // Muss aus einer echten Nutzer-Interaktion (Tippen/Klicken) heraus aufgerufen
+  // werden. Hält das interne Audio-Element „aktiv“, damit das Übertragen der
+  // Wiedergabe auf dieses Gerät auf Mobilgeräten (v. a. iOS/Safari) nicht als
+  // Autoplay blockiert wird – sonst bricht die Verbindung beim Transfer ab.
+  async activate() {
+    try {
+      await this.player?.activateElement?.();
+    } catch {}
+  }
+
   async togglePlay() {
-    if (this.player) await this.player.togglePlay();
+    if (!this.player) return;
+    await this.activate();
+    await this.player.togglePlay();
   }
   async next() {
-    if (this.player) await this.player.nextTrack();
+    if (!this.player) return;
+    await this.activate();
+    await this.player.nextTrack();
   }
   async previous() {
-    if (this.player) await this.player.previousTrack();
+    if (!this.player) return;
+    await this.activate();
+    await this.player.previousTrack();
   }
 
   // Macht Spotify während einer Ansage leiser und stellt danach wieder her.
