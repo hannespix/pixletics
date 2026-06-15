@@ -246,6 +246,24 @@ export class Spotify {
     await this.player.previousTrack();
   }
 
+  // Überträgt die Wiedergabe auf DIESES Browser-Gerät („pixletics“) – so muss
+  // niemand in der Spotify-App das Gerät manuell auswählen. Mit play=true wird
+  // die zuletzt laufende Wiedergabe direkt hier fortgesetzt.
+  async transferHere(play = true) {
+    const token = await this.getAccessToken();
+    if (!token || !this.deviceId) return false;
+    try {
+      const res = await fetch('https://api.spotify.com/v1/me/player', {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_ids: [this.deviceId], play }),
+      });
+      return res.ok || res.status === 204;
+    } catch {
+      return false;
+    }
+  }
+
   // Lautstärke weich über ~0,5 s faden (statt schlagartig).
   _fadeVol(target, ms = 500) {
     if (!this.player) return;

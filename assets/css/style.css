@@ -249,6 +249,7 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 }
 .sp-now { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
 .sp-now img { width: 56px; height: 56px; border-radius: 8px; }
+.sp-here-btn { margin-top: 10px; width: 100%; }
 .sp-controls { display: flex; gap: 8px; margin-top: 12px; }
 .sp-controls button { font-size: 18px; padding: 10px 18px; }
 .status-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 6px; }
