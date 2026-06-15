@@ -64,9 +64,10 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
     **ohne Login/Key/Premium**. Eigene Sender (HTTPS-Stream-URL) lassen sich
     hinzufügen. Für SomaFM-Sender wird der **aktuell laufende Song** angezeigt
     (andere Sender liefern im Browser keine Track-Infos).
-  - **Spotify** (optional): läuft im Browser mit, steuerbar aus der App
-    (Play/Pause/Weiter/Zurück). Benötigt Spotify Premium und eine eigene
-    Client-ID (Einrichtung im Musik-Tab beschrieben).
+  - **Spotify** (optional, ohne Key): jeder verbindet einfach seinen **eigenen
+    Account** („Mit Spotify verbinden"), läuft im Browser mit und ist von hier
+    steuerbar. Benötigt **Spotify Premium**. (Die App-Client-ID ist fest
+    eingebaut; in der Test-Phase max. 25 freigeschaltete Accounts.)
   Beide werden bei Sprachansagen automatisch **sanft (≈0,5 s) leiser geblendet**
   und danach wieder hoch (während des Countdowns durchgehend leise). **ROCK
   ANTENNE** ist das Standard-Internetradio.

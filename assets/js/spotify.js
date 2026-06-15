@@ -7,7 +7,7 @@
 // sich mit ihrem Account an. Leer = manueller Modus (jeder trägt eigene ID ein).
 // Spotify erlaubt keinen Zugriff ohne registrierte App/Client-ID – diese eine
 // ID muss also einmalig im Spotify Developer Dashboard angelegt werden.
-export const DEFAULT_CLIENT_ID = '';
+export const DEFAULT_CLIENT_ID = '050f0f4096584acd8c216e985ea7ca0a';
 
 const SCOPES = [
   'streaming',
