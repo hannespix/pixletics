@@ -520,7 +520,8 @@ function closeEditor() {
 
 // ================ SPOTIFY ================
 function renderSpotify() {
-  $('#redirect-uri').textContent = spotify.redirectUri;
+  const ru = $('#redirect-uri');
+  if (ru) ru.textContent = spotify.redirectUri;
   const panel = $('#spotify-panel');
   const connected = spotify.isConnected();
   const keyless = spotify.keyless; // ID fest eingebaut → kein Key-Feld nötig
