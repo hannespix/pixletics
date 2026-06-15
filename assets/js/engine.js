@@ -26,15 +26,19 @@ export function buildSchedule(items, config) {
 
   for (let i = 0; i < maxRounds; i++) {
     const item = sequence[i % sequence.length];
-    const meta = { exId: item.exId, rep: item.rep, repsTotal: item.repsTotal, round: i + 1 };
+    // lap = wievielter kompletter Durchlauf durch die Übungs-/Stationsfolge.
+    const lap = Math.floor(i / sequence.length) + 1;
+    const meta = { exId: item.exId, rep: item.rep, repsTotal: item.repsTotal, round: i + 1, lap };
     const isLast = i === maxRounds - 1;
     steps.push({ phase: PHASE.PREPARE, duration: prepareSeconds, ...meta });
     steps.push({ phase: PHASE.WORK, duration: workSeconds, ...meta });
     // Letzte Pause weglassen – Programm endet mit der Übung.
     if (!isLast) steps.push({ phase: PHASE.REST, duration: restSeconds, ...meta });
   }
-  // Metadaten: Gesamtdauer & Rundenanzahl
+  // Metadaten: Gesamtdauer, Schrittanzahl & Länge eines Durchlaufs (für Laps)
   steps.totalRounds = maxRounds;
+  steps.lapLength = sequence.length;
+  steps.totalLaps = Math.ceil(maxRounds / sequence.length);
   steps.totalSeconds = steps.reduce((s, st) => s + st.duration, 0);
   return steps;
 }

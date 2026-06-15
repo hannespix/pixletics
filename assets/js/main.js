@@ -30,6 +30,7 @@ let editorSetId = null;
 let editorExId = null;   // gerade bearbeitete Übung (null = neue)
 let editorStationId = null; // gerade bearbeiteter Sender (null = neuer)
 let lastStationId = null;   // zuletzt gestarteter Sender (für Runner-Toggle)
+let workoutActiveRest = false; // aktuelles Workout nutzt Aktivpause (ab 2. Runde)
 const spotify = new Spotify();
 const radio = new Radio();
 const engine = new WorkoutEngine();
@@ -579,9 +580,31 @@ function renderNowPlaying(state) {
       <div style="font-weight:700">${escapeHtml(track.name)}</div>
       <div class="muted small">${escapeHtml(track.artists?.map((a) => a.name).join(', ') || '')}</div>
     </div>`;
-  // Runner-Anzeige aktualisieren
-  const rs = $('#runner-spotify');
-  if (rs && !$('#runner').hidden) rs.textContent = `🎵 ${track.name} – ${track.artists?.map((a) => a.name).join(', ')}`;
+  updateRunnerNowPlaying();
+}
+
+// Zeigt im Runner an, was gerade läuft – Radio (mit Song, falls verfügbar)
+// oder Spotify. So steht dort nicht mehr pauschal „Spotify“.
+function updateRunnerNowPlaying() {
+  const el = $('#runner-nowplaying');
+  if (!el) return;
+  if (radio.playing) {
+    const name = radio.current?.name || 'Radio';
+    const genre = radio.current?.genre ? ` · ${radio.current.genre}` : '';
+    const np = radio.nowPlaying;
+    const track = np && (np.artist || np.title)
+      ? `<div class="rm-track">${escapeHtml([np.artist, np.title].filter(Boolean).join(' – '))}</div>`
+      : '';
+    el.innerHTML = `<div class="rm-src">📻 ${escapeHtml(name)}${escapeHtml(genre)}</div>${track}`;
+    return;
+  }
+  const track = spotify.state?.track_window?.current_track;
+  if (track && spotify.ready) {
+    const artists = track.artists?.map((a) => a.name).join(', ') || '';
+    el.innerHTML = `<div class="rm-src">🎵 Spotify</div><div class="rm-track">${escapeHtml(track.name)}${artists ? ' – ' + escapeHtml(artists) : ''}</div>`;
+    return;
+  }
+  el.innerHTML = '<span class="muted small">Keine Musik aktiv · 📻 für Radio</span>';
 }
 
 // ================ RADIO ================
@@ -638,12 +661,15 @@ function renderRadioNow(state) {
   } else if (state === 'loading') {
     host.innerHTML = `<span class="status-dot"></span><span class="muted small">Verbinde mit „${escapeHtml(name)}“ …</span>`;
   } else if (radio.playing) {
-    host.innerHTML = `<span class="status-dot on"></span><span class="small">▶ ${escapeHtml(name)}</span>`;
+    const np = radio.nowPlaying;
+    const track = np && (np.artist || np.title)
+      ? ` · <span class="muted">${escapeHtml([np.artist, np.title].filter(Boolean).join(' – '))}</span>`
+      : '';
+    host.innerHTML = `<span class="status-dot on"></span><span class="small">▶ ${escapeHtml(name)}${track}</span>`;
   } else {
     host.innerHTML = '<span class="muted small">Kein Sender aktiv. Tippe oben auf ▶.</span>';
   }
-  const rs = $('#runner-spotify');
-  if (rs && radio.playing && !$('#runner').hidden) rs.textContent = `📻 ${name}`;
+  updateRunnerNowPlaying();
 }
 
 function openStationEditor(stId) {
@@ -803,6 +829,8 @@ async function startWorkout() {
     alert('Bitte wähle mindestens ein Set mit Übungen aus.');
     return;
   }
+  // Aktivpause aktiv, wenn ein gewähltes Set sie vorsieht (z. B. Zirkeltraining).
+  workoutActiveRest = selectedSetIds.some((id) => sets.find((s) => s.id === id)?.activeRest);
   const steps = buildSchedule(items, config);
   engine.load(steps);
   engine.h = runnerHandlers(steps);
@@ -826,8 +854,17 @@ function runnerHandlers(steps) {
     onPhase(step, index) {
       const ex = exerciseMap[step.exId];
       bg.className = 'runner-bg ' + step.phase;
+      const lapLen = steps.lapLength || steps.length;
       const repInfo = step.repsTotal > 1 ? ` · Satz ${step.rep}/${step.repsTotal}` : '';
-      $('#runner-round').textContent = `Runde ${step.round} / ${steps.totalRounds}${repInfo}`;
+      let roundLabel;
+      if (steps.totalLaps > 1) {
+        const posInLap = ((step.round - 1) % lapLen) + 1;
+        const unit = workoutActiveRest ? 'Station' : 'Übung';
+        roundLabel = `Runde ${step.lap}/${steps.totalLaps} · ${unit} ${posInLap}/${lapLen}`;
+      } else {
+        roundLabel = `Übung ${step.round}/${steps.totalRounds}`;
+      }
+      $('#runner-round').textContent = roundLabel + repInfo;
 
       const persona = currentPersona();
       const name = config.coachName;
@@ -845,9 +882,17 @@ function runnerHandlers(steps) {
         if (config.voice) speak(line(persona, 'work', { name }), { interrupt: true });
         $('#next-up').textContent = '';
       } else if (step.phase === PHASE.REST) {
-        setPhaseUI('Pause', ex, '⏸️');
-        if (config.beeps) sound.rest();
-        if (config.voice) speak(line(persona, 'rest', { name }), { interrupt: true });
+        const active = workoutActiveRest && step.lap >= 2;
+        if (active) {
+          setPhaseUI('Aktivpause', ex, '🏃');
+          $('#exercise-cue').textContent = 'Eine Runde um die Halle laufen 🏃';
+          if (config.beeps) sound.rest();
+          if (config.voice) speak('Aktivpause! Eine Runde um die Halle laufen.', { interrupt: true });
+        } else {
+          setPhaseUI('Pause', ex, '⏸️');
+          if (config.beeps) sound.rest();
+          if (config.voice) speak(line(persona, 'rest', { name }), { interrupt: true });
+        }
         showNext(steps, index);
       }
     },
@@ -1053,7 +1098,8 @@ function escapeHtml(str = '') {
 
 // ---------------- Logo-Animation (Gooey-Morph) ----------------
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-const HEAD_LOOP = { duration: 2000, dwellA: 4200, dwellB: 2600 };
+// 3 s „pixletics“, 2 s „workout timer“, im Loop (Übergang dazwischen ~1,2 s).
+const HEAD_LOOP = { duration: 1200, dwellA: 3000, dwellB: 2000 };
 let headerMorph = null;
 
 // Dauerhafter Ping-Pong im Kopfzeilen-Logo (pixletics ↔ workout timer).
@@ -1153,11 +1199,12 @@ async function init() {
     renderVoiceSettings();
   });
 
-  // Radio-Status -> UI
+  // Radio-Status & „Now Playing“ -> UI
   radio.onState = (state) => {
     renderRadio();
     renderRadioNow(state);
   };
+  radio.onMeta = () => renderRadioNow();
   renderRadioNow();
 
   // Geteilte Konfiguration aus dem Link (#share=…) übernehmen.
