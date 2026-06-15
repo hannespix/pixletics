@@ -533,6 +533,7 @@ function renderSpotify() {
         : `<button class="btn btn-primary" id="sp-connect">${keyless ? '▶ Mit Spotify verbinden' : 'Verbinden'}</button>`}
     </div>
     <p class="muted small"><span class="status-dot ${connected ? 'on' : ''}"></span>${connected ? 'Verbunden' : 'Nicht verbunden'}</p>
+    ${connected ? '<button class="btn btn-primary sp-here-btn" id="sp-here">▶ Hier abspielen</button>' : ''}
     <div class="sp-now" id="sp-now"></div>
     <div class="sp-controls" id="sp-controls" ${connected ? '' : 'hidden'}>
       <button class="btn" id="sp-prev">⏮</button>
@@ -552,6 +553,14 @@ function renderSpotify() {
   $('#sp-logout')?.addEventListener('click', () => {
     spotify.logout();
     renderSpotify();
+  });
+  // Wiedergabe mit einem Tipp auf dieses Gerät übertragen (kein Geräte-Suchen).
+  $('#sp-here')?.addEventListener('click', async () => {
+    await spotify.activate();
+    const ok = await spotify.transferHere(true);
+    if (!ok) {
+      alert('Konnte nicht übertragen. Starte in der Spotify-App kurz einen Song (damit etwas läuft) und tippe dann erneut „Hier abspielen“.');
+    }
   });
   $('#sp-prev')?.addEventListener('click', () => spotify.previous());
   $('#sp-play')?.addEventListener('click', () => spotify.togglePlay());
@@ -573,7 +582,7 @@ function renderNowPlaying(state) {
   if (!host) return;
   const track = state?.track_window?.current_track;
   if (!track) {
-    host.innerHTML = '<span class="muted small">Tippe einmal auf ⏯, dann starte in der Spotify-App einen Song und wähle dort als Gerät „pixletics“. Er läuft dann hier weiter.</span>';
+    host.innerHTML = '<span class="muted small">Tippe „▶ Hier abspielen“ – die Wiedergabe wird auf dieses Gerät übertragen. Läuft gerade nichts, starte in der Spotify-App kurz einen Song und tippe erneut.</span>';
     return;
   }
   host.innerHTML = `
