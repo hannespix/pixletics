@@ -34,6 +34,10 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   u. v. m.) – jede Station wird pro Runde einmal „im Kreis“ absolviert.
 - **Vollbild**: Umschalter in der Kopfzeile und im Workout-Screen (sofern der
   Browser die Fullscreen-API unterstützt).
+- **Animiertes Logo**: Intro-Splash beim Start mit **Gooey-Morph** (das
+  Pixel-Logo „pixletics“ zerfließt flüssig zu „workout timer“) und ein dezenter
+  dauerhafter Gooey-Puls im Kopfzeilen-Logo. Komplett selbst enthalten (SVG-
+  Filter + CSS), respektiert `prefers-reduced-motion`, antippbar überspringbar.
 - **Sprachansagen** (deutsche Sprachausgabe) und **Signaltöne** – einzeln
   abschaltbar.
 - **Stimme & Coach** (im Training-Tab): wählbare **Coach-Charaktere** mit
