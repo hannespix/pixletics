@@ -25,6 +25,13 @@ export const DEFAULT_CONFIG = {
   voice: true,        // Sprachansagen an/aus
   beeps: true,        // Signaltöne an/aus
   duckSpotify: true,  // Spotify bei Ansagen leiser
+  // ---- Stimme & Coach ----
+  voicePersona: 'standard', // gewählter Coach-Charakter (siehe coach.js)
+  voiceURI: 'auto',         // gewählte Gerätestimme oder 'auto' (zum Coach passend)
+  voicePitch: 1.0,          // Stimmlage (0.5–1.8)
+  voiceRate: 1.05,          // Sprechtempo (0.6–1.6)
+  coachName: '',            // optionaler Name, mit dem der Coach dich anspricht
+  motivation: 60,           // 0–100: wie oft motivierende Zwischenrufe kommen
 };
 
 function safeParse(raw, fallback) {

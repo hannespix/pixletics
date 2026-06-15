@@ -1,7 +1,30 @@
 // Audio-Ausgabe: Signaltöne (WebAudio) und Sprachansagen (SpeechSynthesis).
 let ctx = null;
-let germanVoice = null;
-let voiceReady = false;
+
+// Stimmen-Verwaltung
+let allVoices = [];        // alle Gerätestimmen (SpeechSynthesisVoice)
+let germanVoices = [];     // gefiltert: deutsche Stimmen mit Geschlechts-Schätzung
+let voicesReady = false;
+let voicesCbs = [];        // Callbacks, sobald die Stimmenliste verfügbar ist
+
+// Aktuelle Stimm-Einstellungen (vom Coach/den Reglern gesetzt)
+let currentVoice = null;   // gewählte SpeechSynthesisVoice (oder null = Auto)
+let currentPitch = 1.0;
+let currentRate = 1.05;
+
+// Heuristik zur Geschlechtsschätzung anhand des Stimmnamens. Die Web-Speech-API
+// liefert kein Geschlecht, daher raten wir über bekannte Namensbestandteile.
+const FEMALE_HINTS = ['anna', 'helena', 'petra', 'katja', 'hedda', 'marlene', 'steffi', 'vicki', 'klara', 'sara', 'amira', 'female', 'frau', 'weiblich', 'google deutsch'];
+const MALE_HINTS = ['markus', 'stefan', 'martin', 'yannick', 'viktor', 'conrad', 'hans', 'klaus', 'reed', 'daniel', 'male', 'mann', 'männlich'];
+
+function guessGender(name = '') {
+  const n = name.toLowerCase();
+  if (FEMALE_HINTS.some((h) => n.includes(h))) return 'female';
+  if (MALE_HINTS.some((h) => n.includes(h))) return 'male';
+  return 'any';
+}
+
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
 export function initAudio() {
   // AudioContext erst nach Nutzerinteraktion erlaubt (Autoplay-Policy).
@@ -13,19 +36,61 @@ export function initAudio() {
   loadVoices();
 }
 
+// Stimmen laden, ohne AudioContext anzulegen (z. B. schon beim Seitenstart,
+// damit die Auswahlliste gefüllt ist, bevor der Nutzer interagiert).
+export function primeVoices() {
+  loadVoices();
+}
+
 function loadVoices() {
   if (!('speechSynthesis' in window)) return;
-  const pick = () => {
-    const voices = window.speechSynthesis.getVoices();
-    if (!voices.length) return;
-    germanVoice =
-      voices.find((v) => /de(-|_)?/i.test(v.lang) && /google|deutsch/i.test(v.name)) ||
-      voices.find((v) => /de(-|_)?/i.test(v.lang)) ||
-      null;
-    voiceReady = true;
+  const collect = () => {
+    const list = window.speechSynthesis.getVoices();
+    if (!list.length) return;
+    allVoices = list;
+    germanVoices = list
+      .filter((v) => /de(-|_)?/i.test(v.lang))
+      .map((v) => ({ voiceURI: v.voiceURI, name: v.name, lang: v.lang, gender: guessGender(v.name) }));
+    voicesReady = true;
+    const cbs = voicesCbs;
+    voicesCbs = [];
+    cbs.forEach((cb) => { try { cb(); } catch {} });
   };
-  pick();
-  if (!voiceReady) window.speechSynthesis.onvoiceschanged = pick;
+  collect();
+  if (!voicesReady) window.speechSynthesis.onvoiceschanged = collect;
+}
+
+// Callback ausführen, sobald die Stimmenliste verfügbar ist (oder sofort).
+export function onVoicesReady(cb) {
+  if (voicesReady) cb();
+  else voicesCbs.push(cb);
+}
+
+// Liste der wählbaren Stimmen (deutsch bevorzugt, sonst alle) – inkl.
+// geschätztem Geschlecht für die Auto-Auswahl und die Anzeige.
+export function getGermanVoices() {
+  if (germanVoices.length) return germanVoices.slice();
+  return allVoices.map((v) => ({ voiceURI: v.voiceURI, name: v.name, lang: v.lang, gender: guessGender(v.name) }));
+}
+
+// Passende Stimmen-URI für ein gewünschtes Geschlecht ('male'|'female'|'any').
+export function pickVoiceURI(gender = 'any') {
+  const list = getGermanVoices();
+  if (!list.length) return null;
+  if (gender && gender !== 'any') {
+    const match = list.find((v) => v.gender === gender);
+    if (match) return match.voiceURI;
+  }
+  return list[0].voiceURI;
+}
+
+// Aktuelle Stimm-Einstellungen setzen (vom Coach / den Reglern).
+export function setVoiceSettings({ voiceURI, pitch, rate } = {}) {
+  if (voiceURI !== undefined) {
+    currentVoice = voiceURI ? allVoices.find((v) => v.voiceURI === voiceURI) || null : null;
+  }
+  if (typeof pitch === 'number') currentPitch = pitch;
+  if (typeof rate === 'number') currentRate = rate;
 }
 
 function tone({ freq = 880, duration = 0.15, type = 'sine', gain = 0.25, when = 0 }) {
@@ -98,15 +163,17 @@ export function setSpeechHooks({ start, end }) {
   onSpeakEnd = end;
 }
 
-export function speak(text, { interrupt = false } = {}) {
+export function speak(text, { interrupt = false, pitch, rate } = {}) {
   if (!('speechSynthesis' in window)) return;
   const synth = window.speechSynthesis;
   if (interrupt) synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'de-DE';
-  if (germanVoice) u.voice = germanVoice;
-  u.rate = 1.05;
-  u.pitch = 1.0;
+  // Gewählte Stimme, sonst die erste deutsche als Rückfall.
+  const v = currentVoice || (germanVoices.length ? allVoices.find((x) => x.voiceURI === germanVoices[0].voiceURI) : null);
+  if (v) u.voice = v;
+  u.rate = clamp(typeof rate === 'number' ? rate : currentRate, 0.5, 2);
+  u.pitch = clamp(typeof pitch === 'number' ? pitch : currentPitch, 0, 2);
   u.onstart = () => onSpeakStart && onSpeakStart();
   u.onend = () => onSpeakEnd && onSpeakEnd();
   u.onerror = () => onSpeakEnd && onSpeakEnd();
