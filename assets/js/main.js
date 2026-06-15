@@ -145,11 +145,12 @@ function renderVoiceSettings() {
   // Gerätestimmen-Auswahl
   const sel = $('#cfg-voiceuri');
   if (sel) {
-    const list = getGermanVoices();
-    const opts = ['<option value="auto">Automatisch (passend zum Coach)</option>'];
+    const list = getGermanVoices(); // beste Qualität zuerst sortiert
+    const opts = ['<option value="auto">Automatisch (beste deutsche Stimme)</option>'];
     list.forEach((v) => {
       const g = v.gender === 'female' ? ' ♀' : v.gender === 'male' ? ' ♂' : '';
-      opts.push(`<option value="${escapeHtml(v.voiceURI)}">${escapeHtml(v.name)}${g}</option>`);
+      const star = v.quality >= 4 ? ' ⭐' : ''; // hochwertige (neuronale/Cloud-)Stimme
+      opts.push(`<option value="${escapeHtml(v.voiceURI)}">${escapeHtml(v.name)}${g}${star}</option>`);
     });
     sel.innerHTML = opts.join('');
     const wanted = config.voiceURI || 'auto';

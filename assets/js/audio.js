@@ -24,6 +24,19 @@ function guessGender(name = '') {
   return 'any';
 }
 
+// Qualitäts-Heuristik: neuronale/Cloud-Stimmen klingen deutlich besser als die
+// alten kompakten System-Stimmen. Höhere Punktzahl = bevorzugt.
+function voiceQuality(name = '', localService = false) {
+  const n = name.toLowerCase();
+  let s = 0;
+  if (/natural|neural/.test(n)) s += 5;                   // MS Natural – top
+  if (/google/.test(n)) s += 4;                            // Google – sehr gut
+  if (/premium|enhanced|eloquence|siri/.test(n)) s += 4;   // Apple/HQ
+  if (/online/.test(n)) s += 1;
+  if (!localService) s += 1;                               // Cloud meist besser
+  return s;
+}
+
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
 export function initAudio() {
@@ -50,7 +63,13 @@ function loadVoices() {
     allVoices = list;
     germanVoices = list
       .filter((v) => /de(-|_)?/i.test(v.lang))
-      .map((v) => ({ voiceURI: v.voiceURI, name: v.name, lang: v.lang, gender: guessGender(v.name) }));
+      .map((v) => ({
+        voiceURI: v.voiceURI, name: v.name, lang: v.lang,
+        gender: guessGender(v.name), quality: voiceQuality(v.name, v.localService),
+        de: /de[-_]de/i.test(v.lang) ? 1 : 0,
+      }))
+      // Beste Qualität zuerst, dann de-DE bevorzugen, dann alphabetisch.
+      .sort((a, b) => (b.quality - a.quality) || (b.de - a.de) || a.name.localeCompare(b.name));
     voicesReady = true;
     const cbs = voicesCbs;
     voicesCbs = [];
@@ -70,7 +89,9 @@ export function onVoicesReady(cb) {
 // geschätztem Geschlecht für die Auto-Auswahl und die Anzeige.
 export function getGermanVoices() {
   if (germanVoices.length) return germanVoices.slice();
-  return allVoices.map((v) => ({ voiceURI: v.voiceURI, name: v.name, lang: v.lang, gender: guessGender(v.name) }));
+  return allVoices
+    .map((v) => ({ voiceURI: v.voiceURI, name: v.name, lang: v.lang, gender: guessGender(v.name), quality: voiceQuality(v.name, v.localService) }))
+    .sort((a, b) => b.quality - a.quality);
 }
 
 // Passende Stimmen-URI für ein gewünschtes Geschlecht ('male'|'female'|'any').
