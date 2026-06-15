@@ -9,8 +9,10 @@ export const PHASE = { PREPARE: 'prepare', WORK: 'work', REST: 'rest', DONE: 'do
 // (totalMinutes) erreicht ist.
 // `items` ist ein Array aus { exId, reps }.
 export function buildSchedule(items, config) {
-  const { workSeconds, restSeconds, prepareSeconds, totalMinutes } = config;
-  const cycle = prepareSeconds + workSeconds + restSeconds;
+  const { workSeconds, pauseSeconds, totalMinutes } = config;
+  // Pause + Vorbereitung sind zusammengelegt: vor jeder Übung ein Block, in dem
+  // man sich erholt UND gleich zu Beginn hört, was als Nächstes kommt.
+  const cycle = pauseSeconds + workSeconds;
   const totalSeconds = totalMinutes * 60;
   const maxRounds = Math.max(1, Math.floor(totalSeconds / cycle));
   const steps = [];
@@ -29,11 +31,10 @@ export function buildSchedule(items, config) {
     // lap = wievielter kompletter Durchlauf durch die Übungs-/Stationsfolge.
     const lap = Math.floor(i / sequence.length) + 1;
     const meta = { exId: item.exId, rep: item.rep, repsTotal: item.repsTotal, round: i + 1, lap };
-    const isLast = i === maxRounds - 1;
-    steps.push({ phase: PHASE.PREPARE, duration: prepareSeconds, ...meta });
+    // Vor jeder Übung der kombinierte Pause-/Vorbereitungsblock, dann die Übung.
+    // Das Programm endet mit der Übung (keine Pause danach).
+    steps.push({ phase: PHASE.PREPARE, duration: pauseSeconds, ...meta });
     steps.push({ phase: PHASE.WORK, duration: workSeconds, ...meta });
-    // Letzte Pause weglassen – Programm endet mit der Übung.
-    if (!isLast) steps.push({ phase: PHASE.REST, duration: restSeconds, ...meta });
   }
   // Metadaten: Gesamtdauer, Schrittanzahl & Länge eines Durchlaufs (für Laps)
   steps.totalRounds = maxRounds;

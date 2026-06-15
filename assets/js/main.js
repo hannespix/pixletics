@@ -84,8 +84,7 @@ function renderPicker() {
 function bindConfig() {
   const map = {
     'cfg-work': 'workSeconds',
-    'cfg-rest': 'restSeconds',
-    'cfg-prepare': 'prepareSeconds',
+    'cfg-pause': 'pauseSeconds',
     'cfg-total': 'totalMinutes',
   };
   for (const [id, key] of Object.entries(map)) {
@@ -244,13 +243,13 @@ function selectedExercises() {
 function updateSettingsSummary() {
   const el = $('#settings-summary');
   if (!el) return;
-  el.textContent = `${config.workSeconds}/${config.restSeconds}s · ${config.totalMinutes}min`;
+  el.textContent = `${config.workSeconds}s Übung · ${config.pauseSeconds}s Pause · ${config.totalMinutes}min`;
 }
 
 function updatePlanSummary() {
   updateSettingsSummary();
   const pool = selectedExerciseIds();
-  const cycle = config.prepareSeconds + config.workSeconds + config.restSeconds;
+  const cycle = config.pauseSeconds + config.workSeconds;
   const rounds = Math.max(1, Math.floor((config.totalMinutes * 60) / cycle));
   const el = $('#plan-summary');
   if (!pool.length) {
@@ -869,31 +868,30 @@ function runnerHandlers(steps) {
       const persona = currentPersona();
       const name = config.coachName;
       if (step.phase === PHASE.PREPARE) {
-        setPhaseUI('Bereit machen', ex, '⏱️');
-        // Zweite (oder weitere) Wiederholung derselben Übung gesondert ansagen.
-        if (config.voice) {
-          const key = step.rep > 1 ? 'again' : 'next';
-          speak(line(persona, key, { ex: ex.name, name }), { interrupt: true });
+        // Kombinierter Pause-/Vorbereitungsblock: zeigt schon die kommende Übung
+        // und sagt sie gleich zu Beginn an, damit man sich mental vorbereiten kann.
+        const active = workoutActiveRest && step.lap >= 2;
+        const key = step.rep > 1 ? 'again' : 'next';
+        if (active) {
+          // Aktivpause (Zirkel ab Runde 2): Runde um die Halle + Vorschau.
+          setPhaseUI('Aktivpause', ex, '🏃');
+          $('#exercise-cue').textContent = 'Eine Runde um die Halle laufen 🏃';
+          if (config.beeps) sound.rest();
+          if (config.voice) {
+            speak('Aktivpause! Eine Runde um die Halle laufen.', { interrupt: true });
+            speak(line(persona, key, { ex: ex.name, name })); // gleich danach: was kommt
+          }
+        } else {
+          setPhaseUI('Pause', ex, '⏸️');
+          if (config.beeps) sound.rest();
+          if (config.voice) speak(line(persona, key, { ex: ex.name, name }), { interrupt: true });
         }
-        showNext(steps, index);
+        showNextAfter(steps, index);
       } else if (step.phase === PHASE.WORK) {
         setPhaseUI('Los!', ex, '');
         if (config.beeps) sound.start();
         if (config.voice) speak(line(persona, 'work', { name }), { interrupt: true });
         $('#next-up').textContent = '';
-      } else if (step.phase === PHASE.REST) {
-        const active = workoutActiveRest && step.lap >= 2;
-        if (active) {
-          setPhaseUI('Aktivpause', ex, '🏃');
-          $('#exercise-cue').textContent = 'Eine Runde um die Halle laufen 🏃';
-          if (config.beeps) sound.rest();
-          if (config.voice) speak('Aktivpause! Eine Runde um die Halle laufen.', { interrupt: true });
-        } else {
-          setPhaseUI('Pause', ex, '⏸️');
-          if (config.beeps) sound.rest();
-          if (config.voice) speak(line(persona, 'rest', { name }), { interrupt: true });
-        }
-        showNext(steps, index);
       }
     },
     onSecond({ step, secondsLeft, duration }) {
@@ -957,10 +955,13 @@ function setPhaseUI(label, ex, icon) {
   $('#phase-icon').textContent = icon || '';
 }
 
-function showNext(steps, index) {
-  // Nächste WORK-Phase finden
+// Während der Pause zeigt die große Anzeige bereits die kommende Übung; als
+// „Danach“ blenden wir die übernächste ein (die erste WORK nach der kommenden).
+function showNextAfter(steps, index) {
+  let skippedUpcoming = false;
   for (let i = index + 1; i < steps.length; i++) {
     if (steps[i].phase === PHASE.WORK) {
+      if (!skippedUpcoming) { skippedUpcoming = true; continue; }
       const ex = exerciseMap[steps[i].exId];
       $('#next-up').textContent = ex ? `Danach: ${ex.emoji} ${ex.name}` : '';
       return;
@@ -1118,7 +1119,8 @@ function startHeaderLoop() {
       filterId: 'goo-head',
       maxBlur: 6, gooStd: 3.4,
       threshBase: 12, threshAmp: 14, offBase: -4, offAmp: -5,
-      dispBase: 1.1, dispAmp: 2.4, keepFilter: true,
+      // Kein Dauer-Wabern: Filter nur während des Wechsels, dazwischen scharf.
+      dispBase: 0, dispAmp: 2.0, keepFilter: false,
     });
   }
   headerMorph.loop(HEAD_LOOP);

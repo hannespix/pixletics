@@ -24,8 +24,7 @@ export const DEFAULT_STATIONS = [
 
 export const DEFAULT_CONFIG = {
   workSeconds: 30,    // Dauer einer Übung (Belastung)
-  restSeconds: 30,    // Pause zwischen den Übungen
-  prepareSeconds: 10, // Countdown vor jeder Übung
+  pauseSeconds: 30,   // Pause + Vorbereitung zusammen, vor jeder Übung
   totalMinutes: 60,   // Gesamtdauer des Programms
   voice: true,        // Sprachansagen an/aus
   beeps: true,        // Signaltöne an/aus
