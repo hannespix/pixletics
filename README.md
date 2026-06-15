@@ -1,6 +1,6 @@
-# Freeletics Timer
+# pixletics
 
-Ein browser-basierter Intervall-Timer für Freeletics-/Bodyweight-Workouts.
+Ein browser-basierter Intervall-Timer für Bodyweight- und Zirkeltraining.
 Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
 **https://hannespix.github.io/pixletics/**.
 
@@ -29,8 +29,20 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   per **Drag & Drop** (Maus oder Touch) in die gewünschte Reihenfolge bringen.
   Beim Training lassen sich mehrere Sets auswählen, die nacheinander
   abgespielt werden.
+- **Zirkeltraining**: Vorgefertigtes Set mit **15 Stationen** (Seilspringen,
+  Pendellauf, Rollbrett, Ringe, Bank, Sprossenwand, Kettlebell, Battle Ropes
+  u. v. m.) – jede Station wird pro Runde einmal „im Kreis“ absolviert.
+- **Vollbild**: Umschalter in der Kopfzeile und im Workout-Screen (sofern der
+  Browser die Fullscreen-API unterstützt).
 - **Sprachansagen** (deutsche Sprachausgabe) und **Signaltöne** – einzeln
   abschaltbar.
+- **Stimme & Coach** (im Training-Tab): wählbare **Coach-Charaktere** mit
+  eigenem Tonfall und Spruch-Pool – z. B. *Drill-Sergeant Stahl*, *Hype-Coach
+  Max*, *Frechdachs Freddy*, *Coach Lena* (weiblich) oder *Zen-Meisterin
+  Ruheherz*. Dazu Schieberegler für **Stimmlage**, **Tempo** und **Motivation**
+  (wie oft motivierende/freche Zwischenrufe kommen), Auswahl der **Gerätestimme**
+  und ein optionales **Namensfeld**, mit dem der Coach dich anspricht
+  („Auf geht's, Alex!"). Nutzt die auf dem Gerät installierten Stimmen.
 - **Musik** (Tab „Musik"): zwei Optionen –
   - **Internet-Radio**: kuratierte Sender nach Genre (ROCK ANTENNE, FM4,
     SomaFM u. a.), **ohne Login/Key/Premium**. Eigene Sender (HTTPS-Stream-URL)
@@ -73,7 +85,8 @@ assets/css/style.css
 assets/js/
   exercises.js   – Übungsbibliothek & Beispiel-Sets
   store.js       – Speicherung (localStorage)
-  audio.js       – Töne (WebAudio) & Sprachausgabe
+  audio.js       – Töne (WebAudio) & Sprachausgabe (Stimmenwahl/-einstellungen)
+  coach.js       – Coach-Charaktere & Spruch-Pools
   engine.js      – Ablaufplan & Phasen-Zustandsmaschine
   spotify.js     – Spotify-Anbindung (PKCE + Web Playback SDK)
   radio.js       – Internet-Radio (HTML5-Audio)

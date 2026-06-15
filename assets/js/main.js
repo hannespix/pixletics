@@ -2,8 +2,13 @@ import { DEFAULT_REPS } from './exercises.js';
 import {
   loadSets, saveSets, loadConfig, saveConfig,
   loadExercises, saveExercises, loadStations, saveStations, uid,
+  ensureDefaultsSeeded,
 } from './store.js';
-import { initAudio, sound, speak, cancelSpeech, setSpeechHooks } from './audio.js';
+import {
+  initAudio, sound, speak, cancelSpeech, setSpeechHooks,
+  primeVoices, onVoicesReady, getGermanVoices, pickVoiceURI, setVoiceSettings,
+} from './audio.js';
+import { PERSONAS, getPersona, line } from './coach.js';
 import { buildSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
@@ -13,6 +18,7 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 // ---------------- State ----------------
+ensureDefaultsSeeded();                   // neue Standard-Inhalte (Zirkel) nachziehen
 let exercises = loadExercises();          // editierbare Übungs-Bibliothek
 let exerciseMap = {};                      // id -> Übung (zur Laufzeit)
 let sets = loadSets();
@@ -102,6 +108,126 @@ function bindConfig() {
   }
 }
 
+// ================ STIMME & COACH ================
+function currentPersona() {
+  return getPersona(config.voicePersona);
+}
+
+// Aktuelle Stimm-Einstellungen an die Audio-Schicht übergeben.
+function applyVoiceSettings() {
+  const persona = currentPersona();
+  let voiceURI = config.voiceURI;
+  if (!voiceURI || voiceURI === 'auto') voiceURI = pickVoiceURI(persona.gender);
+  setVoiceSettings({ voiceURI, pitch: config.voicePitch, rate: config.voiceRate });
+}
+
+function renderVoiceSettings() {
+  const host = $('#persona-list');
+  if (!host) return;
+  // Charakter-Kacheln
+  host.innerHTML = '';
+  PERSONAS.forEach((p) => {
+    const sel = p.id === config.voicePersona;
+    const item = document.createElement('div');
+    item.className = 'persona-item' + (sel ? ' selected' : '');
+    item.innerHTML = `
+      <span class="persona-emoji">${p.emoji}</span>
+      <span class="persona-body">
+        <span class="persona-name">${escapeHtml(p.name)}</span>
+        <span class="persona-desc">${escapeHtml(p.desc)}</span>
+      </span>
+      <span class="persona-check">${sel ? '✓' : ''}</span>`;
+    item.addEventListener('click', () => selectPersona(p.id));
+    host.appendChild(item);
+  });
+
+  // Gerätestimmen-Auswahl
+  const sel = $('#cfg-voiceuri');
+  if (sel) {
+    const list = getGermanVoices();
+    const opts = ['<option value="auto">Automatisch (passend zum Coach)</option>'];
+    list.forEach((v) => {
+      const g = v.gender === 'female' ? ' ♀' : v.gender === 'male' ? ' ♂' : '';
+      opts.push(`<option value="${escapeHtml(v.voiceURI)}">${escapeHtml(v.name)}${g}</option>`);
+    });
+    sel.innerHTML = opts.join('');
+    const wanted = config.voiceURI || 'auto';
+    sel.value = wanted;
+    if (sel.value !== wanted) sel.value = 'auto'; // gespeicherte Stimme nicht (mehr) vorhanden
+  }
+
+  // Felder & Schieberegler
+  if ($('#cfg-coachname')) $('#cfg-coachname').value = config.coachName || '';
+  setSlider('cfg-pitch', 'val-pitch', config.voicePitch, (v) => v.toFixed(2));
+  setSlider('cfg-rate', 'val-rate', config.voiceRate, (v) => v.toFixed(2) + '×');
+  setSlider('cfg-motivation', 'val-motivation', config.motivation, (v) => Math.round(v) + ' %');
+  updateVoiceCurrentLabel();
+}
+
+function setSlider(inputId, valId, value, fmt) {
+  const inp = $('#' + inputId);
+  if (!inp) return;
+  inp.value = value;
+  const lab = $('#' + valId);
+  if (lab) lab.textContent = fmt(Number(value));
+}
+
+function updateVoiceCurrentLabel() {
+  const el = $('#voice-current');
+  if (!el) return;
+  const p = currentPersona();
+  el.textContent = `${p.emoji} ${p.name}`;
+}
+
+function selectPersona(id) {
+  const p = getPersona(id);
+  config.voicePersona = id;
+  // Charakter-Vorgaben für Stimmlage/Tempo übernehmen (lassen sich danach
+  // mit den Reglern feinjustieren).
+  config.voicePitch = p.pitch;
+  config.voiceRate = p.rate;
+  saveConfig(config);
+  applyVoiceSettings();
+  renderVoiceSettings();
+}
+
+function bindVoiceSettings() {
+  $('#cfg-coachname')?.addEventListener('input', (e) => {
+    config.coachName = e.target.value.trim().slice(0, 20);
+    saveConfig(config);
+  });
+  $('#cfg-voiceuri')?.addEventListener('change', (e) => {
+    config.voiceURI = e.target.value;
+    saveConfig(config);
+    applyVoiceSettings();
+  });
+  const bindRange = (id, key, valId, fmt, apply) => {
+    const inp = $('#' + id);
+    if (!inp) return;
+    inp.addEventListener('input', () => {
+      const v = Number(inp.value);
+      config[key] = v;
+      const lab = $('#' + valId);
+      if (lab) lab.textContent = fmt(v);
+      saveConfig(config);
+      if (apply) applyVoiceSettings();
+    });
+  };
+  bindRange('cfg-pitch', 'voicePitch', 'val-pitch', (v) => v.toFixed(2), true);
+  bindRange('cfg-rate', 'voiceRate', 'val-rate', (v) => v.toFixed(2) + '×', true);
+  bindRange('cfg-motivation', 'motivation', 'val-motivation', (v) => Math.round(v) + ' %', false);
+  $('#btn-voice-test')?.addEventListener('click', testVoice);
+}
+
+function testVoice() {
+  initAudio();
+  applyVoiceSettings();
+  const p = currentPersona();
+  const name = config.coachName;
+  const sample = `${line(p, 'work', { name })} ${line(p, 'mid', { ex: 'Kniebeugen', name })}`;
+  speak(sample.trim(), { interrupt: true });
+}
+
 function selectedExerciseIds() {
   return selectedSetIds.flatMap((id) => sets.find((s) => s.id === id)?.exercises || []);
 }
@@ -113,7 +239,14 @@ function selectedExercises() {
     .map((exId) => ({ exId, reps: exerciseMap[exId].reps || DEFAULT_REPS }));
 }
 
+function updateSettingsSummary() {
+  const el = $('#settings-summary');
+  if (!el) return;
+  el.textContent = `${config.workSeconds}/${config.restSeconds}s · ${config.totalMinutes}min`;
+}
+
 function updatePlanSummary() {
+  updateSettingsSummary();
   const pool = selectedExerciseIds();
   const cycle = config.prepareSeconds + config.workSeconds + config.restSeconds;
   const rounds = Math.max(1, Math.floor((config.totalMinutes * 60) / cycle));
@@ -436,7 +569,7 @@ function renderNowPlaying(state) {
   if (!host) return;
   const track = state?.track_window?.current_track;
   if (!track) {
-    host.innerHTML = '<span class="muted small">Tippe einmal auf ⏯, dann starte in der Spotify-App einen Song und wähle dort als Gerät „Freeletics Timer“. Er läuft dann hier weiter.</span>';
+    host.innerHTML = '<span class="muted small">Tippe einmal auf ⏯, dann starte in der Spotify-App einen Song und wähle dort als Gerät „pixletics“. Er läuft dann hier weiter.</span>';
     return;
   }
   host.innerHTML = `
@@ -593,6 +726,8 @@ function applyShareData(data) {
   renderSetsList();
   renderExercisesList();
   renderRadio();
+  renderVoiceSettings();
+  applyVoiceSettings();
   updatePlanSummary();
 }
 
@@ -620,7 +755,7 @@ function exportFile() {
   const blob = new Blob([JSON.stringify(gatherShareData(), null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'freeletics-timer-konfiguration.json';
+  a.download = 'pixletics-konfiguration.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
@@ -692,31 +827,42 @@ function runnerHandlers(steps) {
       const repInfo = step.repsTotal > 1 ? ` · Satz ${step.rep}/${step.repsTotal}` : '';
       $('#runner-round').textContent = `Runde ${step.round} / ${steps.totalRounds}${repInfo}`;
 
+      const persona = currentPersona();
+      const name = config.coachName;
       if (step.phase === PHASE.PREPARE) {
         setPhaseUI('Bereit machen', ex, '⏱️');
         // Zweite (oder weitere) Wiederholung derselben Übung gesondert ansagen.
         if (config.voice) {
-          const ansage = step.rep > 1 ? `Nochmal: ${ex.name}` : `Nächste Runde: ${ex.name}`;
-          speak(ansage, { interrupt: true });
+          const key = step.rep > 1 ? 'again' : 'next';
+          speak(line(persona, key, { ex: ex.name, name }), { interrupt: true });
         }
         showNext(steps, index);
       } else if (step.phase === PHASE.WORK) {
         setPhaseUI('Los!', ex, '');
         if (config.beeps) sound.start();
-        if (config.voice) speak('Los gehts', { interrupt: true });
+        if (config.voice) speak(line(persona, 'work', { name }), { interrupt: true });
         $('#next-up').textContent = '';
       } else if (step.phase === PHASE.REST) {
         setPhaseUI('Pause', ex, '⏸️');
         if (config.beeps) sound.rest();
-        if (config.voice) speak('Pause', { interrupt: true });
+        if (config.voice) speak(line(persona, 'rest', { name }), { interrupt: true });
         showNext(steps, index);
       }
     },
     onSecond({ step, secondsLeft, duration }) {
       if (step.phase === PHASE.WORK) {
+        // Motivierender Zwischenruf etwa in der Mitte – Häufigkeit über den
+        // Motivations-Regler gesteuert. Liegt vor Warnung (15 s) und Countdown.
+        if (config.voice && duration >= 20) {
+          const midAt = Math.max(16, Math.round(duration * 0.6));
+          if (secondsLeft === midAt && Math.random() * 100 < (config.motivation || 0)) {
+            const ex = exerciseMap[step.exId];
+            speak(line(currentPersona(), 'mid', { ex: ex?.name || '', name: config.coachName }));
+          }
+        }
         // Ansage „Noch 15 Sekunden“ (nur wenn die Übung lang genug ist).
         if (secondsLeft === 15 && duration > 18) {
-          if (config.voice) speak('Noch 15 Sekunden');
+          if (config.voice) speak(line(currentPersona(), 'warn15'));
         }
         // Letzte 10 Sekunden laut runterzählen + ticken.
         if (secondsLeft <= 10) {
@@ -751,7 +897,7 @@ function runnerHandlers(steps) {
       $('#exercise-cue').textContent = 'Workout abgeschlossen';
       $('#next-up').textContent = '';
       if (config.beeps) sound.applause();
-      if (config.voice) speak('Geschafft! Sehr gut gemacht.', { interrupt: true });
+      if (config.voice) speak(line(currentPersona(), 'finish', { name: config.coachName }), { interrupt: true });
       releaseWakeLock();
     },
   };
@@ -852,6 +998,32 @@ $('#btn-share-link').addEventListener('click', createShareLink);
 $('#btn-export').addEventListener('click', exportFile);
 $('#import-file').addEventListener('change', (e) => importFile(e.target.files[0]));
 
+// ---------------- Vollbild ----------------
+const fsSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+function toggleFullscreen() {
+  const el = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+  }
+}
+function updateFsButtons() {
+  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  $('#btn-fullscreen')?.classList.toggle('active', on);
+  $('#btn-fs-runner')?.classList.toggle('active', on);
+}
+if (!fsSupported) {
+  // Vollbild-API nicht verfügbar (z. B. iOS Safari) – Schalter ausblenden.
+  if ($('#btn-fullscreen')) $('#btn-fullscreen').hidden = true;
+  if ($('#btn-fs-runner')) $('#btn-fs-runner').hidden = true;
+} else {
+  $('#btn-fullscreen')?.addEventListener('click', toggleFullscreen);
+  $('#btn-fs-runner')?.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', updateFsButtons);
+  document.addEventListener('webkitfullscreenchange', updateFsButtons);
+}
+
 // ---------------- Wake Lock (Bildschirm an) ----------------
 async function requestWakeLock() {
   try {
@@ -876,13 +1048,23 @@ function escapeHtml(str = '') {
 // ---------------- Init ----------------
 async function init() {
   bindConfig();
+  bindVoiceSettings();
   renderPicker();
   renderSetsList();
   renderExercisesList();
   renderRadio();
+  renderVoiceSettings();
   setupSortable();
   updatePlanSummary();
   renderSpotify();
+
+  // Gerätestimmen laden und Auswahl/Coach anwenden, sobald sie verfügbar sind.
+  primeVoices();
+  applyVoiceSettings();
+  onVoicesReady(() => {
+    applyVoiceSettings();
+    renderVoiceSettings();
+  });
 
   // Radio-Status -> UI
   radio.onState = (state) => {
