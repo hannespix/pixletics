@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>Freeletics Timer</title>
+  <meta name="description" content="Browser-basierter Intervall-Timer für Freeletics-Bodyweight-Workouts mit Sprachansagen und Spotify-Steuerung." />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🔥 <span>Freeletics&nbsp;Timer</span></div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-view="train">Training</button>
+      <button class="tab" data-view="sets">Übungssets</button>
+      <button class="tab" data-view="spotify">Spotify</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ============ TRAINING ============ -->
+    <section class="view active" id="view-train">
+      <div class="card">
+        <h2>Programm starten</h2>
+        <p class="muted">Wähle ein oder mehrere Sets. Sie werden nacheinander abgespielt und so lange wiederholt, bis die Gesamtdauer erreicht ist.</p>
+        <div id="set-picker" class="set-picker"></div>
+      </div>
+
+      <div class="card">
+        <h2>Einstellungen</h2>
+        <div class="settings-grid">
+          <label>Übung (Sek.)<input type="number" id="cfg-work" min="10" max="300" step="5" /></label>
+          <label>Pause (Sek.)<input type="number" id="cfg-rest" min="0" max="180" step="5" /></label>
+          <label>Vorbereitung (Sek.)<input type="number" id="cfg-prepare" min="0" max="30" step="1" /></label>
+          <label>Gesamtdauer (Min.)<input type="number" id="cfg-total" min="1" max="120" step="1" /></label>
+        </div>
+        <div class="toggles">
+          <label class="switch"><input type="checkbox" id="cfg-voice" /> <span>Sprachansagen</span></label>
+          <label class="switch"><input type="checkbox" id="cfg-beeps" /> <span>Signaltöne</span></label>
+          <label class="switch"><input type="checkbox" id="cfg-duck" /> <span>Spotify bei Ansage leiser</span></label>
+        </div>
+        <p class="muted" id="plan-summary"></p>
+      </div>
+
+      <button class="btn btn-primary btn-big" id="btn-start">▶︎ Workout starten</button>
+    </section>
+
+    <!-- ============ SETS ============ -->
+    <section class="view" id="view-sets">
+      <div class="card">
+        <div class="row-between">
+          <h2>Deine Übungssets</h2>
+          <button class="btn" id="btn-new-set">+ Neues Set</button>
+        </div>
+        <p class="muted">Tippe auf ein Set zum Bearbeiten. Hake die gewünschten Übungen an und ziehe sie per Drag &amp; Drop in die richtige Reihenfolge.</p>
+        <div id="sets-list" class="sets-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ SPOTIFY ============ -->
+    <section class="view" id="view-spotify">
+      <div class="card">
+        <h2>Spotify steuern</h2>
+        <p class="muted">Optional. Läuft im Browser mit, lässt sich von hier bedienen und wird bei Ansagen automatisch leiser. Benötigt <strong>Spotify Premium</strong> und eine eigene Client-ID.</p>
+        <div id="spotify-panel"></div>
+        <details class="help">
+          <summary>Einrichtung (einmalig)</summary>
+          <ol>
+            <li>Öffne das <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">Spotify Developer Dashboard</a> und erstelle eine App.</li>
+            <li>Trage als <em>Redirect URI</em> exakt diese Adresse ein: <code id="redirect-uri"></code></li>
+            <li>Aktiviere bei den APIs die „Web Playback SDK“.</li>
+            <li>Kopiere die <em>Client ID</em> hierher und klicke „Verbinden“.</li>
+          </ol>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ RUNNER (Vollbild) ============ -->
+  <div class="runner" id="runner" hidden>
+    <div class="runner-bg" id="runner-bg"></div>
+    <div class="runner-top">
+      <div class="runner-meta">
+        <span id="runner-round"></span>
+        <span id="runner-session"></span>
+      </div>
+      <button class="icon-btn" id="btn-close-runner" title="Beenden">✕</button>
+    </div>
+
+    <div class="runner-center">
+      <div class="phase-label" id="phase-label">Bereit</div>
+      <div class="exercise-name" id="exercise-name"></div>
+      <div class="exercise-cue" id="exercise-cue"></div>
+      <div class="big-timer" id="big-timer">00</div>
+      <div class="phase-icon" id="phase-icon"></div>
+      <div class="next-up" id="next-up"></div>
+    </div>
+
+    <div class="runner-progress"><div id="runner-progress-bar"></div></div>
+
+    <div class="runner-controls">
+      <button class="ctrl" id="btn-prev-track" title="Spotify zurück">⏮</button>
+      <button class="ctrl" id="btn-pause" title="Pause/Weiter">⏸</button>
+      <button class="ctrl ctrl-skip" id="btn-skip" title="Überspringen">⏭︎ Übung</button>
+      <button class="ctrl" id="btn-next-track" title="Spotify weiter">⏭</button>
+    </div>
+    <div class="runner-spotify" id="runner-spotify"></div>
+  </div>
+
+  <!-- ============ SET-EDITOR (Modal) ============ -->
+  <div class="modal" id="set-editor" hidden>
+    <div class="modal-card">
+      <div class="row-between">
+        <input class="set-name-input" id="editor-name" placeholder="Set-Name" />
+        <button class="icon-btn" id="btn-close-editor">✕</button>
+      </div>
+      <p class="muted small">Angehakte Übungen sind im Set. Ziehe am ⠿ Griff, um die Reihenfolge zu ändern.</p>
+      <div class="editor-cols">
+        <div>
+          <h3>Im Set <span class="count" id="chosen-count"></span></h3>
+          <ul class="sortable" id="chosen-list"></ul>
+        </div>
+        <div>
+          <h3>Übungsbibliothek</h3>
+          <ul class="library" id="library-list"></ul>
+        </div>
+      </div>
+      <div class="row-between editor-actions">
+        <button class="btn btn-danger" id="btn-delete-set">Set löschen</button>
+        <button class="btn btn-primary" id="btn-save-set">Fertig</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

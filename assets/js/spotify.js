@@ -1,0 +1,238 @@
+// Spotify-Integration (optional) über Authorization Code + PKCE.
+// Erfordert Spotify Premium und eine eigene Client-ID (Spotify Developer Dashboard).
+// Läuft komplett im Browser ohne Server.
+
+const SCOPES = [
+  'streaming',
+  'user-read-email',
+  'user-read-private',
+  'user-read-playback-state',
+  'user-modify-playback-state',
+].join(' ');
+
+const LS = {
+  clientId: 'spotify.clientId',
+  verifier: 'spotify.verifier',
+  token: 'spotify.token', // { access_token, refresh_token, expires_at }
+};
+
+function redirectUri() {
+  // Exakt diese URI muss im Spotify Dashboard eingetragen sein.
+  return window.location.origin + window.location.pathname;
+}
+
+function base64url(bytes) {
+  let str = '';
+  bytes.forEach((b) => (str += String.fromCharCode(b)));
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function sha256(text) {
+  const data = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return new Uint8Array(hash);
+}
+
+function randomString(len = 64) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const arr = crypto.getRandomValues(new Uint8Array(len));
+  return Array.from(arr, (n) => chars[n % chars.length]).join('');
+}
+
+export class Spotify {
+  constructor() {
+    this.player = null;
+    this.deviceId = null;
+    this.ready = false;
+    this.state = null;
+    this._duckRestore = null;
+    this.onState = null; // Callback(state)
+    this.onReady = null;
+  }
+
+  get clientId() {
+    return localStorage.getItem(LS.clientId) || '';
+  }
+  set clientId(v) {
+    localStorage.setItem(LS.clientId, v.trim());
+  }
+
+  get redirectUri() {
+    return redirectUri();
+  }
+
+  _token() {
+    try {
+      return JSON.parse(localStorage.getItem(LS.token) || 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  isConnected() {
+    const t = this._token();
+    return !!(t && t.access_token);
+  }
+
+  async login() {
+    if (!this.clientId) throw new Error('Bitte zuerst die Spotify Client-ID eintragen.');
+    const verifier = randomString(64);
+    localStorage.setItem(LS.verifier, verifier);
+    const challenge = base64url(await sha256(verifier));
+    const params = new URLSearchParams({
+      client_id: this.clientId,
+      response_type: 'code',
+      redirect_uri: this.redirectUri,
+      code_challenge_method: 'S256',
+      code_challenge: challenge,
+      scope: SCOPES,
+    });
+    window.location.href = `https://accounts.spotify.com/authorize?${params}`;
+  }
+
+  // Nach Redirect: Code gegen Token tauschen. Liefert true wenn etwas passiert ist.
+  async handleRedirect() {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const error = url.searchParams.get('error');
+    if (error) {
+      this._cleanUrl();
+      throw new Error('Spotify-Login abgebrochen: ' + error);
+    }
+    if (!code) return false;
+    const verifier = localStorage.getItem(LS.verifier);
+    const body = new URLSearchParams({
+      client_id: this.clientId,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: this.redirectUri,
+      code_verifier: verifier || '',
+    });
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!res.ok) {
+      this._cleanUrl();
+      throw new Error('Token-Austausch fehlgeschlagen.');
+    }
+    const data = await res.json();
+    this._storeToken(data);
+    this._cleanUrl();
+    return true;
+  }
+
+  _cleanUrl() {
+    window.history.replaceState({}, document.title, this.redirectUri);
+  }
+
+  _storeToken(data) {
+    const existing = this._token() || {};
+    const token = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || existing.refresh_token,
+      expires_at: Date.now() + (data.expires_in || 3600) * 1000 - 60000,
+    };
+    localStorage.setItem(LS.token, JSON.stringify(token));
+  }
+
+  async getAccessToken() {
+    let token = this._token();
+    if (!token) return null;
+    if (Date.now() < token.expires_at) return token.access_token;
+    // Refresh
+    if (!token.refresh_token) return null;
+    const body = new URLSearchParams({
+      client_id: this.clientId,
+      grant_type: 'refresh_token',
+      refresh_token: token.refresh_token,
+    });
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!res.ok) return null;
+    this._storeToken(await res.json());
+    return this._token().access_token;
+  }
+
+  logout() {
+    localStorage.removeItem(LS.token);
+    if (this.player) {
+      this.player.disconnect();
+      this.player = null;
+    }
+    this.ready = false;
+    this.deviceId = null;
+  }
+
+  // Lädt das Web-Playback-SDK und erstellt einen Player im Browser.
+  async initPlayer() {
+    if (!this.isConnected()) return;
+    await this._loadSdk();
+    return new Promise((resolve) => {
+      this.player = new window.Spotify.Player({
+        name: 'Freeletics Timer',
+        getOAuthToken: (cb) => this.getAccessToken().then((t) => cb(t)),
+        volume: 0.6,
+      });
+      this.player.addListener('ready', ({ device_id }) => {
+        this.deviceId = device_id;
+        this.ready = true;
+        if (this.onReady) this.onReady(device_id);
+        resolve(device_id);
+      });
+      this.player.addListener('not_ready', () => (this.ready = false));
+      this.player.addListener('player_state_changed', (s) => {
+        this.state = s;
+        if (this.onState) this.onState(s);
+      });
+      this.player.addListener('initialization_error', ({ message }) => console.warn('Spotify init', message));
+      this.player.addListener('authentication_error', ({ message }) => console.warn('Spotify auth', message));
+      this.player.addListener('account_error', ({ message }) => console.warn('Spotify account (Premium nötig)', message));
+      this.player.connect();
+    });
+  }
+
+  _loadSdk() {
+    if (window.Spotify && window.Spotify.Player) return Promise.resolve();
+    return new Promise((resolve) => {
+      window.onSpotifyWebPlaybackSDKReady = () => resolve();
+      if (!document.getElementById('spotify-sdk')) {
+        const s = document.createElement('script');
+        s.id = 'spotify-sdk';
+        s.src = 'https://sdk.scdn.co/spotify-player.js';
+        document.body.appendChild(s);
+      }
+    });
+  }
+
+  async togglePlay() {
+    if (this.player) await this.player.togglePlay();
+  }
+  async next() {
+    if (this.player) await this.player.nextTrack();
+  }
+  async previous() {
+    if (this.player) await this.player.previousTrack();
+  }
+
+  // Macht Spotify während einer Ansage leiser und stellt danach wieder her.
+  async duck() {
+    if (!this.player) return;
+    try {
+      const v = await this.player.getVolume();
+      if (this._duckRestore == null) this._duckRestore = v;
+      await this.player.setVolume(Math.min(v, 0.15));
+    } catch {}
+  }
+  async unduck() {
+    if (!this.player || this._duckRestore == null) return;
+    try {
+      await this.player.setVolume(this._duckRestore);
+    } catch {}
+    this._duckRestore = null;
+  }
+}
