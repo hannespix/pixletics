@@ -16,7 +16,7 @@
       <button class="tab active" data-view="train">Training</button>
       <button class="tab" data-view="sets">Übungssets</button>
       <button class="tab" data-view="exercises">Übungen</button>
-      <button class="tab" data-view="spotify">Spotify</button>
+      <button class="tab" data-view="musik">Musik</button>
     </nav>
   </header>
 
@@ -46,6 +46,18 @@
       </div>
 
       <button class="btn btn-primary btn-big" id="btn-start">▶︎ Workout starten</button>
+
+      <div class="card">
+        <h2>Teilen &amp; Sichern</h2>
+        <p class="muted">Übungen, Sets, Radiosender &amp; Einstellungen als Link teilen oder als Datei sichern – ganz ohne Server.</p>
+        <div class="share-actions">
+          <button class="btn btn-primary" id="btn-share-link">🔗 Teilen-Link erstellen</button>
+          <button class="btn" id="btn-export">⬇︎ Export</button>
+          <label class="btn" for="import-file">⬆︎ Import</label>
+          <input id="import-file" type="file" accept="application/json,.json" hidden />
+        </div>
+        <textarea id="share-output" class="share-output" rows="3" readonly hidden></textarea>
+      </div>
     </section>
 
     <!-- ============ SETS ============ -->
@@ -72,8 +84,18 @@
       </div>
     </section>
 
-    <!-- ============ SPOTIFY ============ -->
-    <section class="view" id="view-spotify">
+    <!-- ============ MUSIK (Radio + Spotify) ============ -->
+    <section class="view" id="view-musik">
+      <div class="card">
+        <div class="row-between">
+          <h2>📻 Radio</h2>
+          <button class="btn" id="btn-new-station">+ Sender</button>
+        </div>
+        <p class="muted">Internet-Radio – kein Login, kein Key, kein Premium nötig. Tippe einen Sender zum Abspielen. Eigene Sender (HTTPS-Stream-URL) kannst du hinzufügen.</p>
+        <div class="sp-now" id="radio-now"></div>
+        <div id="radio-list" class="radio-list"></div>
+      </div>
+
       <div class="card">
         <h2>Spotify steuern</h2>
         <p class="muted">Optional. Läuft im Browser mit, lässt sich von hier bedienen und wird bei Ansagen automatisch leiser. Benötigt <strong>Spotify Premium</strong> und eine eigene Client-ID.</p>
@@ -118,6 +140,7 @@
       <button class="ctrl ctrl-skip" id="btn-skip" title="Übung überspringen">⏭︎ Übung</button>
     </div>
     <div class="runner-sp-bar">
+      <button class="ctrl ctrl-sp" id="btn-radio-toggle" title="Radio an/aus">📻</button>
       <span class="runner-sp-label">Spotify</span>
       <button class="ctrl ctrl-sp" id="btn-prev-track" title="Vorheriger Titel">⏮</button>
       <button class="ctrl ctrl-sp" id="btn-sp-toggle" title="Spotify Play/Pause">⏯</button>
@@ -168,6 +191,26 @@
       <div class="row-between editor-actions">
         <button class="btn btn-danger" id="btn-delete-ex">Löschen</button>
         <button class="btn btn-primary" id="btn-save-ex">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SENDER-EDITOR (Modal) ============ -->
+  <div class="modal" id="station-editor" hidden>
+    <div class="modal-card">
+      <div class="row-between">
+        <h3 id="station-editor-title">Sender</h3>
+        <button class="icon-btn" id="btn-close-station-editor">✕</button>
+      </div>
+      <div class="ex-form">
+        <label class="ex-form-name">Name<input id="station-name" placeholder="z. B. ROCK ANTENNE" /></label>
+        <label>Genre<input id="station-genre" placeholder="z. B. Rock" /></label>
+        <label class="ex-form-cue">Stream-URL (HTTPS)<input id="station-url" placeholder="https://…/stream.mp3" /></label>
+      </div>
+      <p class="muted small">Tipp: Es muss ein direkter HTTPS-Stream (MP3/AAC) sein – keine Webseite und kein HLS/.m3u8.</p>
+      <div class="row-between editor-actions">
+        <button class="btn btn-danger" id="btn-delete-station">Löschen</button>
+        <button class="btn btn-primary" id="btn-save-station">Speichern</button>
       </div>
     </div>
   </div>
