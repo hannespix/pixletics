@@ -35,12 +35,16 @@ body {
 }
 .topbar-right { display: flex; align-items: center; gap: 8px; }
 .brand { display: flex; align-items: center; gap: 9px; flex: none; }
-.brand-mark { width: 26px; height: 26px; image-rendering: pixelated; flex: none; filter: drop-shadow(0 1px 4px rgba(255, 90, 54, 0.4)); }
-.brand-name {
-  height: 18px; width: auto; display: block; flex: none;
-  /* dezenter dauerhafter Gooey-Puls + Schein */
-  filter: url(#goo-head) drop-shadow(0 1px 3px rgba(255, 90, 54, 0.35));
+.brand-mark { width: auto; height: 24px; image-rendering: pixelated; flex: none; filter: drop-shadow(0 1px 5px rgba(255, 90, 54, 0.5)); }
+.brand-morph {
+  position: relative; width: 150px; height: 18px; flex: none;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.55));
 }
+.brand-morph .morph-layer {
+  position: absolute; inset: 0; display: grid; place-items: center; will-change: opacity, filter;
+}
+.brand-morph #brand-b { opacity: 0; }
+.brand-morph .brand-name { width: 100%; height: 100%; display: block; }
 
 /* ---------- Gooey / Intro-Splash ---------- */
 .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
@@ -59,11 +63,6 @@ body {
 .splash-hint {
   position: fixed; left: 0; right: 0; bottom: 9%; text-align: center;
   color: var(--muted); font-size: 13px; letter-spacing: 0.08em;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* Kein dauerhafter Puls, wenn der Nutzer reduzierte Bewegung wünscht. */
-  .brand-name { filter: drop-shadow(0 1px 3px rgba(255, 90, 54, 0.35)); }
 }
 .fs-btn { font-size: 20px; line-height: 1; padding: 4px 6px; border-radius: 8px; }
 .fs-btn:hover { color: var(--text); background: var(--card-2); }
@@ -327,13 +326,13 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
   .ex-form { grid-template-columns: 1fr 1fr; }
   .persona-list { grid-template-columns: 1fr; }
   .voice-grid { grid-template-columns: 1fr; }
-  .brand-name { height: 15px; }
+  .brand-morph { width: 132px; height: 16px; }
   .topbar-right { gap: 4px; }
   .tab { padding: 7px 10px; font-size: 13px; }
   .fs-btn { font-size: 18px; }
 }
 @media (max-width: 420px) {
   .topbar { flex-wrap: wrap; }
-  .brand-name { height: 14px; }
+  .brand-morph { width: 112px; height: 15px; }
   .tab { padding: 6px 9px; font-size: 12px; }
 }

@@ -1,23 +1,32 @@
 // Gooey-Morph zwischen zwei Layern – angelehnt an den klassischen SVG-Gooey-
-// Effekt: Während des Übergangs werden beide Layer geblurrt und über den Filter
-// (Blur + Alpha-Schwelle) zu einer „flüssigen“ Masse verschmolzen, die sich
-// zur Zielform wieder verfestigt.
+// Effekt (Blur + Alpha-Schwelle) plus organisches Warpen (feTurbulence +
+// feDisplacementMap), sodass sich die Buchstaben „flüssig“ verformen, während
+// sie ineinander zerfließen. Unterstützt Einzel-Morph und Endlos-Ping-Pong.
 
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 export class GooeyMorph {
-  constructor({ stage, layerA, layerB, blur, matrix, filterId, maxBlur = 24, gooStd = 13 }) {
-    this.stage = stage;
-    this.a = layerA;
-    this.b = layerB;
-    this.blur = blur;
-    this.matrix = matrix;
-    this.filterId = filterId;
-    this.maxBlur = maxBlur;
-    this.gooStd = gooStd;
+  constructor(opts) {
+    const {
+      stage, layerA, layerB, blur, matrix, disp, filterId,
+      maxBlur = 28, gooStd = 14,
+      threshBase = 20, threshAmp = 35, offBase = -9, offAmp = -12,
+      dispBase = 0, dispAmp = 9, keepFilter = false,
+    } = opts;
+    Object.assign(this, {
+      stage, a: layerA, b: layerB, blur, matrix, disp, filterId,
+      maxBlur, gooStd, threshBase, threshAmp, offBase, offAmp,
+      dispBase, dispAmp, keepFilter,
+    });
     this.raf = null;
     this.state = 'a'; // welcher Layer gerade „fest“ sichtbar ist
+    this.looping = false;
+    this._t = null;
     this._setStatic(this.a, this.b);
+  }
+
+  _applyFilter(on) {
+    this.stage.style.filter = on ? `url(#${this.filterId})` : 'none';
   }
 
   _setStatic(shown, hidden) {
@@ -25,16 +34,23 @@ export class GooeyMorph {
     shown.style.filter = 'none';
     hidden.style.opacity = 0;
     hidden.style.filter = 'none';
-    this.stage.style.filter = 'none';
+    if (this.keepFilter) {
+      // Filter bleibt aktiv → dezentes Dauer-Warpen (Turbulenz läuft per SMIL).
+      this.blur?.setAttribute('stdDeviation', '0');
+      this.disp?.setAttribute('scale', String(this.dispBase));
+      this._applyFilter(true);
+    } else {
+      this._applyFilter(false);
+    }
   }
 
   // Morpht vom aktuellen Zustand in den jeweils anderen.
-  morph(duration = 1500) {
+  morph(duration = 2000) {
     const from = this.state === 'a' ? this.a : this.b;
     const to = this.state === 'a' ? this.b : this.a;
     return new Promise((resolve) => {
       const t0 = performance.now();
-      this.stage.style.filter = `url(#${this.filterId})`;
+      this._applyFilter(true);
       const frame = (now) => {
         const raw = Math.min(1, (now - t0) / duration);
         const t = easeInOutCubic(raw);
@@ -46,15 +62,16 @@ export class GooeyMorph {
         to.style.opacity = Math.max(0, 1 - (1 - t) * (1 - t) * 1.2);
         to.style.filter = `blur(${((1 - t) * this.maxBlur).toFixed(1)}px)`;
 
-        // Gooey-Filter: Blur + Alpha-Schwelle zur Spitze hin hochfahren.
-        const std = peak * this.gooStd;
-        const thresh = 18 + peak * 32;
-        const offset = -8 - peak * 11;
-        this.blur.setAttribute('stdDeviation', std.toFixed(1));
-        this.matrix.setAttribute(
+        // Gooey-Filter (Blur + Alpha-Schwelle) zur Spitze hin hochfahren.
+        this.blur?.setAttribute('stdDeviation', (peak * this.gooStd).toFixed(1));
+        const thresh = this.threshBase + peak * this.threshAmp;
+        const offset = this.offBase + peak * this.offAmp;
+        this.matrix?.setAttribute(
           'values',
           `1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 ${thresh.toFixed(0)} ${offset.toFixed(0)}`,
         );
+        // Verformung (Displacement) ebenfalls zur Spitze hin verstärken.
+        this.disp?.setAttribute('scale', (this.dispBase + peak * this.dispAmp).toFixed(1));
 
         if (raw < 1) {
           this.raf = requestAnimationFrame(frame);
@@ -68,10 +85,33 @@ export class GooeyMorph {
     });
   }
 
+  _wait(ms) {
+    return new Promise((r) => {
+      this._t = setTimeout(() => { this._t = null; r(); }, ms);
+    });
+  }
+
+  // Endlos hin und her morphen, bis stopLoop() gerufen wird.
+  async loop({ duration = 2000, dwellA = 2200, dwellB = 2000 } = {}) {
+    if (this.looping) return;
+    this.looping = true;
+    while (this.looping) {
+      await this._wait(this.state === 'a' ? dwellA : dwellB);
+      if (!this.looping) break;
+      await this.morph(duration);
+    }
+  }
+
   stop() {
     if (this.raf) cancelAnimationFrame(this.raf);
     this.raf = null;
-    // Auf den aktuell sichtbaren Zustand zurücksetzen.
+  }
+
+  stopLoop() {
+    this.looping = false;
+    if (this._t) { clearTimeout(this._t); this._t = null; }
+    this.stop();
+    // Auf aktuell sichtbaren Zustand „einfrieren“.
     if (this.state === 'a') this._setStatic(this.a, this.b);
     else this._setStatic(this.b, this.a);
   }
