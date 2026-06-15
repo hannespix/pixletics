@@ -29,9 +29,14 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   per **Drag & Drop** (Maus oder Touch) in die gewünschte Reihenfolge bringen.
   Beim Training lassen sich mehrere Sets auswählen, die nacheinander
   abgespielt werden.
+- **Freeletics-Sets**: Drei abwechslungsreiche Ganzkörper-Workouts (A · Kraft &
+  Core, B · Cardio & Stabilität, C · Ganzkörper-Mix), sportphysiologisch
+  aufgebaut, je ~50–55 min bei 30/30/10.
 - **Zirkeltraining**: Vorgefertigtes Set mit **15 Stationen** (Seilspringen,
   Pendellauf, Rollbrett, Ringe, Bank, Sprossenwand, Kettlebell, Battle Ropes
-  u. v. m.) – jede Station wird pro Runde einmal „im Kreis“ absolviert.
+  u. v. m.) – jede Station wird pro Runde einmal „im Kreis“ absolviert. **Ab der
+  2. Runde Aktivpause**: in jeder Pause eine Runde um die Halle laufen (wird
+  angesagt). Für ~15 min/Runde: 30 s Übung · 20 s Pause · 10 s Vorbereitung.
 - **Vollbild**: Umschalter in der Kopfzeile und im Workout-Screen (sofern der
   Browser die Fullscreen-API unterstützt).
 - **Animiertes Logo**: Intro-Splash beim Start mit **Gooey-Morph** (das
@@ -50,9 +55,11 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   und ein optionales **Namensfeld**, mit dem der Coach dich anspricht
   („Auf geht's, Alex!"). Nutzt die auf dem Gerät installierten Stimmen.
 - **Musik** (Tab „Musik"): zwei Optionen –
-  - **Internet-Radio**: kuratierte Sender nach Genre (ROCK ANTENNE, FM4,
-    SomaFM u. a.), **ohne Login/Key/Premium**. Eigene Sender (HTTPS-Stream-URL)
-    lassen sich hinzufügen und bearbeiten.
+  - **Internet-Radio**: kuratierte **Power-Sender** quer durch die Genres
+    (bigFM Workout, sunshine live, TechnoBase.FM, ROCK ANTENNE, SomaFM u. a.),
+    **ohne Login/Key/Premium**. Eigene Sender (HTTPS-Stream-URL) lassen sich
+    hinzufügen. Für SomaFM-Sender wird der **aktuell laufende Song** angezeigt
+    (andere Sender liefern im Browser keine Track-Infos).
   - **Spotify** (optional): läuft im Browser mit, steuerbar aus der App
     (Play/Pause/Weiter/Zurück). Benötigt Spotify Premium und eine eigene
     Client-ID (Einrichtung im Musik-Tab beschrieben).

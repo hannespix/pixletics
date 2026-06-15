@@ -221,18 +221,33 @@
 
     <div class="runner-progress"><div id="runner-progress-bar"></div></div>
 
-    <div class="runner-controls">
-      <button class="ctrl" id="btn-pause" title="Workout pausieren">⏸</button>
-      <button class="ctrl ctrl-skip" id="btn-skip" title="Übung überspringen">⏭︎ Übung</button>
+    <!-- Workout-Steuerung -->
+    <div class="runner-section">
+      <span class="runner-section-label">Workout</span>
+      <div class="runner-controls">
+        <button class="ctrl" id="btn-pause" title="Workout pausieren">⏸</button>
+        <button class="ctrl ctrl-skip" id="btn-skip" title="Übung überspringen">⏭︎ Übung</button>
+      </div>
     </div>
-    <div class="runner-sp-bar">
-      <button class="ctrl ctrl-sp" id="btn-radio-toggle" title="Radio an/aus">📻</button>
-      <span class="runner-sp-label">Spotify</span>
-      <button class="ctrl ctrl-sp" id="btn-prev-track" title="Vorheriger Titel">⏮</button>
-      <button class="ctrl ctrl-sp" id="btn-sp-toggle" title="Spotify Play/Pause">⏯</button>
-      <button class="ctrl ctrl-sp" id="btn-next-track" title="Nächster Titel">⏭</button>
+
+    <!-- Musik-Steuerung (separat) -->
+    <div class="runner-section runner-music">
+      <span class="runner-section-label">Musik</span>
+      <div class="rm-now" id="runner-nowplaying"><span class="muted small">Keine Musik aktiv · 📻 für Radio</span></div>
+      <div class="rm-row">
+        <div class="rm-group">
+          <button class="ctrl ctrl-sp" id="btn-radio-toggle" title="Radio an/aus">📻</button>
+          <span class="rm-label">Radio</span>
+        </div>
+        <span class="rm-sep" aria-hidden="true"></span>
+        <div class="rm-group">
+          <button class="ctrl ctrl-sp" id="btn-prev-track" title="Vorheriger Titel">⏮</button>
+          <button class="ctrl ctrl-sp" id="btn-sp-toggle" title="Play/Pause">⏯</button>
+          <button class="ctrl ctrl-sp" id="btn-next-track" title="Nächster Titel">⏭</button>
+          <span class="rm-label">Spotify</span>
+        </div>
+      </div>
     </div>
-    <div class="runner-spotify" id="runner-spotify"></div>
   </div>
 
   <!-- ============ SET-EDITOR (Modal) ============ -->

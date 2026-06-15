@@ -58,46 +58,77 @@ export const DEFAULT_EXERCISES = [
 ];
 
 // Vorgefertigtes Zirkeltraining: 15 Stationen, jede einmal pro Runde „im Kreis“.
+// activeRest: ab der 2. Runde ist die Pause eine Aktivpause (Runde um die Halle).
 export const CIRCUIT_SET = {
   id: 'set-zirkel',
   name: 'Zirkeltraining',
+  activeRest: true,
   exercises: CIRCUIT_EXERCISES.map((e) => e.id),
 };
 
-// Vordefinierte Beispiel-Sets, die beim ersten Start angelegt werden.
+// Vordefinierte Sets. Drei Freeletics-Ganzkörper-Workouts (je ~50–55 min bei
+// 30/30/10) mit Variation, plus das Zirkeltraining. Jedes Freeletics-Set ist
+// sportphysiologisch aufgebaut: Aufwärmen → abwechselnd Beine/Drücken/Ziehen/
+// Core → Cardio-Finisher, sodass der ganze Körper einmal durchtrainiert wird.
 export const DEFAULT_SETS = [
-  CIRCUIT_SET,
   {
-    id: 'set-freeletics',
-    name: 'Freeletics Programm',
-    // Ganzkörper-Zirkel, bewusst nach Muskelgruppen abwechselnd sortiert,
-    // damit die Wiederholungen pro Übung nicht dieselbe Gruppe überlasten.
+    id: 'set-free-a',
+    name: 'Freeletics A · Kraft & Core',
     exercises: [
       'jacks',       // Aufwärmen / Cardio
       'squats',      // Beine
       'pushups',     // Brust / Drücken
-      'lunges',      // Beine (pro Seite, 4×)
-      'tricepdips',  // Trizeps (an der Kiste)
-      'wallsit',     // Beine (statisch, an der Wand)
+      'lunges',      // Beine (pro Seite)
+      'superman',    // Rücken / Ziehen
+      'tricepdips',  // Trizeps
+      'wallsit',     // Beine (statisch)
       'climbers',    // Core / Cardio
       'situps',      // Bauch
       'plank',       // Core (statisch)
+      'bridge',      // Po / hintere Kette
+      'diamond',     // Brust/Trizeps
+      'skater',      // Beine / Cardio (pro Seite)
       'burpees',     // Ganzkörper-Finisher
     ],
   },
   {
-    id: 'set-ganzkoerper',
-    name: 'Ganzkörper Klassiker',
-    exercises: ['burpees', 'pushups', 'squats', 'lunges', 'situps', 'climbers'],
+    id: 'set-free-b',
+    name: 'Freeletics B · Cardio & Stabilität',
+    exercises: [
+      'highknees',   // Aufwärmen / Cardio
+      'jumpsquats',  // Beine (explosiv)
+      'diamond',     // Brust / Drücken
+      'skater',      // Beine / Cardio
+      'plankjacks',  // Core / Cardio
+      'superman',    // Rücken
+      'lunges',      // Beine
+      'crunches',    // Bauch
+      'sideplank',   // Core (pro Seite)
+      'tricepdips',  // Trizeps
+      'twists',      // Bauch / Rotation
+      'climbers',    // Core / Cardio
+      'burpees',     // Ganzkörper-Finisher
+    ],
   },
   {
-    id: 'set-core',
-    name: 'Core & Bauch',
-    exercises: ['plank', 'crunches', 'legraises', 'twists', 'sideplank', 'bridge'],
+    id: 'set-free-c',
+    name: 'Freeletics C · Ganzkörper-Mix',
+    exercises: [
+      'jacks',       // Aufwärmen / Cardio
+      'lunges',      // Beine (pro Seite)
+      'pushups',     // Brust / Drücken
+      'jumpsquats',  // Beine (explosiv)
+      'legraises',   // Bauch (unterer)
+      'superman',    // Rücken
+      'wallsit',     // Beine (statisch)
+      'plankjacks',  // Core / Cardio
+      'crunches',    // Bauch
+      'tricepdips',  // Trizeps
+      'bridge',      // Po / hintere Kette
+      'twists',      // Bauch / Rotation
+      'climbers',    // Core / Cardio
+      'burpees',     // Ganzkörper-Finisher
+    ],
   },
-  {
-    id: 'set-cardio',
-    name: 'Cardio Burner',
-    exercises: ['jacks', 'highknees', 'jumpsquats', 'climbers', 'skater', 'burpees'],
-  },
+  CIRCUIT_SET,
 ];
