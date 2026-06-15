@@ -871,29 +871,29 @@ function runnerHandlers(steps) {
       const persona = currentPersona();
       const name = config.coachName;
       if (step.phase === PHASE.PREPARE) {
-        // Kombinierter Pause-/Vorbereitungsblock: zeigt schon die kommende Übung
-        // und sagt sie gleich zu Beginn an, damit man sich mental vorbereiten kann.
+        // Kombinierter Pause-/Vorbereitungsblock: Modus ansagen + Vorschau-Spruch.
         const active = workoutActiveRest && step.lap >= 2;
         const key = step.rep > 1 ? 'again' : 'next';
+        const upcoming = line(persona, key, { ex: ex.name, name }); // „was kommt“-Spruch
         if (active) {
           // Aktivpause (Zirkel ab Runde 2): Runde um die Halle + Vorschau.
           setPhaseUI('Aktivpause', ex, '🏃');
           $('#exercise-cue').textContent = 'Eine Runde um die Halle laufen 🏃';
           if (config.beeps) sound.rest();
-          if (config.voice) {
-            speak('Aktivpause! Eine Runde um die Halle laufen.', { interrupt: true });
-            speak(line(persona, key, { ex: ex.name, name })); // gleich danach: was kommt
-          }
+          if (config.voice) speak(`Aktivpause! Eine Runde um die Halle laufen. ${upcoming}`, { interrupt: true });
         } else {
           setPhaseUI('Pause', ex, '⏸️');
           if (config.beeps) sound.rest();
-          if (config.voice) speak(line(persona, key, { ex: ex.name, name }), { interrupt: true });
+          // Modus „Pause“ ansagen (zu Beginn „Bereit“) + Vorschau-Spruch.
+          const mode = index === 0 ? 'Bereit.' : 'Pause.';
+          if (config.voice) speak(`${mode} ${upcoming}`, { interrupt: true });
         }
         showNextAfter(steps, index);
       } else if (step.phase === PHASE.WORK) {
         setPhaseUI('Los!', ex, '');
         if (config.beeps) sound.start();
-        if (config.voice) speak(line(persona, 'work', { name }), { interrupt: true });
+        // Modus = aktuelle Übung ansagen + Motivationsspruch zusätzlich.
+        if (config.voice) speak(`${ex.name}! ${line(persona, 'work', { name })}`, { interrupt: true });
         $('#next-up').textContent = '';
       }
     },
