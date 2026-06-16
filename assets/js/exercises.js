@@ -61,7 +61,7 @@ export const DEFAULT_EXERCISES = [
 // activeRest: ab der 2. Runde ist die Pause eine Aktivpause (Runde um die Halle).
 export const CIRCUIT_SET = {
   id: 'set-zirkel',
-  name: 'Zirkeltraining',
+  name: '🎯 Zirkeltraining',
   activeRest: true,
   exercises: CIRCUIT_EXERCISES.map((e) => e.id),
 };
@@ -73,7 +73,7 @@ export const CIRCUIT_SET = {
 export const DEFAULT_SETS = [
   {
     id: 'set-free-a',
-    name: 'Freeletics A · Kraft & Core',
+    name: '🤸‍♂️ Freeletics A · Kraft & Core',
     exercises: [
       'jacks',       // Aufwärmen / Cardio
       'squats',      // Beine
@@ -93,7 +93,7 @@ export const DEFAULT_SETS = [
   },
   {
     id: 'set-free-b',
-    name: 'Freeletics B · Cardio & Stabilität',
+    name: '🤸‍♂️ Freeletics B · Cardio & Stabilität',
     exercises: [
       'highknees',   // Aufwärmen / Cardio
       'jumpsquats',  // Beine (explosiv)
@@ -112,7 +112,7 @@ export const DEFAULT_SETS = [
   },
   {
     id: 'set-free-c',
-    name: 'Freeletics C · Ganzkörper-Mix',
+    name: '🤸‍♂️ Freeletics C · Ganzkörper-Mix',
     exercises: [
       'jacks',       // Aufwärmen / Cardio
       'lunges',      // Beine (pro Seite)
