@@ -1126,9 +1126,9 @@ function runnerHandlers(steps) {
           if (config.voice) {
             const parts = [];
             if (phrases) parts.push(line(persona, 'start'));
-            // Im Intervallmodus gibt es keinen Übungsnamen anzusagen.
-            if (names && !interval) parts.push(`Es geht los mit ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
-            else parts.push('Los geht’s.');
+            // „Wir starten mit …“ (statt „los“, um Doppelungen mit dem Startspruch zu vermeiden).
+            if (names && !interval) parts.push(`Wir starten mit ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
+            if (!parts.length) parts.push('Los geht’s.');
             speak(parts.join(' '), { interrupt: true });
           }
         } else if (step.roundBreak) {
@@ -1152,18 +1152,25 @@ function runnerHandlers(steps) {
         } else {
           setPhaseUI('Pause', ex, '⏸️');
           if (config.beeps) sound.rest();
-          // Genau EIN Coach-Spruch pro Pause (wenn Sprüche an), sonst knapp „Pause.“.
-          if (config.voice) speak(phrases ? line(persona, 'rest') : 'Pause.', { interrupt: true });
+          if (config.voice) {
+            const restSpruch = phrases ? line(persona, 'rest') : '';
+            // „Pause“ nur voranstellen, wenn der Spruch das Wort nicht ohnehin enthält.
+            const txt = !restSpruch ? 'Pause.' : (/pause/i.test(restSpruch) ? restSpruch : `Pause. ${restSpruch}`);
+            speak(txt, { interrupt: true });
+          }
         }
         showNextAfter(steps, index);
       } else if (step.phase === PHASE.WORK) {
         setPhaseUI('Los!', ex, '');
         if (config.beeps) sound.start();
         if (config.voice) {
-          // Genau EIN Coach-Spruch pro Übung (wenn Sprüche an), dazu der Name.
-          const naming = names && !interval ? `${ex.name}!` : 'Los!';
           const spruch = phrases ? motivationLine(persona, { name }) : '';
-          speak(spruch ? `${naming} ${spruch}` : naming, { interrupt: true });
+          const parts = [];
+          // Signalwort „Los!“ nur, wenn der Spruch es nicht selbst enthält (kein Doppel).
+          if (!/\blos\b/i.test(spruch)) parts.push('Los!');
+          if (names && !interval) parts.push(`${ex.name}!`);
+          if (spruch) parts.push(spruch);
+          speak(parts.join(' ') || 'Los!', { interrupt: true });
         }
         $('#next-up').textContent = '';
       }
