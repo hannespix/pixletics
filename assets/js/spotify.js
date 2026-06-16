@@ -97,6 +97,9 @@ export class Spotify {
       code_challenge_method: 'S256',
       code_challenge: challenge,
       scope: SCOPES,
+      // Immer den Spotify-Auswahldialog zeigen, damit man nach „Trennen“ auch
+      // ein anderes Konto wählen kann (sonst wird still dasselbe wiederverbunden).
+      show_dialog: 'true',
     });
     window.location.href = `https://accounts.spotify.com/authorize?${params}`;
   }

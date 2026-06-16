@@ -123,6 +123,29 @@ export function uid(prefix = 'set') {
 // kommen sie nicht zurück.
 export function ensureDefaultsSeeded() {
   const applied = safeParse(localStorage.getItem(SEED_KEY), []);
+
+  // Migration: Emoji in die Titel der Standard-Sets nachziehen – aber nur, wenn
+  // der Nutzer den Namen nicht selbst geändert hat (Abgleich über stabile ID +
+  // alten Standardnamen). Läuft unabhängig von den übrigen Migrationen genau
+  // einmal und fasst Sender/Übungen nicht an.
+  if (!applied.includes('titles-v1')) {
+    const renames = {
+      'set-free-a': ['Freeletics A · Kraft & Core', '🤸‍♂️ Freeletics A · Kraft & Core'],
+      'set-free-b': ['Freeletics B · Cardio & Stabilität', '🤸‍♂️ Freeletics B · Cardio & Stabilität'],
+      'set-free-c': ['Freeletics C · Ganzkörper-Mix', '🤸‍♂️ Freeletics C · Ganzkörper-Mix'],
+      'set-zirkel': ['Zirkeltraining', '🎯 Zirkeltraining'],
+    };
+    const sets = loadSets();
+    let changed = false;
+    sets.forEach((s) => {
+      const r = renames[s.id];
+      if (r && s.name === r[0]) { s.name = r[1]; changed = true; }
+    });
+    if (changed) saveSets(sets);
+    applied.push('titles-v1');
+    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+  }
+
   if (applied.includes('content-v4')) return;
 
   // Fehlende Zirkel-Stationen zur Übungs-Bibliothek hinzufügen (eigene behalten).
