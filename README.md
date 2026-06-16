@@ -46,11 +46,7 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   Minute ein Intervall), **AMRAP** (ein durchgehender Timer) und **Frei**
   (Belastung/Pause/Runden frei wählbar). Coach-Ansagen und Countdown laufen wie
   beim normalen Workout.
-- **Darstellung**: **Hell/Dunkel**-Umschalter in der Kopfzeile (folgt per
-  „Automatisch“ dem System) und **wählbare Akzentfarbe** (Orange, Blau, Grün,
-  Magenta, Violett) unter „🎨 Darstellung“ im Training-Tab.
-- **Einführung beim Erststart**: kurzes Onboarding nach dem Intro-Splash; jederzeit
-  über „Darstellung → Einführung nochmal zeigen“ erneut aufrufbar.
+- **Einführung beim Erststart**: kurzes Onboarding nach dem Intro-Splash.
 - **Vollbild**: Umschalter in der Kopfzeile und im Workout-Screen (sofern der
   Browser die Fullscreen-API unterstützt).
 - **Animiertes Logo**: Intro-Splash beim Start mit **Gooey-Morph** (das

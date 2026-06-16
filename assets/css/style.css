@@ -17,28 +17,6 @@
   --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 
-/* ---------- Helles Theme ---------- */
-/* „auto“ (kein data-theme gesetzt) folgt dem System; „light“ erzwingt hell. */
-:root[data-theme="light"] {
-  --bg: #eceff4; --bg-2: #f4f6fa; --card: #ffffff; --card-2: #eef1f7;
-  --text: #1b2330; --muted: #586075; --border: #dde2ec;
-  --topbar: rgba(236, 239, 244, 0.85); --grad-top: #e3e9f3;
-  --shadow: 0 6px 20px rgba(20, 30, 60, 0.08);
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    --bg: #eceff4; --bg-2: #f4f6fa; --card: #ffffff; --card-2: #eef1f7;
-    --text: #1b2330; --muted: #586075; --border: #dde2ec;
-    --topbar: rgba(236, 239, 244, 0.85); --grad-top: #e3e9f3;
-    --shadow: 0 6px 20px rgba(20, 30, 60, 0.08);
-  }
-}
-/* Der Runner (Vollbild-Workout) bleibt bewusst immer dunkel & fokussiert. */
-.runner {
-  --bg: #0f1115; --bg-2: #171a21; --card: #1c2029; --card-2: #232834;
-  --text: #e8ecf3; --muted: #8b94a7; --border: #313847;
-}
-
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
@@ -69,8 +47,6 @@ body {
 }
 .brand-morph #brand-b { opacity: 0; }
 .brand-morph .brand-name { width: 100%; height: 100%; display: block; }
-/* Wortmarke (currentColor) folgt dem Theme: hell auf dunkel, dunkel auf hell. */
-.brand-name, .morph-svg { color: var(--text); }
 
 /* ---------- Gooey / Intro-Splash ---------- */
 .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
@@ -159,15 +135,6 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .toggles { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 6px; }
 .switch { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
 .switch input { width: 18px; height: 18px; accent-color: var(--accent); }
-
-/* Unterabschnitt innerhalb einer Menü-Karte (z. B. Darstellung in Einstellungen) */
-.settings-sub { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
-.sub-label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin: 0 0 10px; }
-.settings-sub .theme-row { margin: 0 0 14px; }
-.replay-link {
-  background: transparent; border: 0; color: var(--muted); font-size: 13px;
-  cursor: pointer; padding: 14px 0 2px; text-decoration: underline;
-}
 
 /* ---------- Einklappbare Menü-Karten ---------- */
 .collapsible > summary {
@@ -426,25 +393,6 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 #preset-desc { margin: 2px 0 8px; }
 .interval-grid label[hidden] { display: none; }
 #interval-summary { font-weight: 600; }
-
-/* ---------- Darstellung: Theme & Akzentfarben ---------- */
-.theme-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin: 12px 0; }
-.theme-row label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
-.theme-row select {
-  background: var(--bg-2); border: 1px solid var(--border); color: var(--text);
-  padding: 12px; border-radius: 10px; font-size: 16px;
-}
-.accent-swatches { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.accent-swatch {
-  width: 34px; height: 34px; border-radius: 50%; cursor: pointer; flex: none;
-  border: 2px solid transparent; padding: 0;
-  background: linear-gradient(135deg, var(--sw-a), var(--sw-b));
-}
-.accent-swatch.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text); }
-
-/* ---------- Theme-Umschalter (Topbar) ---------- */
-.theme-btn { font-size: 18px; line-height: 1; padding: 4px 6px; border-radius: 8px; }
-.theme-btn:hover { color: var(--text); background: var(--card-2); }
 
 /* ---------- Onboarding (Erststart) ---------- */
 .onboard-card { width: min(420px, 100%); text-align: center; }

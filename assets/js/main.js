@@ -387,90 +387,6 @@ function startInterval() {
   engine.start();
 }
 
-// ================ DARSTELLUNG: Theme & Akzentfarbe ================
-const ACCENTS = {
-  orange:  { name: 'Orange',  c: ['#ff5a36', '#ffae00'] },
-  blau:    { name: 'Blau',    c: ['#3aa0ff', '#27d0c0'] },
-  gruen:   { name: 'Grün',    c: ['#2ecc71', '#a8e063'] },
-  magenta: { name: 'Magenta', c: ['#ff4d8d', '#ff9a3d'] },
-  violett: { name: 'Violett', c: ['#9b6bff', '#5ad1ff'] },
-};
-
-function applyTheme(theme) {
-  if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
-  else document.documentElement.removeAttribute('data-theme'); // 'auto' = System
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) {
-    const sysLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-    const dark = theme === 'dark' || (theme === 'auto' && !sysLight);
-    meta.setAttribute('content', dark ? '#0f1115' : '#f3f5f9');
-  }
-  updateThemeButton();
-}
-
-function applyAccent(accent) {
-  const a = ACCENTS[accent] || ACCENTS.orange;
-  document.documentElement.style.setProperty('--accent', a.c[0]);
-  document.documentElement.style.setProperty('--accent-2', a.c[1]);
-}
-
-function updateThemeButton() {
-  const btn = $('#btn-theme');
-  if (!btn) return;
-  const t = config.theme || 'auto';
-  btn.textContent = t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '🌗';
-  btn.title = `Design: ${t === 'light' ? 'Hell' : t === 'dark' ? 'Dunkel' : 'Automatisch'} – tippen zum Wechseln`;
-}
-
-function setTheme(theme) {
-  config.theme = theme;
-  saveConfig(config);
-  applyTheme(theme);
-  const sel = $('#cfg-theme');
-  if (sel) sel.value = theme;
-}
-
-function renderAccentSwatches() {
-  const host = $('#accent-swatches');
-  if (!host) return;
-  host.innerHTML = '';
-  Object.entries(ACCENTS).forEach(([key, a]) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'accent-swatch' + (config.accent === key ? ' active' : '');
-    b.style.setProperty('--sw-a', a.c[0]);
-    b.style.setProperty('--sw-b', a.c[1]);
-    b.title = a.name;
-    b.setAttribute('aria-label', `Akzentfarbe ${a.name}`);
-    b.addEventListener('click', () => {
-      config.accent = key;
-      saveConfig(config);
-      applyAccent(key);
-      renderAccentSwatches();
-    });
-    host.appendChild(b);
-  });
-}
-
-function initTheme() {
-  applyTheme(config.theme || 'auto');
-  applyAccent(config.accent || 'orange');
-  const sel = $('#cfg-theme');
-  if (sel) {
-    sel.value = config.theme || 'auto';
-    sel.addEventListener('change', () => setTheme(sel.value));
-  }
-  $('#btn-theme')?.addEventListener('click', () => {
-    const order = ['auto', 'light', 'dark'];
-    setTheme(order[(order.indexOf(config.theme || 'auto') + 1) % order.length]);
-  });
-  renderAccentSwatches();
-  updateThemeButton();
-  // Bei „auto“ auf Systemwechsel reagieren (Statusleisten-Farbe nachziehen).
-  const mq = window.matchMedia('(prefers-color-scheme: light)');
-  mq.addEventListener?.('change', () => { if ((config.theme || 'auto') === 'auto') applyTheme('auto'); });
-}
-
 // ================ ONBOARDING (Erststart) ================
 const ONBOARD_KEY = 'pixletics.onboarded';
 const ONBOARD_STEPS = [
@@ -513,7 +429,6 @@ function bindOnboarding() {
     else closeOnboarding();
   });
   $('#onboard-skip').addEventListener('click', closeOnboarding);
-  $('#btn-replay-onboarding')?.addEventListener('click', startOnboarding);
 }
 
 function maybeShowOnboarding() {
@@ -1519,7 +1434,6 @@ async function init() {
   bindConfig();
   bindVoiceSettings();
   bindIntervalUI();
-  initTheme();
   bindOnboarding();
   renderPicker();
   renderSetsList();
