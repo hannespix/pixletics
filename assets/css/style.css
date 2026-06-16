@@ -19,19 +19,18 @@
 
 /* ---------- Helles Theme ---------- */
 /* „auto“ (kein data-theme gesetzt) folgt dem System; „light“ erzwingt hell. */
-:root[data-theme="light"],
-:root[data-theme="light"] body {
-  --bg: #f3f5f9; --bg-2: #ffffff; --card: #ffffff; --card-2: #eef1f7;
-  --text: #1a1f29; --muted: #5d6678; --border: #d9dfea;
-  --topbar: rgba(243, 245, 249, 0.85); --grad-top: #e6ecf6;
-  --shadow: 0 8px 30px rgba(20, 30, 60, 0.12);
+:root[data-theme="light"] {
+  --bg: #eceff4; --bg-2: #f4f6fa; --card: #ffffff; --card-2: #eef1f7;
+  --text: #1b2330; --muted: #586075; --border: #dde2ec;
+  --topbar: rgba(236, 239, 244, 0.85); --grad-top: #e3e9f3;
+  --shadow: 0 6px 20px rgba(20, 30, 60, 0.08);
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --bg: #f3f5f9; --bg-2: #ffffff; --card: #ffffff; --card-2: #eef1f7;
-    --text: #1a1f29; --muted: #5d6678; --border: #d9dfea;
-    --topbar: rgba(243, 245, 249, 0.85); --grad-top: #e6ecf6;
-    --shadow: 0 8px 30px rgba(20, 30, 60, 0.12);
+    --bg: #eceff4; --bg-2: #f4f6fa; --card: #ffffff; --card-2: #eef1f7;
+    --text: #1b2330; --muted: #586075; --border: #dde2ec;
+    --topbar: rgba(236, 239, 244, 0.85); --grad-top: #e3e9f3;
+    --shadow: 0 6px 20px rgba(20, 30, 60, 0.08);
   }
 }
 /* Der Runner (Vollbild-Workout) bleibt bewusst immer dunkel & fokussiert. */
@@ -109,9 +108,13 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 /* ---------- Cards ---------- */
 .card {
   background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow);
+  padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow);
 }
 .card h2 { margin: 0 0 6px; font-size: 18px; }
+/* Menü-Karten (einklappbare Einstellungen): flach & kompakt, wie eine Liste. */
+.card.menu { box-shadow: none; padding: 0 16px; }
+.card.menu > .collapsible > summary { padding: 15px 0; }
+.card.menu > .collapsible[open] { padding-bottom: 16px; }
 .muted { color: var(--muted); font-size: 14px; line-height: 1.5; }
 .small { font-size: 13px; }
 .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -126,7 +129,8 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .btn:hover { filter: brightness(1.1); }
 .btn-primary { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border: 0; color: #1a1208; }
 .btn-danger { background: transparent; border-color: var(--danger); color: #ff8a82; }
-.btn-big { width: 100%; padding: 18px; font-size: 20px; border-radius: 16px; margin-bottom: 40px; }
+.btn-big { width: 100%; padding: 18px; font-size: 20px; border-radius: 16px; margin-bottom: 18px; }
+.collapsible .btn-big { margin-bottom: 0; }
 
 /* ---------- Training: Set-Picker ---------- */
 .set-picker { display: grid; gap: 10px; margin-top: 12px; }
@@ -136,7 +140,7 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 }
 .picker-item.selected { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .picker-item .pi-check {
-  width: 24px; height: 24px; border-radius: 7px; border: 2px solid #444c5e;
+  width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--muted);
   display: grid; place-items: center; flex: none; font-size: 14px;
 }
 .picker-item.selected .pi-check { background: var(--accent); border-color: var(--accent); color: #1a1208; }
@@ -156,21 +160,30 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .switch { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
 .switch input { width: 18px; height: 18px; accent-color: var(--accent); }
 
+/* Unterabschnitt innerhalb einer Menü-Karte (z. B. Darstellung in Einstellungen) */
+.settings-sub { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.sub-label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin: 0 0 10px; }
+.settings-sub .theme-row { margin: 0 0 14px; }
+.replay-link {
+  background: transparent; border: 0; color: var(--muted); font-size: 13px;
+  cursor: pointer; padding: 14px 0 2px; text-decoration: underline;
+}
+
 /* ---------- Einklappbare Menü-Karten ---------- */
 .collapsible > summary {
-  cursor: pointer; font-weight: 700; font-size: 18px; list-style: none;
+  cursor: pointer; font-weight: 700; font-size: 16px; list-style: none;
   display: flex; align-items: center; gap: 10px;
 }
 .collapsible > summary::-webkit-details-marker { display: none; }
-.collapsible > summary > span:first-child { margin-right: auto; }
-.collapsible > summary::after { content: "▾"; color: var(--muted); transition: transform 0.2s ease; }
+.collapsible > summary > span:first-child { margin-right: auto; white-space: nowrap; }
+.collapsible > summary::after { content: "▾"; color: var(--muted); transition: transform 0.2s ease; flex: none; }
 .collapsible[open] > summary::after { transform: rotate(180deg); }
-.collapsible > summary .small { font-weight: 600; text-align: right; }
+.collapsible > summary .small { font-weight: 600; text-align: right; min-width: 0; }
 .collapsible > p { margin-top: 10px; }
 
 /* ---------- Stimme & Coach ---------- */
 .voice-card #voice-current { font-weight: 600; }
-.plan-summary { margin-top: 12px; font-weight: 600; color: var(--accent-2); }
+.plan-summary { margin-top: 12px; font-weight: 600; color: var(--text); }
 
 .persona-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
 .persona-item {
@@ -203,7 +216,7 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px;
   background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer;
 }
-.set-row:hover { border-color: #475066; }
+.set-row:hover { border-color: var(--muted); }
 .set-row .sr-name { font-weight: 700; }
 .set-row .sr-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
 .set-row .ex-row-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -213,7 +226,7 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 /* Wiederholungs-Badge (×3, ×4 …) */
 .reps-badge {
   font-size: 12px; font-weight: 700; color: var(--accent); flex: none;
-  background: rgba(255, 255, 255, 0.05); border: 1px solid #3a4256;
+  background: var(--card); border: 1px solid var(--border);
   border-radius: 999px; padding: 2px 8px;
 }
 
@@ -290,7 +303,7 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .radio-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; }
 .radio-item.playing { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .radio-item .radio-play {
-  width: 42px; height: 42px; flex: none; border-radius: 50%; border: 1px solid #3a4256;
+  width: 42px; height: 42px; flex: none; border-radius: 50%; border: 1px solid var(--border);
   background: var(--bg-2); color: var(--text); font-size: 16px; cursor: pointer; display: grid; place-items: center;
 }
 .radio-item .radio-body { flex: 1; min-width: 0; }
@@ -399,7 +412,7 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 
 .ios-install-card { width: min(420px, 100%); }
 .ios-install-card ol { margin: 12px 0 4px; padding-left: 22px; color: var(--text); font-size: 14px; line-height: 1.7; }
-.ios-install-card ol strong { color: var(--accent-2); }
+.ios-install-card ol strong { color: var(--accent); }
 
 /* ---------- Intervall-Timer: Preset-Chips ---------- */
 .preset-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 6px; }
