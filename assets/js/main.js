@@ -1043,7 +1043,9 @@ function runnerHandlers(steps) {
         } else {
           setPhaseUI('Pause', ex, '⏸️');
           if (config.beeps) sound.rest();
-          if (config.voice) speak('Pause.', { interrupt: true });
+          // Mit Sprüchen übernimmt der Pausenspruch (in onSecond) die Ansage –
+          // sonst käme „Pause“ doppelt. Ohne Sprüche: knappes „Pause.“.
+          if (config.voice && !phrases) speak('Pause.', { interrupt: true });
         }
         showNextAfter(steps, index);
       } else if (step.phase === PHASE.WORK) {
@@ -1088,8 +1090,9 @@ function runnerHandlers(steps) {
           const ex = exerciseMap[step.exId];
           const name = config.coachName;
           const active = workoutActiveRest && step.lap >= 2;
-          // 1) cooler Pausenspruch – wenn Sprüche an (bei Aktivpause läuft man).
-          if (config.voice && phrases && !active && duration >= 8 && secondsLeft === duration - 3) {
+          // 1) cooler Pausenspruch – wenn Sprüche an (bei Aktivpause läuft man,
+          //    bei Rundenwechsel gibt es schon die „Runde geschafft“-Ansage).
+          if (config.voice && phrases && !active && !step.roundBreak && duration >= 8 && secondsLeft === duration - 3) {
             speak(line(persona, 'rest'));
           }
           // 2) Vorschau auf die nächste Übung – Namen nur wenn 'names', Spruch wenn 'phrases'.
