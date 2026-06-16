@@ -130,6 +130,10 @@
           <p class="muted small">⭐ = besonders natürliche Stimme. Tipp: Android nutzt „Google Deutsch"; am iPhone unter <em>Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen</em> eine deutsche <em>Premium</em>-/<em>Enhanced</em>-Stimme laden – die App wählt sie dann automatisch.</p>
           <div class="slider-row">
             <label>
+              <span class="slider-head">🔊 Lautstärke <span class="slider-val" id="val-voicevol"></span></span>
+              <input type="range" id="cfg-voicevol" min="0" max="100" step="5" />
+            </label>
+            <label>
               <span class="slider-head">Stimmlage <span class="slider-val" id="val-pitch"></span></span>
               <input type="range" id="cfg-pitch" min="0.5" max="1.8" step="0.05" />
             </label>
@@ -249,12 +253,13 @@
 
     <!-- Musik-Steuerung (separat) -->
     <div class="runner-section runner-music">
-      <span class="runner-section-label">Musik</span>
-      <div class="rm-now" id="runner-nowplaying"><span class="muted small">Keine Musik aktiv · 📻 für Radio</span></div>
+      <button class="rm-pick" id="btn-runner-music" title="Musik wählen – Sender oder Spotify">
+        <span class="runner-section-label">Musik · 🎵 wählen ›</span>
+        <span class="rm-now" id="runner-nowplaying"><span class="muted small">Tippen, um Sender/Spotify zu wählen</span></span>
+      </button>
       <div class="rm-row">
         <div class="rm-group">
           <button class="ctrl ctrl-sp" id="btn-radio-toggle" title="Radio an/aus">📻</button>
-          <button class="ctrl ctrl-sp" id="btn-runner-music" title="Sender wählen / Spotify">🎵</button>
           <span class="rm-label">Radio</span>
         </div>
         <span class="rm-sep" aria-hidden="true"></span>
@@ -341,6 +346,10 @@
         <h3>🎵 Musik</h3>
         <button class="icon-btn" id="btn-close-music" title="Schließen">✕</button>
       </div>
+      <label class="mm-vol">
+        <span class="slider-head">🔊 Musik-Lautstärke <span class="slider-val" id="val-musicvol"></span></span>
+        <input type="range" id="cfg-musicvol" min="0" max="100" step="5" />
+      </label>
       <p class="muted small">Sender antippen zum Abspielen.</p>
       <div id="mm-radio" class="mm-radio"></div>
       <div id="mm-spotify" class="mm-spotify"></div>

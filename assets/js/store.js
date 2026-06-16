@@ -15,6 +15,8 @@ const SEED_KEY = 'freeletics.seed.v1';
 // Schwerpunkt: Rock, 70er/80er-Rock, Workout. Viele werbefreie SomaFM-Streams
 // (np = SomaFM-Kanal-ID für die „Now Playing“-Anzeige).
 export const DEFAULT_STATIONS = [
+  { id: 'st-bob-80s',      name: 'RADIO BOB! 80er Rock',     genre: '80er Rock',    url: 'https://streams.radiobob.de/bob-80srock/mp3-192/streams.radiobob.de/' },
+  { id: 'st-bob-90s',      name: 'RADIO BOB! 90er Rock',     genre: '90er Rock',    url: 'https://streams.radiobob.de/bob-90srock/mp3-192/streams.radiobob.de/' },
   { id: 'st-rockantenne',  name: 'ROCK ANTENNE',             genre: 'Rock',         url: 'https://stream.rockantenne.de/rockantenne/stream/mp3' },
   { id: 'st-ra-classic',   name: 'ROCK ANTENNE Classic Perlen', genre: 'Rock-Klassiker', url: 'https://stream.rockantenne.de/classic-perlen/stream/mp3' },
   { id: 'st-ra-metal',     name: 'ROCK ANTENNE Heavy Metal', genre: 'Metal',        url: 'https://stream.rockantenne.de/heavy-metal/stream/mp3' },
@@ -34,6 +36,8 @@ export const DEFAULT_CONFIG = {
   voice: true,        // Sprachansagen an/aus
   beeps: true,        // Signaltöne an/aus
   duckSpotify: true,  // Spotify bei Ansagen leiser
+  voiceVolume: 1.0,   // Lautstärke Coach (Ansagen + Signaltöne), 0–1
+  musicVolume: 0.8,   // Lautstärke Musik (Radio + Spotify), 0–1
   // ---- Stimme & Coach ----
   voicePersona: 'standard', // gewählter Coach-Charakter (siehe coach.js)
   voiceURI: 'auto',         // gewählte Gerätestimme oder 'auto' (zum Coach passend)
@@ -143,6 +147,22 @@ export function ensureDefaultsSeeded() {
     });
     if (changed) saveSets(sets);
     applied.push('titles-v1');
+    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+  }
+
+  // Migration: RADIO BOB! 80er/90er Rock auch bei Bestandsnutzern ergänzen und
+  // ganz nach vorne stellen (80er = Standard-Sender). Vorhandene Sender bleiben
+  // erhalten; nichts wird überschrieben.
+  if (!applied.includes('stations-bob-v1')) {
+    const stations = loadStations();
+    const have = new Set(stations.map((s) => s.id));
+    const bob = [
+      { id: 'st-bob-80s', name: 'RADIO BOB! 80er Rock', genre: '80er Rock', url: 'https://streams.radiobob.de/bob-80srock/mp3-192/streams.radiobob.de/' },
+      { id: 'st-bob-90s', name: 'RADIO BOB! 90er Rock', genre: '90er Rock', url: 'https://streams.radiobob.de/bob-90srock/mp3-192/streams.radiobob.de/' },
+    ];
+    const toAdd = bob.filter((b) => !have.has(b.id));
+    if (toAdd.length) saveStations([...toAdd, ...stations]);
+    applied.push('stations-bob-v1');
     localStorage.setItem(SEED_KEY, JSON.stringify(applied));
   }
 
