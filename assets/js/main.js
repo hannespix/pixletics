@@ -318,9 +318,9 @@ function updateIntervalSummary() {
   const mode = currentIntervalMode();
   const { work, rest, rounds } = intervalParams();
   let txt;
-  if (mode === 'amrap') txt = `AMRAP · ${fmtTime(work * 1000)} am Stück`;
-  else if (mode === 'emom') txt = `EMOM · ${rounds} Minuten`;
-  else txt = `${rounds} Runden · ${work}s/${rest}s · ${fmtTime((work + rest) * rounds * 1000)} gesamt`;
+  if (mode === 'amrap') txt = `AMRAP · ${fmtTime(work * 1000)}`;
+  else if (mode === 'emom') txt = `EMOM · ${rounds} Min`;
+  else txt = `${rounds}× ${work}/${rest}s · ${fmtTime((work + rest) * rounds * 1000)}`;
   $('#interval-summary').textContent = txt;
 }
 

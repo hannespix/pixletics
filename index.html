@@ -106,7 +106,7 @@
 
       <button class="btn btn-primary btn-big" id="btn-start">▶︎ Workout starten</button>
 
-      <div class="card">
+      <div class="card menu">
         <details class="collapsible" id="settings-card">
           <summary><span>⚙️ Einstellungen</span><span class="muted small" id="settings-summary"></span></summary>
           <div class="settings-grid">
@@ -120,10 +120,25 @@
             <label class="switch"><input type="checkbox" id="cfg-beeps" /> <span>Signaltöne</span></label>
             <label class="switch"><input type="checkbox" id="cfg-duck" /> <span>Musik bei Ansage leiser</span></label>
           </div>
+          <div class="settings-sub">
+            <span class="sub-label">🎨 Darstellung</span>
+            <div class="theme-row">
+              <label>Design
+                <select id="cfg-theme">
+                  <option value="auto">Automatisch (System)</option>
+                  <option value="light">Hell</option>
+                  <option value="dark">Dunkel</option>
+                </select>
+              </label>
+            </div>
+            <span class="sub-label">Akzentfarbe</span>
+            <div class="accent-swatches" id="accent-swatches"></div>
+            <button class="replay-link" id="btn-replay-onboarding">Einführung nochmal zeigen</button>
+          </div>
         </details>
       </div>
 
-      <div class="card">
+      <div class="card menu">
         <details class="collapsible" id="interval-card">
           <summary><span>⏱️ Intervall-Timer</span><span class="muted small" id="interval-summary"></span></summary>
           <p class="muted">Reiner Timer ohne Übungen – ideal für Tabata, EMOM, AMRAP oder freie Intervalle.</p>
@@ -143,7 +158,7 @@
         </details>
       </div>
 
-      <div class="card">
+      <div class="card menu">
         <details class="collapsible voice-card" id="voice-card">
           <summary><span>🎙️ Stimme &amp; Coach</span><span class="muted small" id="voice-current"></span></summary>
           <p class="muted">Wähle einen Coach-Charakter mit eigenem Tonfall und Sprüchen. Feinjustiere Stimmlage, Tempo und wie motivierend er ist. (Nutzt die Stimmen deines Geräts.)</p>
@@ -179,25 +194,7 @@
         </details>
       </div>
 
-      <div class="card">
-        <details class="collapsible" id="appearance-card">
-          <summary><span>🎨 Darstellung</span><span class="muted small" id="appearance-summary"></span></summary>
-          <div class="theme-row">
-            <label>Design
-              <select id="cfg-theme">
-                <option value="auto">Automatisch (System)</option>
-                <option value="light">Hell</option>
-                <option value="dark">Dunkel</option>
-              </select>
-            </label>
-          </div>
-          <p class="muted small">Akzentfarbe</p>
-          <div class="accent-swatches" id="accent-swatches"></div>
-          <p class="muted small" style="margin-top:14px"><button class="btn" id="btn-replay-onboarding">👋 Einführung nochmal zeigen</button></p>
-        </details>
-      </div>
-
-      <div class="card">
+      <div class="card menu">
         <details class="collapsible" id="share-card">
           <summary><span>🔗 Teilen &amp; Sichern</span></summary>
           <p class="muted">Übungen, Sets, Radiosender &amp; Einstellungen als Link teilen oder als Datei sichern – ganz ohne Server.</p>
