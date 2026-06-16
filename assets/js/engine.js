@@ -32,8 +32,10 @@ export function buildSchedule(items, config) {
     const lap = Math.floor(i / sequence.length) + 1;
     const meta = { exId: item.exId, rep: item.rep, repsTotal: item.repsTotal, round: i + 1, lap };
     // Vor jeder Übung der kombinierte Pause-/Vorbereitungsblock, dann die Übung.
-    // Das Programm endet mit der Übung (keine Pause danach).
-    steps.push({ phase: PHASE.PREPARE, duration: pauseSeconds, ...meta });
+    // Die ERSTE Übung beginnt ohne lange Pause – nur ein kurzer Lead-in
+    // (Ansage + Countdown). Das Programm endet mit der Übung (keine Pause danach).
+    const prepDuration = i === 0 ? Math.min(pauseSeconds, 10) : pauseSeconds;
+    steps.push({ phase: PHASE.PREPARE, duration: prepDuration, ...meta });
     steps.push({ phase: PHASE.WORK, duration: workSeconds, ...meta });
   }
   // Metadaten: Gesamtdauer, Schrittanzahl & Länge eines Durchlaufs (für Laps)

@@ -114,6 +114,14 @@ function currentPersona() {
   return getPersona(config.voicePersona);
 }
 
+// Ansage-Umfang: 'full' (Sprüche), 'concise' (knapp), 'minimal' (nur Countdown).
+// Der Standard-Coach ist bewusst sprüche-frei → verhält sich wie 'concise'.
+function verbosityLevel() {
+  let v = config.verbosity || 'full';
+  if (config.voicePersona === 'standard' && v === 'full') v = 'concise';
+  return v;
+}
+
 // Aktuelle Stimm-Einstellungen an die Audio-Schicht übergeben.
 function applyVoiceSettings() {
   const persona = currentPersona();
@@ -160,6 +168,7 @@ function renderVoiceSettings() {
 
   // Felder & Schieberegler
   if ($('#cfg-coachname')) $('#cfg-coachname').value = config.coachName || '';
+  if ($('#cfg-verbosity')) $('#cfg-verbosity').value = config.verbosity || 'full';
   setSlider('cfg-pitch', 'val-pitch', config.voicePitch, (v) => v.toFixed(2));
   setSlider('cfg-rate', 'val-rate', config.voiceRate, (v) => v.toFixed(2) + '×');
   setSlider('cfg-motivation', 'val-motivation', config.motivation, (v) => Math.round(v) + ' %');
@@ -202,6 +211,10 @@ function bindVoiceSettings() {
     config.voiceURI = e.target.value;
     saveConfig(config);
     applyVoiceSettings();
+  });
+  $('#cfg-verbosity')?.addEventListener('change', (e) => {
+    config.verbosity = e.target.value;
+    saveConfig(config);
   });
   const bindRange = (id, key, valId, fmt, apply) => {
     const inp = $('#' + id);
@@ -879,69 +892,88 @@ function runnerHandlers(steps) {
 
       const persona = currentPersona();
       const name = config.coachName;
+      const v = verbosityLevel();
       if (step.phase === PHASE.PREPARE) {
-        // Nur den Modus ansagen. Pausenspruch, „nächste Übung“ + Erklärung und
-        // Countdown kommen zeitlich gestaffelt in onSecond.
         const active = workoutActiveRest && step.lap >= 2;
-        if (active) {
+        if (index === 0) {
+          // Erste Übung: kein Pausen-Start – Startansage + was kommt, dann Countdown.
+          setPhaseUI('Los geht’s', ex, '⏱️');
+          if (config.voice) {
+            let txt;
+            if (v === 'minimal') txt = 'Los geht’s.';
+            else if (v === 'concise') txt = `Los geht’s. ${ex.name}.`;
+            else txt = `${line(persona, 'start')} Es geht los mit ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`;
+            speak(txt, { interrupt: true });
+          }
+        } else if (active) {
           // Aktivpause (Zirkel ab Runde 2): Runde um die Halle.
           setPhaseUI('Aktivpause', ex, '🏃');
           $('#exercise-cue').textContent = 'Eine Runde um die Halle laufen 🏃';
           if (config.beeps) sound.rest();
-          if (config.voice) speak('Aktivpause! Eine Runde um die Halle laufen.', { interrupt: true });
+          if (config.voice) speak(v === 'minimal' ? 'Aktivpause.' : 'Aktivpause! Eine Runde um die Halle laufen.', { interrupt: true });
         } else {
           setPhaseUI('Pause', ex, '⏸️');
           if (config.beeps) sound.rest();
-          if (config.voice) speak(index === 0 ? 'Bereit machen.' : 'Pause.', { interrupt: true });
+          if (config.voice) speak('Pause.', { interrupt: true });
         }
         showNextAfter(steps, index);
       } else if (step.phase === PHASE.WORK) {
         setPhaseUI('Los!', ex, '');
         if (config.beeps) sound.start();
-        // Modus = aktuelle Übung ansagen + Motivationsspruch zusätzlich.
-        if (config.voice) speak(`${ex.name}! ${line(persona, 'work', { name })}`, { interrupt: true });
+        if (config.voice) {
+          let txt;
+          if (v === 'minimal') txt = 'Los!';
+          else if (v === 'concise') txt = `${ex.name}!`;
+          else txt = `${ex.name}! ${line(persona, 'work', { name })}`;
+          speak(txt, { interrupt: true });
+        }
         $('#next-up').textContent = '';
       }
     },
     onSecond({ step, secondsLeft, duration }) {
+      const v = verbosityLevel();
       if (step.phase === PHASE.WORK) {
-        // Motivierender Zwischenruf etwa in der Mitte – Häufigkeit über den
-        // Motivations-Regler gesteuert. Liegt vor Warnung (15 s) und Countdown.
-        if (config.voice && duration >= 20) {
+        // Motivierender Zwischenruf etwa in der Mitte – nur bei 'full'.
+        if (config.voice && v === 'full' && duration >= 20) {
           const midAt = Math.max(16, Math.round(duration * 0.6));
           if (secondsLeft === midAt && Math.random() * 100 < (config.motivation || 0)) {
             const ex = exerciseMap[step.exId];
             speak(line(currentPersona(), 'mid', { ex: ex?.name || '', name: config.coachName }));
           }
         }
-        // Ansage „Noch 15 Sekunden“ (nur wenn die Übung lang genug ist).
-        if (secondsLeft === 15 && duration > 18) {
-          if (config.voice) speak(line(currentPersona(), 'warn15'));
+        // „Noch 15 Sekunden“ (Status) – in 'full' & 'concise', nicht 'minimal'.
+        if (secondsLeft === 15 && duration > 18 && config.voice && v !== 'minimal') {
+          speak(v === 'full' ? line(currentPersona(), 'warn15') : 'Noch 15 Sekunden.');
         }
-        // Letzte 10 Sekunden laut runterzählen + ticken.
+        // Letzte 10 Sekunden laut runterzählen + ticken (immer).
         if (secondsLeft <= 10) {
           if (config.beeps) sound.tick();
           if (config.voice) speak(String(secondsLeft));
         }
       } else if (step.phase === PHASE.PREPARE) {
-        // Pausen-Ansagen gestaffelt: (Pause kam schon) → cooler Pausenspruch →
-        // nächste Übung + Spruch + Erklärung → Countdown.
-        const persona = currentPersona();
-        const ex = exerciseMap[step.exId];
-        const name = config.coachName;
-        const active = workoutActiveRest && step.lap >= 2;
-        // 1) kurz nach „Pause“ ein cooler Pausenspruch (bei Aktivpause läuft man).
-        if (config.voice && !active && duration >= 8 && secondsLeft === duration - 3) {
-          speak(line(persona, 'rest'));
+        const firstBlock = step.round === 1; // Lead-in: nur Countdown
+        if (!firstBlock) {
+          const persona = currentPersona();
+          const ex = exerciseMap[step.exId];
+          const name = config.coachName;
+          const active = workoutActiveRest && step.lap >= 2;
+          // 1) cooler Pausenspruch – nur 'full' (bei Aktivpause läuft man).
+          if (config.voice && v === 'full' && !active && duration >= 8 && secondsLeft === duration - 3) {
+            speak(line(persona, 'rest'));
+          }
+          // 2) nächste Übung ansagen – in 'full' (+Spruch+Erklärung) & 'concise' (nur Name).
+          const nextAt = Math.max(4, duration - 9);
+          if (secondsLeft === nextAt && config.voice && ex && v !== 'minimal') {
+            if (v === 'concise') {
+              speak(`Als Nächstes: ${ex.name}.`);
+            } else {
+              const spruch = line(persona, 'mid', { ex: ex.name, name });
+              const cue = ex.cue ? ` ${ex.cue}.` : '';
+              speak(`Als Nächstes: ${ex.name}. ${spruch}.${cue}`);
+            }
+          }
         }
-        // 2) etwas später: nächste Übung ansagen + passender Spruch + Erklärung.
-        const nextAt = Math.max(4, duration - 9);
-        if (secondsLeft === nextAt && config.voice && ex) {
-          const spruch = line(persona, 'mid', { ex: ex.name, name });
-          const cue = ex.cue ? ` ${ex.cue}.` : '';
-          speak(`Als Nächstes: ${ex.name}. ${spruch}.${cue}`);
-        }
-        // 3) letzte 3 Sekunden: Start-Countdown.
+        // 3) letzte 3 Sekunden: Start-Countdown (immer).
         if (secondsLeft <= 3) {
           if (config.beeps) sound.tick();
           if (config.voice) speak(String(secondsLeft));
@@ -970,7 +1002,9 @@ function runnerHandlers(steps) {
       $('#exercise-cue').textContent = 'Workout abgeschlossen';
       $('#next-up').textContent = '';
       if (config.beeps) sound.applause();
-      if (config.voice) speak(line(currentPersona(), 'finish', { name: config.coachName }), { interrupt: true });
+      if (config.voice) {
+        speak(verbosityLevel() === 'full' ? line(currentPersona(), 'finish', { name: config.coachName }) : 'Geschafft!', { interrupt: true });
+      }
       releaseWakeLock();
     },
   };

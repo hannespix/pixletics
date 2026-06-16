@@ -157,6 +157,7 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .persona-item .persona-check { color: var(--accent); font-weight: 700; flex: none; width: 14px; text-align: center; }
 
 .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 6px 0 14px; }
+.voice-grid .voice-full { grid-column: 1 / -1; }
 .voice-grid label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .voice-grid input, .voice-grid select {
   background: var(--bg-2); border: 1px solid #313847; color: var(--text);

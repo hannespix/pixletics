@@ -106,6 +106,13 @@
           <p class="muted">Wähle einen Coach-Charakter mit eigenem Tonfall und Sprüchen. Feinjustiere Stimmlage, Tempo und wie motivierend er ist. (Nutzt die Stimmen deines Geräts.)</p>
           <div id="persona-list" class="persona-list"></div>
           <div class="voice-grid">
+            <label class="voice-full">Ansagen
+              <select id="cfg-verbosity">
+                <option value="full">Voll – mit Coach-Sprüchen</option>
+                <option value="concise">Knapp – nur das Wichtigste</option>
+                <option value="minimal">Minimal – nur Countdown</option>
+              </select>
+            </label>
             <label>Dein Name (optional)<input id="cfg-coachname" type="text" maxlength="20" placeholder="z. B. Alex" /></label>
             <label>Gerätestimme<select id="cfg-voiceuri"></select></label>
           </div>

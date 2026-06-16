@@ -58,6 +58,11 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   (wie oft motivierende/freche Zwischenrufe kommen), Auswahl der **Gerätestimme**
   und ein optionales **Namensfeld**, mit dem der Coach dich anspricht
   („Auf geht's, Alex!"). Nutzt die auf dem Gerät installierten Stimmen.
+- **Ansage-Umfang** wählbar: **Voll** (mit Coach-Sprüchen, Startansage, Erklärungen),
+  **Knapp** (nur das Wichtigste: Modus, Übungsname, Countdown, Status) oder
+  **Minimal** (nur „Pause/Los" + Countdown, ohne Übungsnamen – ideal fürs eigene
+  Training). Der **Standard-Coach** ist bewusst sprüche-frei. Die **erste Übung**
+  startet ohne lange Pause (kurze Ansage → Countdown → los).
 - **Musik** (Tab „Musik"): zwei Optionen –
   - **Internet-Radio**: kuratierte **Power-Sender** quer durch die Genres
     (bigFM Workout, sunshine live, TechnoBase.FM, ROCK ANTENNE, SomaFM u. a.),

@@ -37,6 +37,7 @@ export const DEFAULT_CONFIG = {
   voiceRate: 1.05,          // Sprechtempo (0.6–1.6)
   coachName: '',            // optionaler Name, mit dem der Coach dich anspricht
   motivation: 60,           // 0–100: wie oft motivierende Zwischenrufe kommen
+  verbosity: 'full',        // 'full' (Sprüche) | 'concise' (knapp) | 'minimal'
 };
 
 function safeParse(raw, fallback) {

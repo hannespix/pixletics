@@ -16,6 +16,7 @@ export const PERSONAS = [
     pitch: 1.0,
     rate: 1.05,
     lines: {
+      start:  ['Los geht’s.', 'Training startet.', 'Auf geht’s.'],
       next:   ['Nächste Übung: {ex}', 'Weiter mit {ex}', 'Es folgt: {ex}', 'Gleich: {ex}', 'Jetzt kommt {ex}'],
       again:  ['Nochmal: {ex}', '{ex}, noch ein Satz', '{ex}, weiter'],
       work:   [
@@ -41,6 +42,7 @@ export const PERSONAS = [
     pitch: 0.7,
     rate: 1.18,
     lines: {
+      start:  ['Aufstellung! Wir legen los!', 'Antreten! Training beginnt!', 'Keine Ausreden – los geht’s!'],
       next:   ['Antreten! Jetzt {ex}!', 'Bewegung! Es folgt {ex}!', 'Aufstellung für {ex}!', 'Bereitmachen für {ex}!'],
       again:  ['Nochmal {ex}! Keine Diskussion!', '{ex}! Und diesmal richtig!'],
       work:   [
@@ -66,6 +68,7 @@ export const PERSONAS = [
     pitch: 1.0,
     rate: 1.1,
     lines: {
+      start:  ['Auf geht’s, das wird stark!', 'Los, wir starten – volle Energie!', 'Bereit? Dann geben wir Gas!'],
       next:   ['Jetzt kommt {ex} – du packst das!', 'Auf zu {ex}!', 'Bereit für {ex}? Los!', 'Gleich {ex} – Feuer frei!'],
       again:  ['Noch ein Satz {ex} – volle Power!', '{ex}, einmal noch, du Maschine!'],
       work:   [
@@ -91,6 +94,7 @@ export const PERSONAS = [
     pitch: 1.12,
     rate: 1.06,
     lines: {
+      start:  ['Na endlich, auf geht’s!', 'Schluss mit Aufwärmen im Kopf – los!', 'Dann zeig mal, was du draufhast!'],
       next:   ['So, jetzt {ex} – kein Drücken!', 'Na los, {ex}. Du wolltest doch fit werden.', 'Jetzt {ex}, der Spaß beginnt.', 'Ab zu {ex}, Sportsfreund.'],
       again:  ['Nochmal {ex}? Jep. Selber schuld.', '{ex}, die Zweite. Genießen!'],
       work:   [
@@ -117,6 +121,7 @@ export const PERSONAS = [
     pitch: 1.12,
     rate: 1.05,
     lines: {
+      start:  ['Schön, dass du da bist – los geht’s!', 'Wir starten, du schaffst das!', 'Auf geht’s, gemeinsam durch!'],
       next:   ['Weiter geht’s mit {ex}.', 'Jetzt {ex} – du schaffst das!', 'Als Nächstes: {ex}.', 'Gleich {ex}, bereit?'],
       again:  ['Noch ein Satz {ex}, komm!', '{ex}, einmal noch – stark bleiben!'],
       work:   [
@@ -143,6 +148,7 @@ export const PERSONAS = [
     pitch: 0.96,
     rate: 0.9,
     lines: {
+      start:  ['Wir beginnen. Atme und komm an.', 'Lass uns ruhig starten.', 'Beginnen wir – ganz bei dir.'],
       next:   ['Sanft weiter zu {ex}.', 'Es folgt {ex}. Bleib bei dir.', 'Nun {ex}.', 'Achtsam zu {ex}.'],
       again:  ['Noch einmal {ex}, ganz ruhig.', '{ex}, wiederhole achtsam.'],
       work:   [
