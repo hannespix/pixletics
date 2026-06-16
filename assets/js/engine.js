@@ -1,5 +1,6 @@
 // Workout-Engine: baut den Ablaufplan und steuert die Phasen-Zustandsmaschine.
-// Phasen pro Übung: prepare (Countdown) -> work (Übung) -> rest (Pause)
+// Pro Übung: prepare (kombinierte Pause + Vorbereitung mit Ansage/Countdown) ->
+// work (Übung). Eine separate rest-Phase gibt es nicht mehr.
 
 export const PHASE = { PREPARE: 'prepare', WORK: 'work', REST: 'rest', DONE: 'done' };
 
