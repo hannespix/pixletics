@@ -1169,10 +1169,22 @@ function runnerHandlers(steps) {
       }
     },
     onSecond({ step, secondsLeft, duration }) {
-      const { names, phrases } = announceFlags();
+      const { names, phrases, v } = announceFlags();
       if (step.phase === PHASE.WORK) {
-        // Letzte 10 Sekunden laut runterzählen + ticken (der Übungs-Spruch kam
-        // schon beim Start). So bleibt es bei einem Spruch pro Übung.
+        // Ab und zu ein zweiter Anfeuer-Spruch in der Übungsmitte – mal gibt es
+        // also einen Spruch pro Übung, mal zwei (aus demselben Topf, ohne
+        // Wiederholung). Liegt vor „Noch fünfzehn Sekunden“ und dem Countdown.
+        if (config.voice && phrases && duration >= 20) {
+          const midAt = Math.max(16, Math.round(duration * 0.6));
+          if (secondsLeft === midAt && Math.random() * 100 < 45) {
+            speak(motivationLine(currentPersona(), { name: config.coachName }));
+          }
+        }
+        // „Noch fünfzehn Sekunden“ – funktionaler Hinweis (außer 'minimal').
+        if (secondsLeft === 15 && duration > 18 && config.voice && v !== 'minimal') {
+          speak('Noch fünfzehn Sekunden.');
+        }
+        // Letzte 10 Sekunden laut runterzählen + ticken.
         if (secondsLeft <= 10) {
           if (config.beeps) sound.tick();
           if (config.voice) speak(String(secondsLeft));
