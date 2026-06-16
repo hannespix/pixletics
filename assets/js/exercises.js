@@ -78,17 +78,18 @@ export const CIRCUIT_SET = {
   exercises: CIRCUIT_EXERCISES.map((e) => e.id),
 };
 
-// Vordefinierte Sets. Drei Freeletics-Ganzkörper-Workouts (je ~50–55 min bei
-// 30/30/10) mit Variation, plus das Zirkeltraining. Jedes Set trainiert den
-// kompletten Körper von Kopf bis Fuß: Beine (Quadrizeps), Po & hintere Kette,
-// Waden, Brust, Schultern, Rücken, Arme (Trizeps), Bauch und Core – dazu
-// Cardio-Aufwärmen und ein Ganzkörper-Finisher.
+// Vordefinierte Sets. Drei Freeletics-Ganzkörper-Workouts mit ~60 Übungs-
+// Wiederholungen, sodass bei 30/30-Timing rund eine Stunde abwechslungsreiches
+// (nicht wiederholtes) Training herauskommt. Jedes Set trainiert den kompletten
+// Körper von Kopf bis Fuß: Beine (Quadrizeps), Po & hintere Kette, Waden, Brust,
+// Schultern, Rücken, Arme (Trizeps), Bauch und Core – dazu Cardio-Aufwärmen und
+// ein Ganzkörper-Finisher. Die meisten Übungen kommen 3×, beidseitige 4×.
 export const DEFAULT_SETS = [
   {
     id: 'set-free-a',
     name: '🤸‍♂️ Freeletics A · Kraft & Core',
     exercises: [
-      'jacks',        // Aufwärmen / Cardio
+      'jacks',        // Cardio / Aufwärmen
       'squats',       // Beine / Quadrizeps
       'pushups',      // Brust
       'pikepushups',  // Schultern
@@ -96,11 +97,16 @@ export const DEFAULT_SETS = [
       'lunges',       // Beine / Po (pro Seite)
       'tricepdips',   // Arme / Trizeps
       'calfraises',   // Waden
-      'bridge',       // Po / hintere Oberschenkel
+      'bridge',       // Po / hintere Kette
       'situps',       // Bauch
       'plank',        // Core (statisch)
-      'wallsit',      // Beine (statisch)
       'climbers',     // Cardio / Core
+      'diamond',      // Brust / Trizeps
+      'shouldertaps', // Schultern
+      'swimmers',     // Rücken
+      'crunches',     // Bauch
+      'sideplank',    // Core (pro Seite)
+      'skater',       // Beine / Cardio (pro Seite)
       'burpees',      // Ganzkörper-Finisher
     ],
   },
@@ -108,7 +114,7 @@ export const DEFAULT_SETS = [
     id: 'set-free-b',
     name: '🤸‍♂️ Freeletics B · Cardio & Stabilität',
     exercises: [
-      'highknees',    // Aufwärmen / Cardio
+      'highknees',    // Cardio / Aufwärmen
       'jumpsquats',   // Beine (explosiv)
       'pushups',      // Brust
       'shouldertaps', // Schultern
@@ -121,6 +127,11 @@ export const DEFAULT_SETS = [
       'sideplank',    // Core (pro Seite)
       'tricepdips',   // Arme / Trizeps
       'climbers',     // Cardio / Core
+      'lunges',       // Beine / Po (pro Seite)
+      'pikepushups',  // Schultern
+      'superman',     // Rücken
+      'twists',       // Bauch / Rotation
+      'jacks',        // Cardio
       'burpees',      // Ganzkörper-Finisher
     ],
   },
@@ -128,7 +139,7 @@ export const DEFAULT_SETS = [
     id: 'set-free-c',
     name: '🤸‍♂️ Freeletics C · Ganzkörper-Mix',
     exercises: [
-      'jacks',        // Aufwärmen / Cardio
+      'jacks',        // Cardio / Aufwärmen
       'lunges',       // Beine / Po (pro Seite)
       'pushups',      // Brust
       'pikepushups',  // Schultern
@@ -139,8 +150,13 @@ export const DEFAULT_SETS = [
       'bridge',       // Po / hintere Kette
       'legraises',    // Bauch (unterer)
       'sideplank',    // Core (pro Seite)
-      'wallsit',      // Beine (statisch)
       'climbers',     // Cardio / Core
+      'diamond',      // Brust / Trizeps
+      'shouldertaps', // Schultern
+      'swimmers',     // Rücken
+      'twists',       // Bauch / Rotation
+      'squats',       // Beine / Quadrizeps
+      'plank',        // Core (statisch)
       'burpees',      // Ganzkörper-Finisher
     ],
   },

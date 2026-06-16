@@ -168,9 +168,9 @@ export function ensureDefaultsSeeded() {
 
   // Migration: Vollkörper-Freeletics-Sets. Ergänzt fehlende Übungen (Schultern,
   // Waden, Rücken) in der Bibliothek und aktualisiert die drei Freeletics-Sets
-  // auf die neuen, den ganzen Körper abdeckenden Abläufe. Andere/eigene Sets
-  // bleiben unberührt.
-  if (!applied.includes('set-fullbody-v1')) {
+  // auf die neuen, den ganzen Körper abdeckenden Abläufe (~60 Min. pro Set).
+  // Andere/eigene Sets bleiben unberührt. v2: Sets auf ~1 Stunde ausgebaut.
+  if (!applied.includes('set-fullbody-v2')) {
     const exercises = loadExercises();
     const have = new Set(exercises.map((e) => e.id));
     let exChanged = false;
@@ -190,7 +190,8 @@ export function ensureDefaultsSeeded() {
       }
     });
     if (setsChanged) saveSets(sets);
-    applied.push('set-fullbody-v1');
+    if (!applied.includes('set-fullbody-v1')) applied.push('set-fullbody-v1');
+    applied.push('set-fullbody-v2');
     localStorage.setItem(SEED_KEY, JSON.stringify(applied));
   }
 
