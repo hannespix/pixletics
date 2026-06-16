@@ -1,5 +1,5 @@
 // Persistenz über localStorage: Übungen, Übungssets und Einstellungen.
-import { DEFAULT_SETS, DEFAULT_EXERCISES, DEFAULT_REPS, CIRCUIT_EXERCISES, CIRCUIT_SET } from './exercises.js';
+import { DEFAULT_SETS, DEFAULT_EXERCISES, DEFAULT_REPS, CIRCUIT_EXERCISES, EXTRA_EXERCISES, CIRCUIT_SET } from './exercises.js';
 
 const SETS_KEY = 'freeletics.sets.v2';
 const CONFIG_KEY = 'freeletics.config.v2';
@@ -163,6 +163,34 @@ export function ensureDefaultsSeeded() {
     const toAdd = bob.filter((b) => !have.has(b.id));
     if (toAdd.length) saveStations([...toAdd, ...stations]);
     applied.push('stations-bob-v1');
+    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+  }
+
+  // Migration: Vollkörper-Freeletics-Sets. Ergänzt fehlende Übungen (Schultern,
+  // Waden, Rücken) in der Bibliothek und aktualisiert die drei Freeletics-Sets
+  // auf die neuen, den ganzen Körper abdeckenden Abläufe. Andere/eigene Sets
+  // bleiben unberührt.
+  if (!applied.includes('set-fullbody-v1')) {
+    const exercises = loadExercises();
+    const have = new Set(exercises.map((e) => e.id));
+    let exChanged = false;
+    EXTRA_EXERCISES.forEach((e) => {
+      if (!have.has(e.id)) { exercises.push({ ...e }); exChanged = true; }
+    });
+    if (exChanged) saveExercises(exercises);
+
+    const defById = Object.fromEntries(DEFAULT_SETS.map((s) => [s.id, s]));
+    const freeIds = ['set-free-a', 'set-free-b', 'set-free-c'];
+    const sets = loadSets();
+    let setsChanged = false;
+    sets.forEach((s) => {
+      if (freeIds.includes(s.id) && defById[s.id]) {
+        s.exercises = [...defById[s.id].exercises];
+        setsChanged = true;
+      }
+    });
+    if (setsChanged) saveSets(sets);
+    applied.push('set-fullbody-v1');
     localStorage.setItem(SEED_KEY, JSON.stringify(applied));
   }
 
