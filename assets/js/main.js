@@ -191,7 +191,6 @@ function renderVoiceSettings() {
   setSlider('cfg-voicevol', 'val-voicevol', Math.round((config.voiceVolume ?? 1) * 100), (v) => Math.round(v) + ' %');
   setSlider('cfg-pitch', 'val-pitch', config.voicePitch, (v) => v.toFixed(2));
   setSlider('cfg-rate', 'val-rate', config.voiceRate, (v) => v.toFixed(2) + '×');
-  setSlider('cfg-motivation', 'val-motivation', config.motivation, (v) => Math.round(v) + ' %');
   updateVoiceCurrentLabel();
 }
 
@@ -259,7 +258,6 @@ function bindVoiceSettings() {
   });
   bindRange('cfg-pitch', 'voicePitch', 'val-pitch', (v) => v.toFixed(2), true);
   bindRange('cfg-rate', 'voiceRate', 'val-rate', (v) => v.toFixed(2) + '×', true);
-  bindRange('cfg-motivation', 'motivation', 'val-motivation', (v) => Math.round(v) + ' %', false);
   $('#btn-voice-test')?.addEventListener('click', testVoice);
 }
 
@@ -268,7 +266,7 @@ function testVoice() {
   applyVoiceSettings();
   const p = currentPersona();
   const name = config.coachName;
-  const sample = `${line(p, 'work', { name })} ${line(p, 'mid', { ex: 'Kniebeugen', name })}`;
+  const sample = `Kniebeugen! ${motivationLine(p, { name })}`;
   speak(sample.trim(), { interrupt: true });
 }
 
@@ -1154,22 +1152,18 @@ function runnerHandlers(steps) {
         } else {
           setPhaseUI('Pause', ex, '⏸️');
           if (config.beeps) sound.rest();
-          // Mit Sprüchen übernimmt der Pausenspruch (in onSecond) die Ansage –
-          // sonst käme „Pause“ doppelt. Ohne Sprüche: knappes „Pause.“.
-          if (config.voice && !phrases) speak('Pause.', { interrupt: true });
+          // Genau EIN Coach-Spruch pro Pause (wenn Sprüche an), sonst knapp „Pause.“.
+          if (config.voice) speak(phrases ? line(persona, 'rest') : 'Pause.', { interrupt: true });
         }
         showNextAfter(steps, index);
       } else if (step.phase === PHASE.WORK) {
         setPhaseUI('Los!', ex, '');
         if (config.beeps) sound.start();
         if (config.voice) {
-          let txt;
-          // Im Intervallmodus keinen Übungsnamen rufen, nur „Los!“ (+ ggf. Spruch).
-          if (names && phrases && !interval) txt = `${ex.name}! ${line(persona, 'work', { name })}`;
-          else if (names && !interval) txt = `${ex.name}!`;
-          else if (phrases) txt = `Los! ${line(persona, 'work', { name })}`;
-          else txt = 'Los!';
-          speak(txt, { interrupt: true });
+          // Genau EIN Coach-Spruch pro Übung (wenn Sprüche an), dazu der Name.
+          const naming = names && !interval ? `${ex.name}!` : 'Los!';
+          const spruch = phrases ? motivationLine(persona, { name }) : '';
+          speak(spruch ? `${naming} ${spruch}` : naming, { interrupt: true });
         }
         $('#next-up').textContent = '';
       }
@@ -1177,48 +1171,23 @@ function runnerHandlers(steps) {
     onSecond({ step, secondsLeft, duration }) {
       const { names, phrases } = announceFlags();
       if (step.phase === PHASE.WORK) {
-        // Motivierender Zwischenruf etwa in der Mitte – wenn Sprüche an.
-        if (config.voice && phrases && duration >= 20) {
-          const midAt = Math.max(16, Math.round(duration * 0.6));
-          if (secondsLeft === midAt && Math.random() * 100 < (config.motivation || 0)) {
-            speak(motivationLine(currentPersona(), { name: config.coachName }));
-          }
-        }
-        // „Noch 15 Sekunden“ (Status) – außer 'minimal'.
-        if (secondsLeft === 15 && duration > 18 && config.voice && !(announceFlags().v === 'minimal')) {
-          speak(phrases ? line(currentPersona(), 'warn15') : 'Noch 15 Sekunden.');
-        }
-        // Letzte 10 Sekunden laut runterzählen + ticken (immer).
+        // Letzte 10 Sekunden laut runterzählen + ticken (der Übungs-Spruch kam
+        // schon beim Start). So bleibt es bei einem Spruch pro Übung.
         if (secondsLeft <= 10) {
           if (config.beeps) sound.tick();
           if (config.voice) speak(String(secondsLeft));
         }
       } else if (step.phase === PHASE.PREPARE) {
         const firstBlock = step.round === 1; // Lead-in: nur Countdown
-        if (!firstBlock) {
-          const persona = currentPersona();
+        // Knappe Vorschau auf die nächste Übung (nur Name, kein zusätzlicher Spruch).
+        if (!firstBlock && names) {
           const ex = exerciseMap[step.exId];
-          const name = config.coachName;
-          const active = workoutActiveRest && step.lap >= 2;
-          // 1) cooler Pausenspruch – wenn Sprüche an (bei Aktivpause läuft man,
-          //    bei Rundenwechsel gibt es schon die „Runde geschafft“-Ansage).
-          if (config.voice && phrases && !active && !step.roundBreak && duration >= 8 && secondsLeft === duration - 3) {
-            speak(line(persona, 'rest'));
-          }
-          // 2) Vorschau auf die nächste Übung – Namen nur wenn 'names', Spruch wenn 'phrases'.
           const nextAt = Math.max(4, duration - 9);
           if (secondsLeft === nextAt && config.voice && ex) {
-            if (names && phrases) {
-              const cue = ex.cue ? ` ${ex.cue}.` : '';
-              speak(`Als Nächstes: ${ex.name}. ${line(persona, 'mid', { ex: ex.name, name })}.${cue}`);
-            } else if (names) {
-              speak(`Als Nächstes: ${ex.name}.`);
-            } else if (phrases) {
-              speak(`Gleich geht’s weiter! ${line(persona, 'mid', { name })}`);
-            }
+            speak(`Als Nächstes: ${ex.name}.`);
           }
         }
-        // 3) letzte 3 Sekunden: Start-Countdown (immer).
+        // letzte 3 Sekunden: Start-Countdown (immer).
         if (secondsLeft <= 3) {
           if (config.beeps) sound.tick();
           if (config.voice) speak(String(secondsLeft));
