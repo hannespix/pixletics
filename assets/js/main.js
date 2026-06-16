@@ -8,7 +8,7 @@ import {
   initAudio, sound, speak, cancelSpeech, setSpeechHooks,
   primeVoices, onVoicesReady, getGermanVoices, pickVoiceURI, setVoiceSettings,
 } from './audio.js';
-import { PERSONAS, getPersona, line } from './coach.js';
+import { PERSONAS, getPersona, line, motivationLine, resetCoachBags } from './coach.js';
 import { buildSchedule, buildIntervalSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
@@ -368,6 +368,7 @@ function bindIntervalUI() {
 
 function startInterval() {
   initAudio();
+  resetCoachBags(); // frische Spruch-Mischung pro Workout
   saveIntervalConfig();
   const { work, rest, rounds, unit } = intervalParams();
   workoutActiveRest = false;
@@ -801,6 +802,73 @@ function renderRadioNow(state) {
   updateRunnerNowPlaying();
 }
 
+// ================ MUSIK-SCHNELLWAHL (Modal) ================
+// Kleines Overlay (auch über dem Runner), um schnell einen Radiosender zu wählen
+// oder Spotify zu verbinden – ohne in den Musik-Tab zu wechseln.
+function renderMusicModal() {
+  const modal = $('#music-modal');
+  if (!modal || modal.hidden) return;
+  const list = $('#mm-radio');
+  list.innerHTML = '';
+  if (!stations.length) {
+    list.innerHTML = '<p class="muted small">Noch keine Sender. Lege im Tab „Musik“ welche an.</p>';
+  } else {
+    const byGenre = {};
+    stations.forEach((s) => { (byGenre[s.genre || 'Sonstige'] ||= []).push(s); });
+    Object.keys(byGenre).sort().forEach((genre) => {
+      const head = document.createElement('div');
+      head.className = 'radio-genre';
+      head.textContent = genre;
+      list.appendChild(head);
+      byGenre[genre].forEach((st) => {
+        const isCur = radio.current?.id === st.id && radio.playing;
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'mm-station' + (isCur ? ' playing' : '');
+        row.innerHTML = `<span class="mm-ic">${isCur ? '⏹' : '▶'}</span><span class="mm-name">${escapeHtml(st.name)}</span>`;
+        row.addEventListener('click', () => {
+          if (radio.current?.id === st.id && radio.playing) {
+            radio.stop();
+          } else {
+            initAudio();
+            lastStationId = st.id;
+            radio.play(st);
+          }
+          renderMusicModal();
+        });
+        list.appendChild(row);
+      });
+    });
+  }
+  const sp = $('#mm-spotify');
+  const connected = spotify.isConnected();
+  sp.innerHTML = `
+    <div class="mm-sp-row">
+      <span class="status-dot ${connected ? 'on' : ''}"></span>
+      <span class="small">Spotify ${connected ? 'verbunden' : 'nicht verbunden'}</span>
+      ${connected
+        ? '<button class="btn" id="mm-sp-here">▶ Hier abspielen</button>'
+        : '<button class="btn btn-primary" id="mm-sp-connect">▶ Verbinden</button>'}
+    </div>`;
+  $('#mm-sp-connect')?.addEventListener('click', async () => {
+    try { await spotify.login(); } catch (err) { alert(err.message); }
+  });
+  $('#mm-sp-here')?.addEventListener('click', async () => {
+    await spotify.activate();
+    const ok = await spotify.transferHere(true);
+    if (!ok) alert('Konnte nicht übertragen. Starte in der Spotify-App kurz einen Song und tippe dann erneut „Hier abspielen“.');
+  });
+}
+
+function openMusicModal() {
+  initAudio();
+  $('#music-modal').hidden = false;
+  renderMusicModal();
+}
+function closeMusicModal() {
+  $('#music-modal').hidden = true;
+}
+
 function openStationEditor(stId) {
   editorStationId = stId;
   const st = stId ? stations.find((s) => s.id === stId) : null;
@@ -952,6 +1020,7 @@ async function handleShareHash() {
 // ================ RUNNER ================
 async function startWorkout() {
   initAudio();
+  resetCoachBags(); // frische Spruch-Mischung pro Workout
   const items = selectedExercises();
   if (!items.length) {
     switchView('train');
@@ -1063,8 +1132,7 @@ function runnerHandlers(steps) {
         if (config.voice && phrases && duration >= 20) {
           const midAt = Math.max(16, Math.round(duration * 0.6));
           if (secondsLeft === midAt && Math.random() * 100 < (config.motivation || 0)) {
-            const ex = exerciseMap[step.exId];
-            speak(line(currentPersona(), 'mid', { ex: ex?.name || '', name: config.coachName }));
+            speak(motivationLine(currentPersona(), { name: config.coachName }));
           }
         }
         // „Noch 15 Sekunden“ (Status) – außer 'minimal'.
@@ -1234,6 +1302,12 @@ $('#btn-radio-toggle').addEventListener('click', () => {
   }
 });
 
+// ---------------- Musik-Schnellwahl: Buttons ----------------
+$('#btn-music').addEventListener('click', openMusicModal);
+$('#btn-runner-music').addEventListener('click', openMusicModal);
+$('#btn-close-music').addEventListener('click', closeMusicModal);
+$('#music-modal').addEventListener('click', (e) => { if (e.target.id === 'music-modal') closeMusicModal(); });
+
 // ---------------- Teilen & Sichern: Buttons ----------------
 $('#btn-share-link').addEventListener('click', createShareLink);
 $('#btn-export').addEventListener('click', exportFile);
@@ -1399,6 +1473,7 @@ async function init() {
   radio.onState = (state) => {
     renderRadio();
     renderRadioNow(state);
+    renderMusicModal();
   };
   radio.onMeta = () => renderRadioNow();
   renderRadioNow();

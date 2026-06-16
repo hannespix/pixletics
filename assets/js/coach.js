@@ -176,9 +176,12 @@ export function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Shuffle-Bag pro (Persona+Moment): erst wenn alle Sprüche dran waren, wird
-// neu gemischt – so wiederholt sich in einer Runde möglichst wenig.
+// Shuffle-Bag pro (Persona+Moment): erst wenn ALLE Sprüche dran waren, wird neu
+// gemischt – innerhalb eines Durchlaufs kommt also jeder Spruch genau einmal,
+// bevor sich etwas wiederholt. Zusätzlich wird am Übergang zum neuen Bag ein
+// direkter Wiederholer des zuletzt gesagten Spruchs vermieden.
 const bags = {};
+const lastPick = {};
 function shuffle(a) {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -189,8 +192,23 @@ function shuffle(a) {
 function pickNoRepeat(key, arr) {
   if (arr.length <= 1) return arr[0];
   let bag = bags[key];
-  if (!bag || !bag.length) bag = bags[key] = shuffle(arr.map((_, i) => i));
-  return arr[bag.pop()];
+  if (!bag || !bag.length) {
+    bag = bags[key] = shuffle(arr.map((_, i) => i));
+    // Nicht denselben Spruch direkt wiederholen, wenn ein neuer Bag startet.
+    if (bag.length > 1 && bag[bag.length - 1] === lastPick[key]) {
+      [bag[bag.length - 1], bag[0]] = [bag[0], bag[bag.length - 1]];
+    }
+  }
+  const idx = bag.pop();
+  lastPick[key] = idx;
+  return arr[idx];
+}
+
+// Setzt alle Shuffle-Bags zurück – zu Beginn jedes Workouts, damit die Auswahl
+// frisch durchgemischt startet (nicht mit Resten aus dem vorigen Lauf).
+export function resetCoachBags() {
+  for (const k in bags) delete bags[k];
+  for (const k in lastPick) delete lastPick[k];
 }
 
 function fillTokens(text, { ex = '', name = '' } = {}) {
@@ -212,4 +230,15 @@ export function line(persona, key, ctx = {}) {
   const pool = persona.lines[key];
   if (!pool || !pool.length) return '';
   return fillTokens(pickNoRepeat(`${persona.id}.${key}`, pool), ctx);
+}
+
+// Motivierender Zwischenruf (Mitte der Übung): schöpft aus einem GROSSEN Topf
+// (mid + work zusammen, ~25–30 Sprüche je Coach), damit sich im Lauf wirklich
+// viel abwechselt und sich nicht ständig dieselben paar Sprüche wiederholen.
+export function motivationLine(persona, ctx = {}) {
+  const base = persona.lines.mid || [];
+  const extra = (persona.lines.work || []).filter((w) => !base.includes(w));
+  const pool = base.concat(extra);
+  if (!pool.length) return '';
+  return fillTokens(pickNoRepeat(`${persona.id}.motivate`, pool), ctx);
 }

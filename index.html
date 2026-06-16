@@ -78,6 +78,7 @@
         <button class="tab" data-view="exercises">Übungen</button>
         <button class="tab" data-view="musik">Musik</button>
       </nav>
+      <button class="icon-btn music-btn" id="btn-music" title="Musik: Sender wählen / Spotify" aria-label="Musik wählen">🎵</button>
       <button class="icon-btn fs-btn" id="btn-fullscreen" title="Vollbild umschalten" aria-label="Vollbild umschalten">⛶</button>
     </div>
   </header>
@@ -274,6 +275,7 @@
       <div class="rm-row">
         <div class="rm-group">
           <button class="ctrl ctrl-sp" id="btn-radio-toggle" title="Radio an/aus">📻</button>
+          <button class="ctrl ctrl-sp" id="btn-runner-music" title="Sender wählen / Spotify">🎵</button>
           <span class="rm-label">Radio</span>
         </div>
         <span class="rm-sep" aria-hidden="true"></span>
@@ -350,6 +352,19 @@
         <button class="btn btn-danger" id="btn-delete-station">Löschen</button>
         <button class="btn btn-primary" id="btn-save-station">Speichern</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ MUSIK-SCHNELLWAHL (Modal) ============ -->
+  <div class="modal music-modal" id="music-modal" hidden>
+    <div class="modal-card music-modal-card">
+      <div class="row-between">
+        <h3>🎵 Musik</h3>
+        <button class="icon-btn" id="btn-close-music" title="Schließen">✕</button>
+      </div>
+      <p class="muted small">Sender antippen zum Abspielen.</p>
+      <div id="mm-radio" class="mm-radio"></div>
+      <div id="mm-spotify" class="mm-spotify"></div>
     </div>
   </div>
 
