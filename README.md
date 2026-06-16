@@ -54,7 +54,7 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   Gooey), respektiert `prefers-reduced-motion`, pausiert im Workout/bei
   verstecktem Tab. (Kein Lade-/Intro-Screen – die App startet direkt.)
 - **Sprachansagen** (deutsche Sprachausgabe) und **Signaltöne** – einzeln
-  abschaltbar.
+  abschaltbar; dazu separate **Lautstärke-Regler für Coach und Musik**.
 - **Stimme & Coach** (im Training-Tab): wählbare **Coach-Charaktere** mit
   eigenem Tonfall und Spruch-Pool – z. B. *Drill-Sergeant Stahl*, *Hype-Coach
   Max*, *Frechdachs Freddy*, *Coach Lena* (weiblich) oder *Zen-Meisterin
@@ -73,20 +73,22 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   eine **längere Pause** und die Ansage „Runde X geschafft". Beim Zirkel wird ab
   Runde 2 die **Aktivpause angekündigt**.
 - **Musik** (Tab „Musik"): zwei Optionen –
-  - **Internet-Radio**: kuratierte Sender mit Schwerpunkt **Rock, 70er/80er &
-    Workout** (ROCK ANTENNE inkl. Classic Perlen & Heavy Metal, plus viele
-    **werbefreie SomaFM**-Streams: Underground 80s, Left Coast 70s, BAGeL Radio,
-    Metal Detector, Indie Pop Rocks, Beat Blender …), **ohne Login/Key/Premium**.
-    Eigene Sender (HTTPS-Stream-URL) lassen sich hinzufügen. Für SomaFM wird der
-    **aktuell laufende Song** angezeigt (andere Sender liefern im Browser keine
-    Track-Infos). Standard-Sender ist **ROCK ANTENNE**.
+  - **Internet-Radio**: kuratierte Sender mit Schwerpunkt **Rock, 70er/80er/90er
+    & Workout** (RADIO BOB! 80er/90er Rock, ROCK ANTENNE inkl. Classic Perlen &
+    Heavy Metal, plus viele **werbefreie SomaFM**-Streams: Underground 80s, Left
+    Coast 70s, BAGeL Radio, Metal Detector, Indie Pop Rocks, Beat Blender …),
+    **ohne Login/Key/Premium**. Eigene Sender (HTTPS-Stream-URL) lassen sich
+    hinzufügen. Für SomaFM wird der **aktuell laufende Song** angezeigt (andere
+    Sender liefern im Browser keine Track-Infos). Standard-Sender ist
+    **RADIO BOB! 80er Rock**.
   - **Spotify** (optional, ohne Key): jeder verbindet einfach seinen **eigenen
     Account** („Mit Spotify verbinden"), läuft im Browser mit und ist von hier
     steuerbar. Benötigt **Spotify Premium**. (Die App-Client-ID ist fest
     eingebaut; in der Test-Phase max. 25 freigeschaltete Accounts.)
   Beide werden bei Sprachansagen automatisch **sanft (≈0,5 s) leiser geblendet**
-  und danach wieder hoch (während des Countdowns durchgehend leise). **ROCK
-  ANTENNE** ist das Standard-Internetradio.
+  und danach wieder hoch (während des Countdowns durchgehend leise). Die
+  **Musik-Lautstärke** lässt sich im Musik-Fenster regeln, der **Account-Wechsel**
+  bei Spotify geht über „Trennen“ → „Verbinden“ (Konto-Auswahl wird gezeigt).
   - **Musik-Schnellwahl** (🎵 in der Kopfzeile und im Workout-Screen): kleines
     Fenster, um direkt einen Sender zu wählen oder Spotify zu verbinden – ohne
     den Tab zu wechseln, auch mitten im laufenden Workout.

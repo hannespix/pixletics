@@ -396,3 +396,15 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .mm-spotify { padding-top: 12px; border-top: 1px solid var(--border); }
 .mm-sp-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .mm-sp-row .btn { margin-left: auto; }
+.mm-vol { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 14px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.mm-vol .slider-head { display: flex; justify-content: space-between; align-items: baseline; }
+.mm-vol .slider-val { color: var(--accent); font-weight: 700; }
+.mm-vol input[type="range"] { width: 100%; accent-color: var(--accent); height: 24px; }
+
+/* Runner: Musik-Info als klar antippbarer Einstieg ins Musik-Modal */
+.rm-pick {
+  display: block; width: 100%; background: transparent; border: 0; color: inherit;
+  cursor: pointer; padding: 0 0 6px;
+}
+.rm-pick .runner-section-label { color: var(--accent); }
+.rm-pick:active { opacity: 0.7; }

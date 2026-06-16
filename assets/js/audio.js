@@ -11,6 +11,7 @@ let voicesCbs = [];        // Callbacks, sobald die Stimmenliste verfügbar ist
 let currentVoice = null;   // gewählte SpeechSynthesisVoice (oder null = Auto)
 let currentPitch = 1.0;
 let currentRate = 1.05;
+let currentVolume = 1.0;    // Coach-Lautstärke (Ansagen + Signaltöne + Applaus), 0–1
 
 // Heuristik zur Geschlechtsschätzung anhand des Stimmnamens. Die Web-Speech-API
 // liefert kein Geschlecht, daher raten wir über bekannte Namensbestandteile.
@@ -77,6 +78,8 @@ function playApplauseFile() {
   try {
     a.muted = false;
     a.currentTime = 0;
+    a.volume = clamp(0.9 * currentVolume, 0, 1);
+    if (currentVolume <= 0) return true; // stumm: nicht abspielen
     const pr = a.play();
     if (pr && pr.catch) pr.catch(() => applauseSynth());
     return true;
@@ -142,23 +145,25 @@ export function pickVoiceURI(gender = 'any') {
 }
 
 // Aktuelle Stimm-Einstellungen setzen (vom Coach / den Reglern).
-export function setVoiceSettings({ voiceURI, pitch, rate } = {}) {
+export function setVoiceSettings({ voiceURI, pitch, rate, volume } = {}) {
   if (voiceURI !== undefined) {
     currentVoice = voiceURI ? allVoices.find((v) => v.voiceURI === voiceURI) || null : null;
   }
   if (typeof pitch === 'number') currentPitch = pitch;
   if (typeof rate === 'number') currentRate = rate;
+  if (typeof volume === 'number') currentVolume = clamp(volume, 0, 1);
 }
 
 function tone({ freq = 880, duration = 0.15, type = 'sine', gain = 0.25, when = 0 }) {
-  if (!ctx) return;
+  if (!ctx || currentVolume <= 0) return; // Coach-Lautstärke 0 -> kein Signalton
+  const peak = Math.max(0.0002, gain * currentVolume);
   const t0 = ctx.currentTime + when;
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
   osc.type = type;
   osc.frequency.value = freq;
   g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(peak, t0 + 0.01);
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
   osc.connect(g).connect(ctx.destination);
   osc.start(t0);
@@ -272,6 +277,7 @@ export function speak(text, { interrupt = false, pitch, rate } = {}) {
   if (v) u.voice = v;
   u.rate = clamp(typeof rate === 'number' ? rate : currentRate, 0.5, 2);
   u.pitch = clamp(typeof pitch === 'number' ? pitch : currentPitch, 0, 2);
+  u.volume = currentVolume; // Coach-Lautstärke
   u.onstart = () => onSpeakStart && onSpeakStart();
   u.onend = () => onSpeakEnd && onSpeakEnd();
   u.onerror = () => onSpeakEnd && onSpeakEnd();

@@ -139,7 +139,14 @@ function applyVoiceSettings() {
   const persona = currentPersona();
   let voiceURI = config.voiceURI;
   if (!voiceURI || voiceURI === 'auto') voiceURI = pickVoiceURI(persona.gender);
-  setVoiceSettings({ voiceURI, pitch: config.voicePitch, rate: config.voiceRate });
+  setVoiceSettings({ voiceURI, pitch: config.voicePitch, rate: config.voiceRate, volume: config.voiceVolume });
+}
+
+// Musik-Lautstärke (Radio + Spotify) anwenden.
+function applyMusicVolume() {
+  const v = typeof config.musicVolume === 'number' ? config.musicVolume : 0.8;
+  radio.setVolume(v);
+  spotify.setVolume?.(v);
 }
 
 function renderVoiceSettings() {
@@ -181,6 +188,7 @@ function renderVoiceSettings() {
   // Felder & Schieberegler
   if ($('#cfg-coachname')) $('#cfg-coachname').value = config.coachName || '';
   if ($('#cfg-verbosity')) $('#cfg-verbosity').value = config.verbosity || 'full';
+  setSlider('cfg-voicevol', 'val-voicevol', Math.round((config.voiceVolume ?? 1) * 100), (v) => Math.round(v) + ' %');
   setSlider('cfg-pitch', 'val-pitch', config.voicePitch, (v) => v.toFixed(2));
   setSlider('cfg-rate', 'val-rate', config.voiceRate, (v) => v.toFixed(2) + '×');
   setSlider('cfg-motivation', 'val-motivation', config.motivation, (v) => Math.round(v) + ' %');
@@ -240,6 +248,15 @@ function bindVoiceSettings() {
       if (apply) applyVoiceSettings();
     });
   };
+  // Coach-Lautstärke (0–100 % im Slider, gespeichert als 0–1).
+  $('#cfg-voicevol')?.addEventListener('input', () => {
+    const pct = Number($('#cfg-voicevol').value);
+    config.voiceVolume = Math.max(0, Math.min(1, pct / 100));
+    const lab = $('#val-voicevol');
+    if (lab) lab.textContent = Math.round(pct) + ' %';
+    saveConfig(config);
+    applyVoiceSettings();
+  });
   bindRange('cfg-pitch', 'voicePitch', 'val-pitch', (v) => v.toFixed(2), true);
   bindRange('cfg-rate', 'voiceRate', 'val-rate', (v) => v.toFixed(2) + '×', true);
   bindRange('cfg-motivation', 'motivation', 'val-motivation', (v) => Math.round(v) + ' %', false);
@@ -691,6 +708,7 @@ function renderSpotify() {
     // Audio-Element aktivieren – sonst blockiert v. a. iOS das Übertragen
     // der Wiedergabe von der Spotify-App auf dieses Gerät.
     document.body.addEventListener('pointerdown', () => spotify.activate(), { once: true });
+    applyMusicVolume(); // gewählte Musik-Lautstärke auf den Player anwenden
   };
   if (connected && !spotify.player) spotify.initPlayer().catch(() => {});
   if (spotify.state) renderNowPlaying(spotify.state);
@@ -734,7 +752,7 @@ function updateRunnerNowPlaying() {
     el.innerHTML = `<div class="rm-src">🎵 Spotify</div><div class="rm-track">${escapeHtml(track.name)}${artists ? ' – ' + escapeHtml(artists) : ''}</div>`;
     return;
   }
-  el.innerHTML = '<span class="muted small">Keine Musik aktiv · 📻 für Radio</span>';
+  el.innerHTML = '<span class="muted small">Tippen, um Sender/Spotify zu wählen</span>';
 }
 
 // ================ RADIO ================
@@ -808,6 +826,14 @@ function renderRadioNow(state) {
 function renderMusicModal() {
   const modal = $('#music-modal');
   if (!modal || modal.hidden) return;
+  // Musik-Lautstärke-Slider auf aktuellen Wert setzen.
+  const vol = $('#cfg-musicvol');
+  if (vol) {
+    const pct = Math.round((typeof config.musicVolume === 'number' ? config.musicVolume : 0.8) * 100);
+    vol.value = pct;
+    const lab = $('#val-musicvol');
+    if (lab) lab.textContent = pct + ' %';
+  }
   const list = $('#mm-radio');
   list.innerHTML = '';
   if (!stations.length) {
@@ -1307,6 +1333,14 @@ $('#btn-music').addEventListener('click', openMusicModal);
 $('#btn-runner-music').addEventListener('click', openMusicModal);
 $('#btn-close-music').addEventListener('click', closeMusicModal);
 $('#music-modal').addEventListener('click', (e) => { if (e.target.id === 'music-modal') closeMusicModal(); });
+$('#cfg-musicvol')?.addEventListener('input', () => {
+  const pct = Number($('#cfg-musicvol').value);
+  config.musicVolume = Math.max(0, Math.min(1, pct / 100));
+  const lab = $('#val-musicvol');
+  if (lab) lab.textContent = Math.round(pct) + ' %';
+  saveConfig(config);
+  applyMusicVolume();
+});
 
 // ---------------- Teilen & Sichern: Buttons ----------------
 $('#btn-share-link').addEventListener('click', createShareLink);
@@ -1412,6 +1446,7 @@ async function init() {
   setupSortable();
   updatePlanSummary();
   renderSpotify();
+  applyMusicVolume(); // gespeicherte Musik-Lautstärke (Radio) anwenden
   startHeaderLoop(); // animiertes Kopfzeilen-Logo (kein Intro-Splash mehr)
 
   // Gerätestimmen laden und Auswahl/Coach anwenden, sobald sie verfügbar sind.

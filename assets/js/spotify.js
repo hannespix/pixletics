@@ -297,4 +297,12 @@ export class Spotify {
     this._duckRestore = null;
     this._fadeVol(target, 500);
   }
+
+  // Basis-Lautstärke setzen (respektiert das Ducking: läuft gerade eine Ansage,
+  // wird nur der spätere Wiederherstell-Wert angepasst).
+  async setVolume(v) {
+    const vol = Math.max(0, Math.min(1, v));
+    if (this._duckRestore != null) { this._duckRestore = vol; return; }
+    if (this.player) { try { await this.player.setVolume(vol); } catch {} }
+  }
 }
