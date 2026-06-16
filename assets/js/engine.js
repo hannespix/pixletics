@@ -50,6 +50,37 @@ export function buildSchedule(items, config) {
   return steps;
 }
 
+// Reiner Intervall-Timer OHNE Übungsliste (Tabata, EMOM, AMRAP, freie Intervalle).
+// Erzeugt eine zu WorkoutEngine kompatible Schrittliste mit generischen Labels
+// (kein exId). `unit` ist das Wort pro Intervall (z. B. „Intervall“, „Minute“).
+// `rest === 0` (z. B. EMOM/AMRAP) -> keine Pausenblöcke, nur ein kurzer Lead-in
+// vor dem ersten Block.
+export function buildIntervalSchedule({ work, rest, rounds, unit = 'Intervall' }) {
+  const w = Math.max(1, Math.round(work) || 1);
+  const r = Math.max(0, Math.round(rest) || 0);
+  const n = Math.max(1, Math.round(rounds) || 1);
+  const steps = [];
+  for (let i = 0; i < n; i++) {
+    const label = n > 1 ? `${unit} ${i + 1}` : unit;
+    const meta = { exId: null, label, interval: i + 1, intervalsTotal: n, round: i + 1, lap: 1, rep: 1, repsTotal: 1 };
+    if (r > 0) {
+      // Vor jedem Intervall ein Pausenblock; die erste Pause als kurzer Lead-in.
+      steps.push({ phase: PHASE.PREPARE, duration: i === 0 ? Math.min(r, 10) : r, ...meta });
+    } else if (i === 0) {
+      // Ohne Pause trotzdem ein kurzer Lead-in (Countdown) vor dem ersten Block.
+      steps.push({ phase: PHASE.PREPARE, duration: 5, ...meta });
+    }
+    steps.push({ phase: PHASE.WORK, duration: w, ...meta });
+  }
+  steps.interval = true;
+  steps.unit = unit;
+  steps.totalRounds = n;
+  steps.lapLength = n;
+  steps.totalLaps = 1;
+  steps.totalSeconds = steps.reduce((s, st) => s + st.duration, 0);
+  return steps;
+}
+
 export class WorkoutEngine {
   constructor(handlers = {}) {
     this.h = handlers; // { onTick, onPhase, onCountdown, onSecond, onFinish }

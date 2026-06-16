@@ -9,7 +9,7 @@ import {
   primeVoices, onVoicesReady, getGermanVoices, pickVoiceURI, setVoiceSettings,
 } from './audio.js';
 import { PERSONAS, getPersona, line } from './coach.js';
-import { buildSchedule, WorkoutEngine, PHASE } from './engine.js';
+import { buildSchedule, buildIntervalSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
@@ -283,6 +283,245 @@ function updatePlanSummary() {
     return;
   }
   el.textContent = `≈ ${rounds} Runden · ${pool.length} Übungen (Wdh. je Übung) · ${config.totalMinutes} Min geplant`;
+}
+
+// ================ INTERVALL-TIMER (reiner Timer ohne Übungen) ================
+const INTERVAL_PRESETS = {
+  tabata: { unit: 'Intervall', work: 20, rest: 10, rounds: 8, showWorkRest: true, minutesField: false,
+            desc: '20 s Belastung · 10 s Pause · 8 Runden (≈ 4 min).' },
+  emom:   { unit: 'Minute', work: 60, rest: 0, rounds: 10, showWorkRest: false, minutesField: true,
+            desc: 'Jede Minute startet ein Intervall – der Rest der Minute ist Pause.' },
+  amrap:  { unit: 'AMRAP', work: 600, rest: 0, rounds: 10, showWorkRest: false, minutesField: true,
+            desc: 'Ein durchgehender Timer – so viele Runden wie möglich.' },
+  free:   { unit: 'Intervall', work: 40, rest: 20, rounds: 8, showWorkRest: true, minutesField: false,
+            desc: 'Eigene Werte: Belastung, Pause und Runden frei wählbar.' },
+};
+
+function currentIntervalMode() {
+  return (config.interval && config.interval.mode) || 'tabata';
+}
+
+// Liest die sichtbaren Felder + den Modus und liefert Engine-Parameter.
+// Bei EMOM/AMRAP steht im „Runden“-Feld die Minutenzahl.
+function intervalParams() {
+  const mode = currentIntervalMode();
+  const p = INTERVAL_PRESETS[mode] || INTERVAL_PRESETS.tabata;
+  const work = Math.max(1, Number($('#iv-work').value) || p.work);
+  const rest = Math.max(0, Number($('#iv-rest').value) || 0);
+  const f3 = Math.max(1, Number($('#iv-rounds').value) || p.rounds);
+  if (mode === 'amrap') return { work: f3 * 60, rest: 0, rounds: 1, unit: 'AMRAP' };
+  if (mode === 'emom') return { work: 60, rest: 0, rounds: f3, unit: 'Minute' };
+  return { work, rest, rounds: f3, unit: 'Intervall' };
+}
+
+function updateIntervalSummary() {
+  const mode = currentIntervalMode();
+  const { work, rest, rounds } = intervalParams();
+  let txt;
+  if (mode === 'amrap') txt = `AMRAP · ${fmtTime(work * 1000)} am Stück`;
+  else if (mode === 'emom') txt = `EMOM · ${rounds} Minuten`;
+  else txt = `${rounds} Runden · ${work}s/${rest}s · ${fmtTime((work + rest) * rounds * 1000)} gesamt`;
+  $('#interval-summary').textContent = txt;
+}
+
+function saveIntervalConfig(mode = currentIntervalMode()) {
+  config.interval = {
+    mode,
+    work: Number($('#iv-work').value),
+    rest: Number($('#iv-rest').value),
+    rounds: Number($('#iv-rounds').value),
+  };
+  saveConfig(config);
+}
+
+// Setzt Chips, Beschriftung, Feld-Sichtbarkeit und Werte für einen Preset.
+function applyIntervalPreset(mode, useSaved = false) {
+  const p = INTERVAL_PRESETS[mode] || INTERVAL_PRESETS.tabata;
+  $$('#preset-chips .chip').forEach((c) => c.classList.toggle('active', c.dataset.preset === mode));
+  $('#preset-desc').textContent = p.desc;
+  $('#iv-work-wrap').hidden = !p.showWorkRest;
+  $('#iv-rest-wrap').hidden = !p.showWorkRest;
+  $('#iv-rounds-label').textContent = p.minutesField ? 'Minuten' : 'Runden';
+  const saved = config.interval || {};
+  if (useSaved && saved.mode === mode) {
+    $('#iv-work').value = saved.work ?? p.work;
+    $('#iv-rest').value = saved.rest ?? p.rest;
+    $('#iv-rounds').value = saved.rounds ?? p.rounds;
+  } else {
+    $('#iv-work').value = p.work;
+    $('#iv-rest').value = p.rest;
+    $('#iv-rounds').value = p.rounds;
+  }
+  saveIntervalConfig(mode);
+  updateIntervalSummary();
+}
+
+function bindIntervalUI() {
+  $$('#preset-chips .chip').forEach((chip) => {
+    chip.addEventListener('click', () => applyIntervalPreset(chip.dataset.preset));
+  });
+  ['#iv-work', '#iv-rest', '#iv-rounds'].forEach((sel) => {
+    const inp = $(sel);
+    inp.addEventListener('change', () => {
+      const v = Math.max(Number(inp.min), Math.min(Number(inp.max), Number(inp.value) || 0));
+      inp.value = v;
+      saveIntervalConfig();
+      updateIntervalSummary();
+    });
+  });
+  $('#btn-interval-start').addEventListener('click', startInterval);
+  applyIntervalPreset(currentIntervalMode(), true);
+}
+
+function startInterval() {
+  initAudio();
+  saveIntervalConfig();
+  const { work, rest, rounds, unit } = intervalParams();
+  workoutActiveRest = false;
+  const steps = buildIntervalSchedule({ work, rest, rounds, unit });
+  engine.load(steps);
+  engine.h = runnerHandlers(steps);
+  $('#runner').hidden = false;
+  pauseHeaderLoop();
+  requestWakeLock();
+  engine.start();
+}
+
+// ================ DARSTELLUNG: Theme & Akzentfarbe ================
+const ACCENTS = {
+  orange:  { name: 'Orange',  c: ['#ff5a36', '#ffae00'] },
+  blau:    { name: 'Blau',    c: ['#3aa0ff', '#27d0c0'] },
+  gruen:   { name: 'Grün',    c: ['#2ecc71', '#a8e063'] },
+  magenta: { name: 'Magenta', c: ['#ff4d8d', '#ff9a3d'] },
+  violett: { name: 'Violett', c: ['#9b6bff', '#5ad1ff'] },
+};
+
+function applyTheme(theme) {
+  if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+  else document.documentElement.removeAttribute('data-theme'); // 'auto' = System
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) {
+    const sysLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+    const dark = theme === 'dark' || (theme === 'auto' && !sysLight);
+    meta.setAttribute('content', dark ? '#0f1115' : '#f3f5f9');
+  }
+  updateThemeButton();
+}
+
+function applyAccent(accent) {
+  const a = ACCENTS[accent] || ACCENTS.orange;
+  document.documentElement.style.setProperty('--accent', a.c[0]);
+  document.documentElement.style.setProperty('--accent-2', a.c[1]);
+}
+
+function updateThemeButton() {
+  const btn = $('#btn-theme');
+  if (!btn) return;
+  const t = config.theme || 'auto';
+  btn.textContent = t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '🌗';
+  btn.title = `Design: ${t === 'light' ? 'Hell' : t === 'dark' ? 'Dunkel' : 'Automatisch'} – tippen zum Wechseln`;
+}
+
+function setTheme(theme) {
+  config.theme = theme;
+  saveConfig(config);
+  applyTheme(theme);
+  const sel = $('#cfg-theme');
+  if (sel) sel.value = theme;
+}
+
+function renderAccentSwatches() {
+  const host = $('#accent-swatches');
+  if (!host) return;
+  host.innerHTML = '';
+  Object.entries(ACCENTS).forEach(([key, a]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'accent-swatch' + (config.accent === key ? ' active' : '');
+    b.style.setProperty('--sw-a', a.c[0]);
+    b.style.setProperty('--sw-b', a.c[1]);
+    b.title = a.name;
+    b.setAttribute('aria-label', `Akzentfarbe ${a.name}`);
+    b.addEventListener('click', () => {
+      config.accent = key;
+      saveConfig(config);
+      applyAccent(key);
+      renderAccentSwatches();
+    });
+    host.appendChild(b);
+  });
+}
+
+function initTheme() {
+  applyTheme(config.theme || 'auto');
+  applyAccent(config.accent || 'orange');
+  const sel = $('#cfg-theme');
+  if (sel) {
+    sel.value = config.theme || 'auto';
+    sel.addEventListener('change', () => setTheme(sel.value));
+  }
+  $('#btn-theme')?.addEventListener('click', () => {
+    const order = ['auto', 'light', 'dark'];
+    setTheme(order[(order.indexOf(config.theme || 'auto') + 1) % order.length]);
+  });
+  renderAccentSwatches();
+  updateThemeButton();
+  // Bei „auto“ auf Systemwechsel reagieren (Statusleisten-Farbe nachziehen).
+  const mq = window.matchMedia('(prefers-color-scheme: light)');
+  mq.addEventListener?.('change', () => { if ((config.theme || 'auto') === 'auto') applyTheme('auto'); });
+}
+
+// ================ ONBOARDING (Erststart) ================
+const ONBOARD_KEY = 'pixletics.onboarded';
+const ONBOARD_STEPS = [
+  { emoji: '👋', title: 'Willkommen bei pixletics', text: 'Dein Intervall-Timer fürs Bodyweight- & Zirkeltraining – mit Coach-Ansagen, Radio und Spotify.' },
+  { emoji: '✅', title: 'Set wählen & starten', text: 'Tippe im Training-Tab ein oder mehrere Sets an und drücke „Workout starten“. Oder nutze den Intervall-Timer (Tabata, EMOM, AMRAP).' },
+  { emoji: '🎙️', title: 'Coach & Musik', text: 'Wähle unter „Stimme & Coach“ einen Charakter und stelle im Musik-Tab Radio oder Spotify ein.' },
+  { emoji: '⏱️', title: 'Im Workout', text: 'Der Runner zeigt Countdown, Runde und nächste Übung. Pausieren, überspringen und Vollbild sind jederzeit möglich. Los geht’s!' },
+];
+let onboardIdx = 0;
+
+function renderOnboardStep() {
+  const s = ONBOARD_STEPS[onboardIdx];
+  $('#onboard-emoji').textContent = s.emoji;
+  $('#onboard-title').textContent = s.title;
+  $('#onboard-text').textContent = s.text;
+  const dots = $('#onboard-dots');
+  dots.innerHTML = '';
+  ONBOARD_STEPS.forEach((_, i) => {
+    const d = document.createElement('span');
+    if (i === onboardIdx) d.className = 'on';
+    dots.appendChild(d);
+  });
+  $('#onboard-next').textContent = onboardIdx === ONBOARD_STEPS.length - 1 ? 'Los geht’s' : 'Weiter';
+}
+
+function startOnboarding() {
+  onboardIdx = 0;
+  renderOnboardStep();
+  $('#onboarding').hidden = false;
+}
+
+function closeOnboarding() {
+  $('#onboarding').hidden = true;
+  try { localStorage.setItem(ONBOARD_KEY, '1'); } catch {}
+}
+
+function bindOnboarding() {
+  $('#onboard-next').addEventListener('click', () => {
+    if (onboardIdx < ONBOARD_STEPS.length - 1) { onboardIdx++; renderOnboardStep(); }
+    else closeOnboarding();
+  });
+  $('#onboard-skip').addEventListener('click', closeOnboarding);
+  $('#btn-replay-onboarding')?.addEventListener('click', startOnboarding);
+}
+
+function maybeShowOnboarding() {
+  // Nicht beim Import per Link oder Spotify-Redirect stören.
+  if (/share=|access_token|[?&]code=/.test(location.hash + location.search)) return;
+  let seen = false;
+  try { seen = localStorage.getItem(ONBOARD_KEY) === '1'; } catch {}
+  if (!seen) startOnboarding();
 }
 
 // ================ SETS VIEW ================
@@ -884,14 +1123,18 @@ function fmtTime(ms) {
 
 function runnerHandlers(steps) {
   const bg = $('#runner-bg');
+  const interval = !!steps.interval; // reiner Intervall-Timer (kein exId)
   return {
     onPhase(step, index) {
-      const ex = exerciseMap[step.exId];
+      // Intervalle haben keine Übung -> generisches Anzeige-Objekt aus dem Label.
+      const ex = step.exId ? exerciseMap[step.exId] : { name: step.label, emoji: '⏱️', cue: '' };
       bg.className = 'runner-bg ' + step.phase;
       const lapLen = steps.lapLength || steps.length;
       const repInfo = step.repsTotal > 1 ? ` · Satz ${step.rep}/${step.repsTotal}` : '';
       let roundLabel;
-      if (steps.totalLaps > 1) {
+      if (interval) {
+        roundLabel = steps.totalRounds > 1 ? `${steps.unit} ${step.interval}/${steps.totalRounds}` : steps.unit;
+      } else if (steps.totalLaps > 1) {
         const posInLap = ((step.round - 1) % lapLen) + 1;
         const unit = workoutActiveRest ? 'Station' : 'Übung';
         roundLabel = `Runde ${step.lap}/${steps.totalLaps} · ${unit} ${posInLap}/${lapLen}`;
@@ -911,7 +1154,8 @@ function runnerHandlers(steps) {
           if (config.voice) {
             const parts = [];
             if (phrases) parts.push(line(persona, 'start'));
-            if (names) parts.push(`Es geht los mit ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
+            // Im Intervallmodus gibt es keinen Übungsnamen anzusagen.
+            if (names && !interval) parts.push(`Es geht los mit ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
             else parts.push('Los geht’s.');
             speak(parts.join(' '), { interrupt: true });
           }
@@ -944,8 +1188,9 @@ function runnerHandlers(steps) {
         if (config.beeps) sound.start();
         if (config.voice) {
           let txt;
-          if (names && phrases) txt = `${ex.name}! ${line(persona, 'work', { name })}`;
-          else if (names) txt = `${ex.name}!`;
+          // Im Intervallmodus keinen Übungsnamen rufen, nur „Los!“ (+ ggf. Spruch).
+          if (names && phrases && !interval) txt = `${ex.name}! ${line(persona, 'work', { name })}`;
+          else if (names && !interval) txt = `${ex.name}!`;
           else if (phrases) txt = `Los! ${line(persona, 'work', { name })}`;
           else txt = 'Los!';
           speak(txt, { interrupt: true });
@@ -1048,12 +1293,14 @@ function showNextAfter(steps, index) {
   for (let i = index + 1; i < steps.length; i++) {
     if (steps[i].phase === PHASE.WORK) {
       if (!skippedUpcoming) { skippedUpcoming = true; continue; }
-      const ex = exerciseMap[steps[i].exId];
-      $('#next-up').textContent = ex ? `Danach: ${ex.emoji} ${ex.name}` : '';
+      const st = steps[i];
+      const ex = exerciseMap[st.exId];
+      const label = ex ? `${ex.emoji} ${ex.name}` : (st.label || '');
+      $('#next-up').textContent = label ? `Danach: ${label}` : '';
       return;
     }
   }
-  $('#next-up').textContent = 'Letzte Übung – Endspurt!';
+  $('#next-up').textContent = steps.interval ? 'Letztes Intervall – Endspurt!' : 'Letzte Übung – Endspurt!';
 }
 
 function stopRunner() {
@@ -1225,6 +1472,7 @@ function initSplash() {
     splash?.classList.add('hide');
     setTimeout(() => splash?.remove(), 650);
     startHeaderLoop();
+    maybeShowOnboarding(); // Erststart-Einführung nach der Splash
   };
   if (!splash || reducedMotion) {
     done();
@@ -1267,10 +1515,12 @@ function initSplash() {
 
 // ---------------- Init ----------------
 async function init() {
-  initSplash();
   initPWA();
   bindConfig();
   bindVoiceSettings();
+  bindIntervalUI();
+  initTheme();
+  bindOnboarding();
   renderPicker();
   renderSetsList();
   renderExercisesList();
@@ -1279,6 +1529,7 @@ async function init() {
   setupSortable();
   updatePlanSummary();
   renderSpotify();
+  initSplash(); // Splash zeigen; danach ggf. Onboarding (Binds sind jetzt aktiv)
 
   // Gerätestimmen laden und Auswahl/Coach anwenden, sobald sie verfügbar sind.
   primeVoices();
