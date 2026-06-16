@@ -58,11 +58,16 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   (wie oft motivierende/freche Zwischenrufe kommen), Auswahl der **Gerätestimme**
   und ein optionales **Namensfeld**, mit dem der Coach dich anspricht
   („Auf geht's, Alex!"). Nutzt die auf dem Gerät installierten Stimmen.
-- **Ansage-Umfang** wählbar: **Voll** (mit Coach-Sprüchen, Startansage, Erklärungen),
-  **Knapp** (nur das Wichtigste: Modus, Übungsname, Countdown, Status) oder
-  **Minimal** (nur „Pause/Los" + Countdown, ohne Übungsnamen – ideal fürs eigene
-  Training). Der **Standard-Coach** ist bewusst sprüche-frei. Die **erste Übung**
-  startet ohne lange Pause (kurze Ansage → Countdown → los).
+- **Ansage-Umfang** wählbar: **Voll** (Coach-Sprüche + Übungsnamen + Erklärungen),
+  **Sprüche ohne Übungsnamen** (alle Kommentare, aber ohne zu sagen welche Übung –
+  praktisch fürs Zirkeltraining, wenn jeder etwas anderes macht), **Knapp**
+  (nur das Wichtigste: Modus, Übungsname, Countdown, Status) oder **Minimal**
+  (nur „Pause/Los" + Countdown – fürs eigene Training). Der **Standard-Coach**
+  ist bewusst sprüche-frei. Die **erste Übung** startet ohne lange Pause
+  (kurze Ansage → Countdown → los).
+- **Rundenwechsel** (z. B. Zirkel): nach jeder vollen Runde ein kleiner **Applaus**,
+  eine **längere Pause** und die Ansage „Runde X geschafft". Beim Zirkel wird ab
+  Runde 2 die **Aktivpause angekündigt**.
 - **Musik** (Tab „Musik"): zwei Optionen –
   - **Internet-Radio**: kuratierte **Power-Sender** quer durch die Genres
     (bigFM Workout, sunshine live, TechnoBase.FM, ROCK ANTENNE, SomaFM u. a.),
