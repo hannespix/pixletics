@@ -31,6 +31,16 @@ export const CIRCUIT_EXERCISES = [
   { id: 'circ-stepups',   name: 'Step-ups auf die Bank',   area: 'Beine',      emoji: '🪜', cue: 'Im Wechsel auf die Bank steigen, Knie hoch',         reps: 1 },
 ];
 
+// Ergänzende Übungen, die bisher fehlende Körperregionen abdecken (Schultern,
+// Waden, Rücken) – so lässt sich jeder Bereich von Kopf bis Fuß trainieren.
+// Werden bei Bestandsnutzern per Migration zur Bibliothek hinzugefügt.
+export const EXTRA_EXERCISES = [
+  { id: 'pikepushups',  name: 'Pike-Liegestütze',   area: 'Schultern',  emoji: '🔻', cue: 'Hüfte hoch zum „V“, Kopf Richtung Boden senken', reps: 3 },
+  { id: 'shouldertaps', name: 'Schulterklopfen',    area: 'Schultern',  emoji: '👋', cue: 'Im hohen Stütz abwechselnd die Schulter antippen', reps: 3 },
+  { id: 'calfraises',   name: 'Wadenheben',         area: 'Waden',      emoji: '👣', cue: 'Auf die Zehenspitzen hoch, langsam absenken', reps: 3 },
+  { id: 'swimmers',     name: 'Schwimmer',          area: 'Rücken',     emoji: '🏊', cue: 'Bäuchlings Arme und Beine wechselseitig heben', reps: 3 },
+];
+
 export const DEFAULT_EXERCISES = [
   { id: 'burpees',      name: 'Burpees',            area: 'Ganzkörper', emoji: '🔥', cue: 'Liegestütz + Strecksprung', reps: 3 },
   { id: 'pushups',      name: 'Liegestütze',        area: 'Brust',      emoji: '💪', cue: 'Körper gerade, tief runter', reps: 3 },
@@ -53,6 +63,8 @@ export const DEFAULT_EXERCISES = [
   { id: 'bridge',       name: 'Beckenheben',        area: 'Po',         emoji: '🌉', cue: 'Hüfte hoch, Po anspannen', reps: 3 },
   { id: 'sideplank',    name: 'Seitstütz',          area: 'Core',       emoji: '📐', cue: 'Pro Seite – seitlich stützen, Hüfte hoch', reps: 4 },
   { id: 'skater',       name: 'Skater-Sprünge',     area: 'Beine',      emoji: '⛸️', cue: 'Pro Seite – seitlich von Bein zu Bein', reps: 4 },
+  // Ergänzende Übungen (Schultern, Waden, Rücken).
+  ...EXTRA_EXERCISES,
   // Zirkeltraining-Stationen mit anhängen (in der Bibliothek wählbar).
   ...CIRCUIT_EXERCISES,
 ];
@@ -67,67 +79,69 @@ export const CIRCUIT_SET = {
 };
 
 // Vordefinierte Sets. Drei Freeletics-Ganzkörper-Workouts (je ~50–55 min bei
-// 30/30/10) mit Variation, plus das Zirkeltraining. Jedes Freeletics-Set ist
-// sportphysiologisch aufgebaut: Aufwärmen → abwechselnd Beine/Drücken/Ziehen/
-// Core → Cardio-Finisher, sodass der ganze Körper einmal durchtrainiert wird.
+// 30/30/10) mit Variation, plus das Zirkeltraining. Jedes Set trainiert den
+// kompletten Körper von Kopf bis Fuß: Beine (Quadrizeps), Po & hintere Kette,
+// Waden, Brust, Schultern, Rücken, Arme (Trizeps), Bauch und Core – dazu
+// Cardio-Aufwärmen und ein Ganzkörper-Finisher.
 export const DEFAULT_SETS = [
   {
     id: 'set-free-a',
     name: '🤸‍♂️ Freeletics A · Kraft & Core',
     exercises: [
-      'jacks',       // Aufwärmen / Cardio
-      'squats',      // Beine
-      'pushups',     // Brust / Drücken
-      'lunges',      // Beine (pro Seite)
-      'superman',    // Rücken / Ziehen
-      'tricepdips',  // Trizeps
-      'wallsit',     // Beine (statisch)
-      'climbers',    // Core / Cardio
-      'situps',      // Bauch
-      'plank',       // Core (statisch)
-      'bridge',      // Po / hintere Kette
-      'diamond',     // Brust/Trizeps
-      'skater',      // Beine / Cardio (pro Seite)
-      'burpees',     // Ganzkörper-Finisher
+      'jacks',        // Aufwärmen / Cardio
+      'squats',       // Beine / Quadrizeps
+      'pushups',      // Brust
+      'pikepushups',  // Schultern
+      'superman',     // Rücken
+      'lunges',       // Beine / Po (pro Seite)
+      'tricepdips',   // Arme / Trizeps
+      'calfraises',   // Waden
+      'bridge',       // Po / hintere Oberschenkel
+      'situps',       // Bauch
+      'plank',        // Core (statisch)
+      'wallsit',      // Beine (statisch)
+      'climbers',     // Cardio / Core
+      'burpees',      // Ganzkörper-Finisher
     ],
   },
   {
     id: 'set-free-b',
     name: '🤸‍♂️ Freeletics B · Cardio & Stabilität',
     exercises: [
-      'highknees',   // Aufwärmen / Cardio
-      'jumpsquats',  // Beine (explosiv)
-      'diamond',     // Brust / Drücken
-      'skater',      // Beine / Cardio
-      'plankjacks',  // Core / Cardio
-      'superman',    // Rücken
-      'lunges',      // Beine
-      'crunches',    // Bauch
-      'sideplank',   // Core (pro Seite)
-      'tricepdips',  // Trizeps
-      'twists',      // Bauch / Rotation
-      'climbers',    // Core / Cardio
-      'burpees',     // Ganzkörper-Finisher
+      'highknees',    // Aufwärmen / Cardio
+      'jumpsquats',   // Beine (explosiv)
+      'pushups',      // Brust
+      'shouldertaps', // Schultern
+      'swimmers',     // Rücken
+      'skater',       // Beine / Cardio (pro Seite)
+      'calfraises',   // Waden
+      'bridge',       // Po / hintere Kette
+      'plankjacks',   // Core / Cardio
+      'crunches',     // Bauch
+      'sideplank',    // Core (pro Seite)
+      'tricepdips',   // Arme / Trizeps
+      'climbers',     // Cardio / Core
+      'burpees',      // Ganzkörper-Finisher
     ],
   },
   {
     id: 'set-free-c',
     name: '🤸‍♂️ Freeletics C · Ganzkörper-Mix',
     exercises: [
-      'jacks',       // Aufwärmen / Cardio
-      'lunges',      // Beine (pro Seite)
-      'pushups',     // Brust / Drücken
-      'jumpsquats',  // Beine (explosiv)
-      'legraises',   // Bauch (unterer)
-      'superman',    // Rücken
-      'wallsit',     // Beine (statisch)
-      'plankjacks',  // Core / Cardio
-      'crunches',    // Bauch
-      'tricepdips',  // Trizeps
-      'bridge',      // Po / hintere Kette
-      'twists',      // Bauch / Rotation
-      'climbers',    // Core / Cardio
-      'burpees',     // Ganzkörper-Finisher
+      'jacks',        // Aufwärmen / Cardio
+      'lunges',       // Beine / Po (pro Seite)
+      'pushups',      // Brust
+      'pikepushups',  // Schultern
+      'superman',     // Rücken
+      'jumpsquats',   // Beine (explosiv)
+      'tricepdips',   // Arme / Trizeps
+      'calfraises',   // Waden
+      'bridge',       // Po / hintere Kette
+      'legraises',    // Bauch (unterer)
+      'sideplank',    // Core (pro Seite)
+      'wallsit',      // Beine (statisch)
+      'climbers',     // Cardio / Core
+      'burpees',      // Ganzkörper-Finisher
     ],
   },
   CIRCUIT_SET,
