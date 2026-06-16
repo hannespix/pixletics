@@ -42,6 +42,11 @@ export const DEFAULT_CONFIG = {
   coachName: '',            // optionaler Name, mit dem der Coach dich anspricht
   motivation: 60,           // 0–100: wie oft motivierende Zwischenrufe kommen
   verbosity: 'full',        // 'full' (Sprüche) | 'concise' (knapp) | 'minimal'
+  // ---- Darstellung ----
+  theme: 'auto',            // 'auto' (System) | 'light' (hell) | 'dark' (dunkel)
+  accent: 'orange',         // Akzentfarbe (siehe ACCENTS in main.js)
+  // ---- Intervall-Timer (reiner Timer ohne Übungen) ----
+  interval: { mode: 'tabata', work: 20, rest: 10, rounds: 8 },
 };
 
 function safeParse(raw, fallback) {
