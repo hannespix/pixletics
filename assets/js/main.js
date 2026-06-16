@@ -1198,12 +1198,12 @@ function runnerHandlers(steps) {
         }
       } else if (step.phase === PHASE.PREPARE) {
         const firstBlock = step.round === 1; // Lead-in: nur Countdown
-        // Knappe Vorschau auf die nächste Übung (nur Name, kein zusätzlicher Spruch).
+        // Vorschau auf die nächste Übung – Name samt kurzer Beschreibung (Cue).
         if (!firstBlock && names) {
           const ex = exerciseMap[step.exId];
           const nextAt = Math.max(4, duration - 9);
           if (secondsLeft === nextAt && config.voice && ex) {
-            speak(`Als Nächstes: ${ex.name}.`);
+            speak(`Als Nächstes: ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
           }
         }
         // letzte 3 Sekunden: Start-Countdown (immer).
