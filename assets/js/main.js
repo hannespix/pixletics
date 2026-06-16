@@ -14,6 +14,7 @@ import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
 import { GooeyMorph } from './gooey.js';
+import { initPWA } from './pwa.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -1267,6 +1268,7 @@ function initSplash() {
 // ---------------- Init ----------------
 async function init() {
   initSplash();
+  initPWA();
   bindConfig();
   bindVoiceSettings();
   renderPicker();

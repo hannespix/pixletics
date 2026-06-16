@@ -351,3 +351,24 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
   .brand-morph { width: 112px; height: 15px; }
   .tab { padding: 6px 9px; font-size: 12px; }
 }
+
+/* ---------- PWA: Install-Banner ---------- */
+.install-banner {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: min(560px, calc(100% - 24px)); z-index: 35;
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid #2c3342; border-radius: 14px;
+  padding: 11px 14px; box-shadow: var(--shadow);
+  animation: ib-up 0.35s ease;
+}
+.install-banner[hidden] { display: none; }
+@keyframes ib-up { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.install-banner .ib-icon { width: 28px; height: 33px; flex: none; image-rendering: pixelated; filter: drop-shadow(0 1px 4px rgba(255, 90, 54, 0.5)); }
+.install-banner .ib-text { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; }
+.install-banner #ib-install { padding: 9px 16px; flex: none; }
+.install-banner #ib-dismiss { flex: none; }
+
+.ios-install-card { width: min(420px, 100%); }
+.ios-install-card ol { margin: 12px 0 4px; padding-left: 22px; color: var(--text); font-size: 14px; line-height: 1.7; }
+.ios-install-card ol strong { color: var(--accent-2); }
