@@ -390,12 +390,7 @@ function startInterval() {
   const { work, rest, rounds, unit } = intervalParams();
   workoutActiveRest = false;
   const steps = buildIntervalSchedule({ work, rest, rounds, unit });
-  engine.load(steps);
-  engine.h = runnerHandlers(steps);
-  $('#runner').hidden = false;
-  pauseHeaderLoop();
-  requestWakeLock();
-  engine.start();
+  armRunner(steps);
 }
 
 // ================ SETS VIEW ================
@@ -1056,11 +1051,39 @@ async function startWorkout() {
   // Aktivpause aktiv, wenn ein gewähltes Set sie vorsieht (z. B. Zirkeltraining).
   workoutActiveRest = selectedSetIds.some((id) => sets.find((s) => s.id === id)?.activeRest);
   const steps = buildSchedule(items, config);
+  armRunner(steps);
+}
+
+// „Bereit“-Zustand: Runner öffnen, erste Übung als Vorschau zeigen und einen
+// Start-Knopf anbieten – so kann man vorher in Ruhe die Musik wählen. Das
+// Workout startet erst beim Tippen auf Start (beginRunner).
+function armRunner(steps) {
   engine.load(steps);
   engine.h = runnerHandlers(steps);
-
+  const bg = $('#runner-bg');
+  if (bg) bg.className = 'runner-bg prepare';
+  const first = steps.find((s) => s.phase === PHASE.WORK) || steps[0];
+  const ex = first && (first.exId ? exerciseMap[first.exId] : { name: first.label, emoji: '⏱️', cue: '' });
+  $('#phase-label').textContent = 'Bereit';
+  $('#exercise-name').textContent = ex ? `${ex.emoji} ${ex.name}` : '';
+  $('#exercise-cue').textContent = 'Wähle ggf. Musik – dann auf Start';
+  $('#big-timer').textContent = first ? String(first.duration).padStart(2, '0') : '00';
+  $('#phase-icon').textContent = '';
+  $('#next-up').textContent = '';
+  $('#runner-round').textContent = '';
+  $('#runner-session').textContent = '';
+  $('#runner-progress-bar').style.width = '0%';
+  $('#btn-runner-start').hidden = false;
+  $('#runner-workout-sec').hidden = true; // Pause/Skip erst nach dem Start
   $('#runner').hidden = false;
-  pauseHeaderLoop(); // Logo-Schleife während des Workouts ruhen lassen
+  pauseHeaderLoop();
+}
+
+function beginRunner() {
+  initAudio();
+  $('#btn-runner-start').hidden = true;
+  $('#runner-workout-sec').hidden = false;
+  $('#btn-pause').textContent = '⏸';
   requestWakeLock();
   engine.start();
 }
@@ -1262,12 +1285,14 @@ function stopRunner() {
   spotify.unduck();
   radio.unduck();
   releaseWakeLock();
+  $('#btn-runner-start').hidden = true; // „Bereit“-Knopf zurücksetzen
   $('#runner').hidden = true;
   resumeHeaderLoop(); // Logo-Schleife wieder aufnehmen
 }
 
 // Runner-Steuerung
 $('#btn-start').addEventListener('click', startWorkout);
+$('#btn-runner-start').addEventListener('click', beginRunner);
 $('#btn-close-runner').addEventListener('click', stopRunner);
 $('#btn-skip').addEventListener('click', () => engine.skip());
 $('#btn-pause').addEventListener('click', () => {
