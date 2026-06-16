@@ -12,15 +12,19 @@ const SEED_KEY = 'freeletics.seed.v1';
 // np = SomaFM-Kanal-ID für die „Now Playing“-Anzeige (nur SomaFM liefert sie
 // im Browser CORS-frei; andere Sender zeigen nur Name/Genre).
 // ROCK ANTENNE steht bewusst zuerst = Standard-Internetradio.
+// Schwerpunkt: Rock, 70er/80er-Rock, Workout. Viele werbefreie SomaFM-Streams
+// (np = SomaFM-Kanal-ID für die „Now Playing“-Anzeige).
 export const DEFAULT_STATIONS = [
-  { id: 'st-rockantenne',   name: 'ROCK ANTENNE',       genre: 'Rock',        url: 'https://stream.rockantenne.de/rockantenne/stream/mp3' },
-  { id: 'st-ra-metal',      name: 'ROCK ANTENNE Heavy Metal', genre: 'Metal', url: 'https://stream.rockantenne.de/heavy-metal/stream/mp3' },
-  { id: 'st-bigfm-workout', name: 'bigFM Workout',      genre: 'Workout',     url: 'https://streams.bigfm.de/bigfm-workout-128-mp3' },
-  { id: 'st-sunshine',      name: 'sunshine live',      genre: 'Dance/Electro', url: 'https://stream.sunshine-live.de/live/mp3-192/' },
-  { id: 'st-technobase',    name: 'TechnoBase.FM',      genre: 'Techno',      url: 'https://listen.technobase.fm/tunein-mp3' },
-  { id: 'st-bigfm',         name: 'bigFM',              genre: 'Hip-Hop',     url: 'https://streams.bigfm.de/bigfm-deutschland-128-mp3' },
-  { id: 'st-soma-defcon',   name: 'SomaFM DEF CON',     genre: 'Electro/Industrial', url: 'https://ice1.somafm.com/defcon-128-mp3', np: 'defcon' },
-  { id: 'st-soma-trip',     name: 'SomaFM The Trip',    genre: 'Prog House',  url: 'https://ice1.somafm.com/thetrip-128-mp3', np: 'thetrip' },
+  { id: 'st-rockantenne',  name: 'ROCK ANTENNE',             genre: 'Rock',         url: 'https://stream.rockantenne.de/rockantenne/stream/mp3' },
+  { id: 'st-ra-classic',   name: 'ROCK ANTENNE Classic Perlen', genre: 'Rock-Klassiker', url: 'https://stream.rockantenne.de/classic-perlen/stream/mp3' },
+  { id: 'st-ra-metal',     name: 'ROCK ANTENNE Heavy Metal', genre: 'Metal',        url: 'https://stream.rockantenne.de/heavy-metal/stream/mp3' },
+  { id: 'st-soma-u80s',    name: 'SomaFM Underground 80s',   genre: '80er',         url: 'https://ice1.somafm.com/u80s-128-mp3',        np: 'u80s' },
+  { id: 'st-soma-70s',     name: 'SomaFM Left Coast 70s',    genre: '70er Rock',    url: 'https://ice1.somafm.com/seventies-128-mp3',   np: 'seventies' },
+  { id: 'st-soma-bagel',   name: 'SomaFM BAGeL Radio',       genre: 'Alternative Rock', url: 'https://ice1.somafm.com/bagel-128-mp3',   np: 'bagel' },
+  { id: 'st-soma-metal',   name: 'SomaFM Metal Detector',    genre: 'Metal',        url: 'https://ice1.somafm.com/metal-128-mp3',       np: 'metal' },
+  { id: 'st-soma-indie',   name: 'SomaFM Indie Pop Rocks',   genre: 'Indie',        url: 'https://ice1.somafm.com/indiepop-128-mp3',    np: 'indiepop' },
+  { id: 'st-soma-beat',    name: 'SomaFM Beat Blender',      genre: 'Electronic',   url: 'https://ice1.somafm.com/beatblender-128-mp3', np: 'beatblender' },
+  { id: 'st-bigfm-workout', name: 'bigFM Workout',           genre: 'Workout',      url: 'https://streams.bigfm.de/bigfm-workout-128-mp3' },
 ];
 
 export const DEFAULT_CONFIG = {
@@ -117,7 +121,7 @@ export function uid(prefix = 'set') {
 // kommen sie nicht zurück.
 export function ensureDefaultsSeeded() {
   const applied = safeParse(localStorage.getItem(SEED_KEY), []);
-  if (applied.includes('content-v3')) return;
+  if (applied.includes('content-v4')) return;
 
   // Fehlende Zirkel-Stationen zur Übungs-Bibliothek hinzufügen (eigene behalten).
   const exercises = loadExercises();
@@ -138,6 +142,6 @@ export function ensureDefaultsSeeded() {
   // Power-Sender (ROCK ANTENNE zuerst) setzen/aktualisieren.
   saveStations(DEFAULT_STATIONS.map((s) => ({ ...s })));
 
-  ['zirkel-v1', 'content-v2', 'content-v3'].forEach((k) => { if (!applied.includes(k)) applied.push(k); });
+  ['zirkel-v1', 'content-v2', 'content-v3', 'content-v4'].forEach((k) => { if (!applied.includes(k)) applied.push(k); });
   localStorage.setItem(SEED_KEY, JSON.stringify(applied));
 }

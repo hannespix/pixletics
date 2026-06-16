@@ -69,11 +69,13 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   eine **längere Pause** und die Ansage „Runde X geschafft". Beim Zirkel wird ab
   Runde 2 die **Aktivpause angekündigt**.
 - **Musik** (Tab „Musik"): zwei Optionen –
-  - **Internet-Radio**: kuratierte **Power-Sender** quer durch die Genres
-    (bigFM Workout, sunshine live, TechnoBase.FM, ROCK ANTENNE, SomaFM u. a.),
-    **ohne Login/Key/Premium**. Eigene Sender (HTTPS-Stream-URL) lassen sich
-    hinzufügen. Für SomaFM-Sender wird der **aktuell laufende Song** angezeigt
-    (andere Sender liefern im Browser keine Track-Infos).
+  - **Internet-Radio**: kuratierte Sender mit Schwerpunkt **Rock, 70er/80er &
+    Workout** (ROCK ANTENNE inkl. Classic Perlen & Heavy Metal, plus viele
+    **werbefreie SomaFM**-Streams: Underground 80s, Left Coast 70s, BAGeL Radio,
+    Metal Detector, Indie Pop Rocks, Beat Blender …), **ohne Login/Key/Premium**.
+    Eigene Sender (HTTPS-Stream-URL) lassen sich hinzufügen. Für SomaFM wird der
+    **aktuell laufende Song** angezeigt (andere Sender liefern im Browser keine
+    Track-Infos). Standard-Sender ist **ROCK ANTENNE**.
   - **Spotify** (optional, ohne Key): jeder verbindet einfach seinen **eigenen
     Account** („Mit Spotify verbinden"), läuft im Browser mit und ist von hier
     steuerbar. Benötigt **Spotify Premium**. (Die App-Client-ID ist fest
