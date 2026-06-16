@@ -114,12 +114,23 @@ function currentPersona() {
   return getPersona(config.voicePersona);
 }
 
-// Ansage-Umfang: 'full' (Sprüche), 'concise' (knapp), 'minimal' (nur Countdown).
-// Der Standard-Coach ist bewusst sprüche-frei → verhält sich wie 'concise'.
+// Ansage-Umfang. Stufen: 'full' (Sprüche + Übungsnamen), 'phrases' (Sprüche,
+// aber OHNE Übungsnamen – z. B. Zirkel mit verschiedenen Übungen je Person),
+// 'concise' (knapp: Namen + Status, keine Sprüche), 'minimal' (nur Countdown).
+// Der Standard-Coach ist bewusst sprüche-frei → 'full' wird zu 'concise'.
 function verbosityLevel() {
   let v = config.verbosity || 'full';
   if (config.voicePersona === 'standard' && v === 'full') v = 'concise';
   return v;
+}
+// names = Übungsnamen ansagen; phrases = Coach-Sprüche/Kommentare ansagen.
+function announceFlags() {
+  const v = verbosityLevel();
+  return {
+    v,
+    names: v === 'full' || v === 'concise',
+    phrases: v === 'full' || v === 'phrases',
+  };
 }
 
 // Aktuelle Stimm-Einstellungen an die Audio-Schicht übergeben.
@@ -892,25 +903,37 @@ function runnerHandlers(steps) {
 
       const persona = currentPersona();
       const name = config.coachName;
-      const v = verbosityLevel();
+      const { names, phrases } = announceFlags();
       if (step.phase === PHASE.PREPARE) {
         const active = workoutActiveRest && step.lap >= 2;
         if (index === 0) {
           // Erste Übung: kein Pausen-Start – Startansage + was kommt, dann Countdown.
           setPhaseUI('Los geht’s', ex, '⏱️');
           if (config.voice) {
-            let txt;
-            if (v === 'minimal') txt = 'Los geht’s.';
-            else if (v === 'concise') txt = `Los geht’s. ${ex.name}.`;
-            else txt = `${line(persona, 'start')} Es geht los mit ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`;
-            speak(txt, { interrupt: true });
+            const parts = [];
+            if (phrases) parts.push(line(persona, 'start'));
+            if (names) parts.push(`Es geht los mit ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
+            else parts.push('Los geht’s.');
+            speak(parts.join(' '), { interrupt: true });
+          }
+        } else if (step.roundBreak) {
+          // Rundenwechsel: kleiner Applaus + „Runde geschafft“ + ggf. Aktivpause-Ansage.
+          setPhaseUI(active ? 'Aktivpause' : 'Rundenpause', ex, active ? '🏃' : '🎉');
+          if (active) $('#exercise-cue').textContent = 'Eine Runde um die Halle laufen 🏃';
+          if (config.beeps) sound.applause();
+          if (config.voice) {
+            let msg = `Runde ${step.lap - 1} geschafft!`;
+            if (active && step.lap === 2) msg += ' Ab jetzt Aktivpause: in jeder Pause eine Runde um die Halle laufen.';
+            else if (active) msg += ' Aktivpause: eine Runde um die Halle laufen.';
+            else msg += ' Kurze Pause.';
+            speak(msg, { interrupt: true });
           }
         } else if (active) {
           // Aktivpause (Zirkel ab Runde 2): Runde um die Halle.
           setPhaseUI('Aktivpause', ex, '🏃');
           $('#exercise-cue').textContent = 'Eine Runde um die Halle laufen 🏃';
           if (config.beeps) sound.rest();
-          if (config.voice) speak(v === 'minimal' ? 'Aktivpause.' : 'Aktivpause! Eine Runde um die Halle laufen.', { interrupt: true });
+          if (config.voice) speak(phrases || names ? 'Aktivpause! Eine Runde um die Halle laufen.' : 'Aktivpause.', { interrupt: true });
         } else {
           setPhaseUI('Pause', ex, '⏸️');
           if (config.beeps) sound.rest();
@@ -922,28 +945,29 @@ function runnerHandlers(steps) {
         if (config.beeps) sound.start();
         if (config.voice) {
           let txt;
-          if (v === 'minimal') txt = 'Los!';
-          else if (v === 'concise') txt = `${ex.name}!`;
-          else txt = `${ex.name}! ${line(persona, 'work', { name })}`;
+          if (names && phrases) txt = `${ex.name}! ${line(persona, 'work', { name })}`;
+          else if (names) txt = `${ex.name}!`;
+          else if (phrases) txt = `Los! ${line(persona, 'work', { name })}`;
+          else txt = 'Los!';
           speak(txt, { interrupt: true });
         }
         $('#next-up').textContent = '';
       }
     },
     onSecond({ step, secondsLeft, duration }) {
-      const v = verbosityLevel();
+      const { names, phrases } = announceFlags();
       if (step.phase === PHASE.WORK) {
-        // Motivierender Zwischenruf etwa in der Mitte – nur bei 'full'.
-        if (config.voice && v === 'full' && duration >= 20) {
+        // Motivierender Zwischenruf etwa in der Mitte – wenn Sprüche an.
+        if (config.voice && phrases && duration >= 20) {
           const midAt = Math.max(16, Math.round(duration * 0.6));
           if (secondsLeft === midAt && Math.random() * 100 < (config.motivation || 0)) {
             const ex = exerciseMap[step.exId];
             speak(line(currentPersona(), 'mid', { ex: ex?.name || '', name: config.coachName }));
           }
         }
-        // „Noch 15 Sekunden“ (Status) – in 'full' & 'concise', nicht 'minimal'.
-        if (secondsLeft === 15 && duration > 18 && config.voice && v !== 'minimal') {
-          speak(v === 'full' ? line(currentPersona(), 'warn15') : 'Noch 15 Sekunden.');
+        // „Noch 15 Sekunden“ (Status) – außer 'minimal'.
+        if (secondsLeft === 15 && duration > 18 && config.voice && !(announceFlags().v === 'minimal')) {
+          speak(phrases ? line(currentPersona(), 'warn15') : 'Noch 15 Sekunden.');
         }
         // Letzte 10 Sekunden laut runterzählen + ticken (immer).
         if (secondsLeft <= 10) {
@@ -957,19 +981,20 @@ function runnerHandlers(steps) {
           const ex = exerciseMap[step.exId];
           const name = config.coachName;
           const active = workoutActiveRest && step.lap >= 2;
-          // 1) cooler Pausenspruch – nur 'full' (bei Aktivpause läuft man).
-          if (config.voice && v === 'full' && !active && duration >= 8 && secondsLeft === duration - 3) {
+          // 1) cooler Pausenspruch – wenn Sprüche an (bei Aktivpause läuft man).
+          if (config.voice && phrases && !active && duration >= 8 && secondsLeft === duration - 3) {
             speak(line(persona, 'rest'));
           }
-          // 2) nächste Übung ansagen – in 'full' (+Spruch+Erklärung) & 'concise' (nur Name).
+          // 2) Vorschau auf die nächste Übung – Namen nur wenn 'names', Spruch wenn 'phrases'.
           const nextAt = Math.max(4, duration - 9);
-          if (secondsLeft === nextAt && config.voice && ex && v !== 'minimal') {
-            if (v === 'concise') {
-              speak(`Als Nächstes: ${ex.name}.`);
-            } else {
-              const spruch = line(persona, 'mid', { ex: ex.name, name });
+          if (secondsLeft === nextAt && config.voice && ex) {
+            if (names && phrases) {
               const cue = ex.cue ? ` ${ex.cue}.` : '';
-              speak(`Als Nächstes: ${ex.name}. ${spruch}.${cue}`);
+              speak(`Als Nächstes: ${ex.name}. ${line(persona, 'mid', { ex: ex.name, name })}.${cue}`);
+            } else if (names) {
+              speak(`Als Nächstes: ${ex.name}.`);
+            } else if (phrases) {
+              speak(`Gleich geht’s weiter! ${line(persona, 'mid', { name })}`);
             }
           }
         }
@@ -1003,7 +1028,7 @@ function runnerHandlers(steps) {
       $('#next-up').textContent = '';
       if (config.beeps) sound.applause();
       if (config.voice) {
-        speak(verbosityLevel() === 'full' ? line(currentPersona(), 'finish', { name: config.coachName }) : 'Geschafft!', { interrupt: true });
+        speak(announceFlags().phrases ? line(currentPersona(), 'finish', { name: config.coachName }) : 'Geschafft!', { interrupt: true });
       }
       releaseWakeLock();
     },
@@ -1161,8 +1186,8 @@ function escapeHtml(str = '') {
 
 // ---------------- Logo-Animation (Gooey-Morph) ----------------
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-// 3 s „pixletics“, 2 s „workout timer“, im Loop (Übergang dazwischen ~1,2 s).
-const HEAD_LOOP = { duration: 1200, dwellA: 3000, dwellB: 2000 };
+// 3 s „pixletics“, 2 s „workout“, im Loop. Morph 30 % langsamer (~1,56 s).
+const HEAD_LOOP = { duration: 1560, dwellA: 3000, dwellB: 2000 };
 let headerMorph = null;
 
 // Dauerhafter Ping-Pong im Kopfzeilen-Logo (pixletics ↔ workout timer).
@@ -1230,11 +1255,11 @@ function initSplash() {
   (async () => {
     await wait(500);
     if (finished) return;
-    await morph.morph(1900); // pixletics -> workout timer
+    await morph.morph(2470); // pixletics -> workout (30 % langsamer)
     if (finished) return;
     await wait(850);
     if (finished) return;
-    await morph.morph(1700); // workout timer -> pixletics
+    await morph.morph(2210); // workout -> pixletics (30 % langsamer)
     if (finished) return;
     await wait(350);
     finish();

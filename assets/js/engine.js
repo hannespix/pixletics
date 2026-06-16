@@ -30,11 +30,14 @@ export function buildSchedule(items, config) {
     const item = sequence[i % sequence.length];
     // lap = wievielter kompletter Durchlauf durch die Übungs-/Stationsfolge.
     const lap = Math.floor(i / sequence.length) + 1;
-    const meta = { exId: item.exId, rep: item.rep, repsTotal: item.repsTotal, round: i + 1, lap };
+    // Rundenwechsel: erster Block eines neuen Durchlaufs (für Applaus + längere Pause).
+    const roundBreak = i > 0 && i % sequence.length === 0;
+    const meta = { exId: item.exId, rep: item.rep, repsTotal: item.repsTotal, round: i + 1, lap, roundBreak };
     // Vor jeder Übung der kombinierte Pause-/Vorbereitungsblock, dann die Übung.
-    // Die ERSTE Übung beginnt ohne lange Pause – nur ein kurzer Lead-in
-    // (Ansage + Countdown). Das Programm endet mit der Übung (keine Pause danach).
-    const prepDuration = i === 0 ? Math.min(pauseSeconds, 10) : pauseSeconds;
+    // Erste Übung: kurzer Lead-in. Rundenwechsel: längere Pause. Sonst normal.
+    let prepDuration = pauseSeconds;
+    if (i === 0) prepDuration = Math.min(pauseSeconds, 10);
+    else if (roundBreak) prepDuration = pauseSeconds * 2;
     steps.push({ phase: PHASE.PREPARE, duration: prepDuration, ...meta });
     steps.push({ phase: PHASE.WORK, duration: workSeconds, ...meta });
   }
