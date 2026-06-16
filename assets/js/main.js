@@ -387,58 +387,6 @@ function startInterval() {
   engine.start();
 }
 
-// ================ ONBOARDING (Erststart) ================
-const ONBOARD_KEY = 'pixletics.onboarded';
-const ONBOARD_STEPS = [
-  { emoji: '👋', title: 'Willkommen bei pixletics', text: 'Dein Intervall-Timer fürs Bodyweight- & Zirkeltraining – mit Coach-Ansagen, Radio und Spotify.' },
-  { emoji: '✅', title: 'Set wählen & starten', text: 'Tippe im Training-Tab ein oder mehrere Sets an und drücke „Workout starten“. Oder nutze den Intervall-Timer (Tabata, EMOM, AMRAP).' },
-  { emoji: '🎙️', title: 'Coach & Musik', text: 'Wähle unter „Stimme & Coach“ einen Charakter und stelle im Musik-Tab Radio oder Spotify ein.' },
-  { emoji: '⏱️', title: 'Im Workout', text: 'Der Runner zeigt Countdown, Runde und nächste Übung. Pausieren, überspringen und Vollbild sind jederzeit möglich. Los geht’s!' },
-];
-let onboardIdx = 0;
-
-function renderOnboardStep() {
-  const s = ONBOARD_STEPS[onboardIdx];
-  $('#onboard-emoji').textContent = s.emoji;
-  $('#onboard-title').textContent = s.title;
-  $('#onboard-text').textContent = s.text;
-  const dots = $('#onboard-dots');
-  dots.innerHTML = '';
-  ONBOARD_STEPS.forEach((_, i) => {
-    const d = document.createElement('span');
-    if (i === onboardIdx) d.className = 'on';
-    dots.appendChild(d);
-  });
-  $('#onboard-next').textContent = onboardIdx === ONBOARD_STEPS.length - 1 ? 'Los geht’s' : 'Weiter';
-}
-
-function startOnboarding() {
-  onboardIdx = 0;
-  renderOnboardStep();
-  $('#onboarding').hidden = false;
-}
-
-function closeOnboarding() {
-  $('#onboarding').hidden = true;
-  try { localStorage.setItem(ONBOARD_KEY, '1'); } catch {}
-}
-
-function bindOnboarding() {
-  $('#onboard-next').addEventListener('click', () => {
-    if (onboardIdx < ONBOARD_STEPS.length - 1) { onboardIdx++; renderOnboardStep(); }
-    else closeOnboarding();
-  });
-  $('#onboard-skip').addEventListener('click', closeOnboarding);
-}
-
-function maybeShowOnboarding() {
-  // Nicht beim Import per Link oder Spotify-Redirect stören.
-  if (/share=|access_token|[?&]code=/.test(location.hash + location.search)) return;
-  let seen = false;
-  try { seen = localStorage.getItem(ONBOARD_KEY) === '1'; } catch {}
-  if (!seen) startOnboarding();
-}
-
 // ================ SETS VIEW ================
 function renderSetsList() {
   const host = $('#sets-list');
@@ -1387,7 +1335,6 @@ function initSplash() {
     splash?.classList.add('hide');
     setTimeout(() => splash?.remove(), 650);
     startHeaderLoop();
-    maybeShowOnboarding(); // Erststart-Einführung nach der Splash
   };
   if (!splash || reducedMotion) {
     done();
@@ -1434,7 +1381,6 @@ async function init() {
   bindConfig();
   bindVoiceSettings();
   bindIntervalUI();
-  bindOnboarding();
   renderPicker();
   renderSetsList();
   renderExercisesList();
@@ -1443,7 +1389,7 @@ async function init() {
   setupSortable();
   updatePlanSummary();
   renderSpotify();
-  initSplash(); // Splash zeigen; danach ggf. Onboarding (Binds sind jetzt aktiv)
+  initSplash();
 
   // Gerätestimmen laden und Auswahl/Coach anwenden, sobald sie verfügbar sind.
   primeVoices();

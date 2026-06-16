@@ -393,15 +393,3 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 #preset-desc { margin: 2px 0 8px; }
 .interval-grid label[hidden] { display: none; }
 #interval-summary { font-weight: 600; }
-
-/* ---------- Onboarding (Erststart) ---------- */
-.onboard-card { width: min(420px, 100%); text-align: center; }
-.onboard-emoji { font-size: 52px; line-height: 1; margin: 6px 0 10px; }
-.onboard-card h3 { margin: 0 0 8px; font-size: 22px; }
-.onboard-card p { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 0 auto 14px; max-width: 320px; }
-.onboard-dots { display: flex; justify-content: center; gap: 8px; margin: 14px 0; }
-.onboard-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.2s ease; }
-.onboard-dots span.on { background: var(--accent); }
-.onboard-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }
-.onboard-actions .btn { flex: 1; }
-#onboard-skip { flex: none; }
