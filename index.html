@@ -87,16 +87,15 @@
     <section class="view active" id="view-train">
       <div class="card">
         <h2>Trainingsplan wählen</h2>
-        <p class="muted">Tippe ein oder mehrere Sets an. Sie laufen nacheinander und wiederholen sich, bis die Gesamtdauer erreicht ist.</p>
         <div id="set-picker" class="set-picker"></div>
-        <p class="muted plan-summary" id="plan-summary"></p>
+        <p class="muted plan-summary" id="plan-summary" hidden></p>
       </div>
 
       <button class="btn btn-primary btn-big" id="btn-start">▶︎ Workout starten</button>
 
       <div class="card menu">
         <details class="collapsible" id="settings-card">
-          <summary><span>⚙️ Einstellungen</span><span class="muted small" id="settings-summary"></span></summary>
+          <summary><span>⚙️ Einstellungen</span></summary>
           <div class="settings-grid">
             <label>Übung (Sek.)<input type="number" id="cfg-work" min="5" max="300" step="5" /></label>
             <label>Pause (Sek.)<input type="number" id="cfg-pause" min="5" max="180" step="5" /></label>
@@ -113,7 +112,7 @@
 
       <div class="card menu">
         <details class="collapsible" id="interval-card">
-          <summary><span>⏱️ Intervall-Timer</span><span class="muted small" id="interval-summary"></span></summary>
+          <summary><span>⏱️ Intervall-Timer</span></summary>
           <p class="muted">Reiner Timer ohne Übungen – ideal für Tabata, EMOM, AMRAP oder freie Intervalle.</p>
           <div class="preset-chips" id="preset-chips">
             <button class="chip" type="button" data-preset="tabata">Tabata</button>
@@ -133,7 +132,7 @@
 
       <div class="card menu">
         <details class="collapsible voice-card" id="voice-card">
-          <summary><span>🎙️ Stimme &amp; Coach</span><span class="muted small" id="voice-current"></span></summary>
+          <summary><span>🎙️ Stimme &amp; Coach</span></summary>
           <p class="muted">Wähle einen Coach-Charakter mit eigenem Tonfall und Sprüchen. Feinjustiere Stimmlage, Tempo und wie motivierend er ist. (Nutzt die Stimmen deines Geräts.)</p>
           <div id="persona-list" class="persona-list"></div>
           <div class="voice-grid">
