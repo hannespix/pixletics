@@ -393,3 +393,22 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 #preset-desc { margin: 2px 0 8px; }
 .interval-grid label[hidden] { display: none; }
 #interval-summary { font-weight: 600; }
+
+/* ---------- Musik-Schnellwahl (Modal) ---------- */
+.music-btn { font-size: 18px; line-height: 1; padding: 4px 6px; border-radius: 8px; }
+.music-btn:hover { color: var(--text); background: var(--card-2); }
+#music-modal { z-index: 70; } /* über dem Runner (z-index 60) */
+.music-modal-card { width: min(440px, 100%); }
+.mm-radio { display: grid; gap: 6px; margin: 4px 0 8px; max-height: 52vh; overflow: auto; }
+.mm-station {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 11px 12px; background: var(--card-2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); cursor: pointer; font-size: 15px;
+}
+.mm-station:active { transform: scale(0.99); }
+.mm-station.playing { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.mm-station .mm-ic { color: var(--accent); font-size: 13px; flex: none; width: 18px; text-align: center; }
+.mm-station .mm-name { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mm-spotify { padding-top: 12px; border-top: 1px solid var(--border); }
+.mm-sp-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mm-sp-row .btn { margin-left: auto; }

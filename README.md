@@ -88,6 +88,9 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   Beide werden bei Sprachansagen automatisch **sanft (≈0,5 s) leiser geblendet**
   und danach wieder hoch (während des Countdowns durchgehend leise). **ROCK
   ANTENNE** ist das Standard-Internetradio.
+  - **Musik-Schnellwahl** (🎵 in der Kopfzeile und im Workout-Screen): kleines
+    Fenster, um direkt einen Sender zu wählen oder Spotify zu verbinden – ohne
+    den Tab zu wechseln, auch mitten im laufenden Workout.
 
 ## Credits
 
