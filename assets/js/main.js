@@ -68,7 +68,7 @@ function renderPicker() {
       <div class="pi-check">${selected ? '✓' : ''}</div>
       <div class="pi-body">
         <div class="pi-name">${escapeHtml(set.name)}</div>
-        <div class="pi-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => exerciseMap[id]?.emoji || '').join(' ')}</div>
+        <div class="pi-sub">${set.exercises.length} Übungen</div>
       </div>
       ${selected ? `<div class="order-badge">#${order + 1}</div>` : ''}`;
     item.addEventListener('click', () => {
@@ -266,23 +266,15 @@ function selectedExercises() {
     .map((exId) => ({ exId, reps: exerciseMap[exId].reps || DEFAULT_REPS }));
 }
 
-function updateSettingsSummary() {
-  const el = $('#settings-summary');
-  if (!el) return;
-  el.textContent = `${config.workSeconds}s Übung · ${config.pauseSeconds}s Pause · ${config.totalMinutes}min`;
-}
-
 function updatePlanSummary() {
-  updateSettingsSummary();
+  const el = $('#plan-summary');
+  if (!el) return;
   const pool = selectedExerciseIds();
+  if (!pool.length) { el.hidden = true; el.textContent = ''; return; }
   const cycle = config.pauseSeconds + config.workSeconds;
   const rounds = Math.max(1, Math.floor((config.totalMinutes * 60) / cycle));
-  const el = $('#plan-summary');
-  if (!pool.length) {
-    el.textContent = 'Wähle oben mindestens ein Set aus.';
-    return;
-  }
-  el.textContent = `≈ ${rounds} Runden · ${pool.length} Übungen (Wdh. je Übung) · ${config.totalMinutes} Min geplant`;
+  el.hidden = false;
+  el.textContent = `≈ ${config.totalMinutes} Min · ${rounds} Runden`;
 }
 
 // ================ INTERVALL-TIMER (reiner Timer ohne Übungen) ================
@@ -321,7 +313,8 @@ function updateIntervalSummary() {
   if (mode === 'amrap') txt = `AMRAP · ${fmtTime(work * 1000)}`;
   else if (mode === 'emom') txt = `EMOM · ${rounds} Min`;
   else txt = `${rounds}× ${work}/${rest}s · ${fmtTime((work + rest) * rounds * 1000)}`;
-  $('#interval-summary').textContent = txt;
+  const el = $('#interval-summary');
+  if (el) el.textContent = txt;
 }
 
 function saveIntervalConfig(mode = currentIntervalMode()) {
