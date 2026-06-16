@@ -48,12 +48,11 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   beim normalen Workout.
 - **Vollbild**: Umschalter in der Kopfzeile und im Workout-Screen (sofern der
   Browser die Fullscreen-API unterstützt).
-- **Animiertes Logo**: Intro-Splash beim Start mit **Gooey-Morph** (das
-  weiße Pixel-Logo „pixletics“ zerfließt flüssig und verformt sich zu „workout
-  timer“ und zurück) sowie eine **dauerhafte Ping-Pong-Schleife** im
-  Kopfzeilen-Logo. Komplett selbst enthalten (SVG-Filter: `feTurbulence` +
-  `feDisplacementMap` + Gooey), respektiert `prefers-reduced-motion`, pausiert
-  im Workout/bei verstecktem Tab, antippbar überspringbar.
+- **Animiertes Logo**: **Gooey-Morph**-Ping-Pong im Kopfzeilen-Logo (das weiße
+  Pixel-Logo „pixletics“ zerfließt flüssig zu „workout timer“ und zurück).
+  Komplett selbst enthalten (SVG-Filter: `feTurbulence` + `feDisplacementMap` +
+  Gooey), respektiert `prefers-reduced-motion`, pausiert im Workout/bei
+  verstecktem Tab. (Kein Lade-/Intro-Screen – die App startet direkt.)
 - **Sprachansagen** (deutsche Sprachausgabe) und **Signaltöne** – einzeln
   abschaltbar.
 - **Stimme & Coach** (im Training-Tab): wählbare **Coach-Charaktere** mit

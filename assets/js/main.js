@@ -1398,53 +1398,6 @@ function resumeHeaderLoop() {
   if (headerMorph && !document.hidden && $('#runner')?.hidden) headerMorph.loop(HEAD_LOOP);
 }
 
-// Intro-Splash: Gooey-Ping-Pong pixletics → workout timer → pixletics, dann App.
-function initSplash() {
-  const splash = $('#splash');
-  const done = () => {
-    splash?.classList.add('hide');
-    setTimeout(() => splash?.remove(), 650);
-    startHeaderLoop();
-  };
-  if (!splash || reducedMotion) {
-    done();
-    return;
-  }
-  const morph = new GooeyMorph({
-    stage: $('#splash-stage'),
-    layerA: $('#splash-a'),
-    layerB: $('#splash-b'),
-    blur: document.querySelector('#goo-splash feGaussianBlur'),
-    matrix: document.querySelector('#goo-splash feColorMatrix'),
-    disp: document.querySelector('#goo-splash feDisplacementMap'),
-    filterId: 'goo-splash',
-    maxBlur: 28, gooStd: 14,
-    threshBase: 20, threshAmp: 35, offBase: -9, offAmp: -12,
-    dispBase: 0, dispAmp: 9, keepFilter: false,
-  });
-  let finished = false;
-  const finish = () => {
-    if (finished) return;
-    finished = true;
-    morph.stop();
-    done();
-  };
-  splash.addEventListener('click', finish);
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  (async () => {
-    await wait(500);
-    if (finished) return;
-    await morph.morph(2470); // pixletics -> workout (30 % langsamer)
-    if (finished) return;
-    await wait(850);
-    if (finished) return;
-    await morph.morph(2210); // workout -> pixletics (30 % langsamer)
-    if (finished) return;
-    await wait(350);
-    finish();
-  })();
-}
-
 // ---------------- Init ----------------
 async function init() {
   initPWA();
@@ -1459,7 +1412,7 @@ async function init() {
   setupSortable();
   updatePlanSummary();
   renderSpotify();
-  initSplash();
+  startHeaderLoop(); // animiertes Kopfzeilen-Logo (kein Intro-Splash mehr)
 
   // Gerätestimmen laden und Auswahl/Coach anwenden, sobald sie verfügbar sind.
   primeVoices();
