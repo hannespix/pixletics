@@ -158,23 +158,13 @@
           </div>
 
           <div class="kokoro-test">
-            <p class="muted small"><strong>Deutsch · Martin (Kokoro, beste Qualität)</strong> – deutscher Kokoro-Fine-Tune, läuft komplett im Browser (CPU/WASM). <strong>Erster Klick lädt ~310 MB</strong> vom Modell-Server (danach gecacht); auf dem Handy kann das 1–3 Min dauern und etwas Speicher brauchen.</p>
+            <p class="muted small"><strong>Deutsch · Martin (Kokoro)</strong> – deutscher Kokoro-Fine-Tune, läuft komplett im Browser (CPU/WASM). <strong>Erster Klick lädt ~330 MB</strong> (Modell + Phonem-Engine) vom CDN, danach gecacht; auf dem Handy kann das 1–3 Min dauern und etwas Speicher brauchen.</p>
             <div class="voice-grid">
               <label class="voice-full">Beispieltext<input id="martin-text" type="text" value="Los! Kniebeugen. Hüfte zurück, Knie nach außen." /></label>
             </div>
             <button class="btn" id="btn-martin-test">🧪 Martin testen</button>
             <progress id="martin-progress" max="100" value="0" hidden></progress>
             <div class="muted small kokoro-status" id="martin-status"></div>
-          </div>
-
-          <div class="kokoro-test">
-            <p class="muted small"><strong>Deutsch · MMS (leichtgewichtig)</strong> – echte deutsche Aussprache via transformers.js, läuft offline auf CPU/WASM. Etwas robotischer als Martin, aber deutlich kleiner – guter Fallback.</p>
-            <div class="voice-grid">
-              <label class="voice-full">Beispieltext<input id="german-text" type="text" value="Los! Kniebeugen. Hüfte zurück, Knie nach außen." /></label>
-            </div>
-            <button class="btn" id="btn-german-test">🧪 MMS testen</button>
-            <progress id="german-progress" max="100" value="0" hidden></progress>
-            <div class="muted small kokoro-status" id="german-status"></div>
           </div>
         </details>
       </div>

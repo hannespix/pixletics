@@ -15,7 +15,7 @@
 import { mb } from './neural-util.js';
 
 const ORT_LIB = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0/dist/ort.wasm.bundle.min.mjs';
-const PHON_LIB = 'https://cdn.jsdelivr.net/npm/phonemizer@1.2.1';
+const ESPEAK_LIB = 'https://cdn.jsdelivr.net/npm/espeak-ng@1.0.2/dist/espeak-ng.js';
 const MODEL_URL = 'https://huggingface.co/Godelaune/Kokoro-82M-ONNX-German-Martin/resolve/main/kokoro-martin.onnx';
 const VOICE_URL = new URL('../models/martin-voice.f32', import.meta.url).href;
 
@@ -50,18 +50,33 @@ function normalizePhonemes(s) {
 }
 
 let modelPromise = null;   // Promise auf { ort, session }
-let phonemizeFn = null;    // phonemizer.phonemize
+let espeakFactory = null;  // Promise auf die ESpeakNg-Factory (Emscripten)
 let voicePromise = null;   // Promise auf Float32Array (510*256)
 let audioCtx = null;
 let currentSrc = null;
 
-function loadPhonemizer() {
-  if (!phonemizeFn) {
-    phonemizeFn = import(/* @vite-ignore */ PHON_LIB)
-      .then((m) => m.phonemize)
-      .catch((e) => { phonemizeFn = null; throw new Error('Phonemizer (espeak-ng) konnte nicht geladen werden. ' + (e?.message || e)); });
+// Lädt espeak-ng (volle Sprachdaten inkl. Deutsch, ~18 MB WASM) vom CDN.
+function loadEspeak() {
+  if (!espeakFactory) {
+    espeakFactory = import(/* @vite-ignore */ ESPEAK_LIB)
+      .then((m) => m.default || m)
+      .catch((e) => { espeakFactory = null; throw new Error('espeak-ng (Phonemisierung) konnte nicht geladen werden. ' + (e?.message || e)); });
   }
-  return phonemizeFn;
+  return espeakFactory;
+}
+
+// Deutsche Phonemisierung via espeak-ng -> IPA. WICHTIG: Text als UTF-8-Bytes in
+// die virtuelle FS schreiben, sonst liest espeak Umlaute als Latin-1 (ü -> „Ã¼").
+async function phonemizeGerman(ESpeakNg, text) {
+  const espeak = await ESpeakNg({
+    arguments: ['-q', '--ipa=3', '--sep=', '-v', 'de', '-f', '/in.txt', '--phonout=/out.txt'],
+    preRun: [(M) => M.FS.writeFile('/in.txt', new TextEncoder().encode(text))],
+    print: () => {}, printErr: () => {},
+  });
+  let out = '';
+  try { out = espeak.FS.readFile('/out.txt', { encoding: 'utf8' }); } catch { out = ''; }
+  // Tie-Zeichen (ZWJ U+200D, kombinierender Bogen U+0361) raus, Zeilen -> Leerzeichen.
+  return out.replace(/‍/g, '').replace(/͡/g, '').replace(/[\r\n]+/g, ' ');
 }
 
 function loadVoice() {
@@ -165,13 +180,12 @@ export async function martinSpeak(text, { onStatus, onProgress } = {}) {
   const say = (t) => { try { onStatus && onStatus(t); } catch {} };
   const prog = (p) => { try { onProgress && onProgress(p); } catch {} };
 
-  const [{ ort, session }, phonemize, voice] = await Promise.all([
-    loadModel(say, prog), loadPhonemizer(), loadVoice(),
+  const [{ ort, session }, ESpeakNg, voice] = await Promise.all([
+    loadModel(say, prog), loadEspeak(), loadVoice(),
   ]);
 
-  say('4/4 · Wandle Text in Phoneme um (Deutsch) …'); prog(null);
-  const parts = await phonemize((text || '').trim() || 'Test.', 'de');
-  const raw = Array.isArray(parts) ? parts.join(' ') : String(parts);
+  say('4/4 · Wandle Text in Phoneme um (Deutsch, espeak-ng) …'); prog(null);
+  const raw = await phonemizeGerman(ESpeakNg, (text || '').trim() || 'Test.');
   const phonemes = [...normalizePhonemes(raw)].filter((c) => VOCAB[c] !== undefined).join('');
 
   let ids = [];
