@@ -16,7 +16,6 @@ import { encodeShare, decodeShare } from './share.js';
 import { GooeyMorph } from './gooey.js';
 import { initPWA } from './pwa.js';
 import { KOKORO_VOICES, kokoroSpeak } from './kokoro.js';
-import { germanSpeak } from './germantts.js';
 import { martinSpeak } from './kokoro-de.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -280,11 +279,6 @@ function bindNeuralTests() {
     btn: '#btn-martin-test', text: '#martin-text', status: '#martin-status', bar: '#martin-progress',
     label: 'Martin', idle: '🧪 Martin testen',
     speak: (t, cb) => martinSpeak(t, cb),
-  });
-  bindNeuralTest({
-    btn: '#btn-german-test', text: '#german-text', status: '#german-status', bar: '#german-progress',
-    label: 'MMS', idle: '🧪 MMS testen',
-    speak: (t, cb) => germanSpeak(t, cb),
   });
 }
 
