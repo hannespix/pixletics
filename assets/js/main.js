@@ -983,6 +983,46 @@ function closeMusicModal() {
   $('#music-modal').hidden = true;
 }
 
+// ---- Coach-Schnelleinstellungen im laufenden Workout ----
+// Bindet die wichtigsten Coach-Regler im Modal; Änderungen greifen sofort.
+function bindCoachModal() {
+  const sel = $('#rc-persona');
+  if (sel) {
+    sel.innerHTML = PERSONAS.map((p) => `<option value="${p.id}">${p.emoji} ${escapeHtml(p.name)}</option>`).join('');
+    sel.addEventListener('change', (e) => selectPersona(e.target.value));
+  }
+  $('#rc-verbosity')?.addEventListener('change', (e) => { config.verbosity = e.target.value; saveConfig(config); });
+  $('#rc-voice')?.addEventListener('change', (e) => { config.voice = e.target.checked; saveConfig(config); });
+  $('#rc-beeps')?.addEventListener('change', (e) => { config.beeps = e.target.checked; saveConfig(config); });
+  $('#rc-duck')?.addEventListener('change', (e) => { config.duckSpotify = e.target.checked; saveConfig(config); });
+  $('#rc-voicevol')?.addEventListener('input', () => {
+    const pct = Number($('#rc-voicevol').value);
+    config.voiceVolume = Math.max(0, Math.min(1, pct / 100));
+    const lab = $('#rc-val-voicevol');
+    if (lab) lab.textContent = Math.round(pct) + ' %';
+    saveConfig(config);
+    applyVoiceSettings();
+  });
+  $('#btn-close-coach')?.addEventListener('click', closeCoachModal);
+  $('#coach-modal')?.addEventListener('click', (e) => { if (e.target.id === 'coach-modal') closeCoachModal(); });
+}
+
+function openCoachModal() {
+  initAudio();
+  if ($('#rc-persona')) $('#rc-persona').value = config.voicePersona || 'standard';
+  if ($('#rc-verbosity')) $('#rc-verbosity').value = config.verbosity || 'full';
+  if ($('#rc-voice')) $('#rc-voice').checked = !!config.voice;
+  if ($('#rc-beeps')) $('#rc-beeps').checked = !!config.beeps;
+  if ($('#rc-duck')) $('#rc-duck').checked = !!config.duckSpotify;
+  const pct = Math.round((config.voiceVolume ?? 1) * 100);
+  if ($('#rc-voicevol')) $('#rc-voicevol').value = pct;
+  if ($('#rc-val-voicevol')) $('#rc-val-voicevol').textContent = pct + ' %';
+  $('#coach-modal').hidden = false;
+}
+function closeCoachModal() {
+  $('#coach-modal').hidden = true;
+}
+
 function openStationEditor(stId) {
   editorStationId = stId;
   const st = stId ? stations.find((s) => s.id === stId) : null;
@@ -1517,6 +1557,7 @@ $('#btn-music').addEventListener('click', openMusicModal);
 $('#btn-runner-music').addEventListener('click', openMusicModal);
 $('#btn-close-music').addEventListener('click', closeMusicModal);
 $('#music-modal').addEventListener('click', (e) => { if (e.target.id === 'music-modal') closeMusicModal(); });
+$('#btn-runner-coach').addEventListener('click', openCoachModal);
 $('#cfg-musicvol')?.addEventListener('input', () => {
   const pct = Number($('#cfg-musicvol').value);
   config.musicVolume = Math.max(0, Math.min(1, pct / 100));
@@ -1628,6 +1669,7 @@ async function init() {
   renderRadio();
   renderVoiceSettings();
   setupSortable();
+  bindCoachModal();
   updatePlanSummary();
   updateResumeButton(); // „Fortsetzen“ zeigen, falls ein Workout offen ist
   renderSpotify();
