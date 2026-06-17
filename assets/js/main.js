@@ -632,37 +632,91 @@ function getDragAfter(listEl, y) {
   return closest.el;
 }
 
+// Sortieren der gewählten Übungen per Drag & Drop. Das gezogene Element „klebt"
+// animiert am Finger/an der Maus (transform), die Nachbarn weichen weich aus
+// (FLIP), beim Loslassen gleitet es sanft in die Ziel-Lücke.
 function setupSortable() {
   const list = $('#chosen-list');
+  if (!list) return;
   let dragging = null;
+  let grabOffset = 0;      // wo innerhalb des Elements gegriffen wurde
+  let currentTranslate = 0; // aktuell gesetzte translateY
+
+  // Layout-Position (ohne unseren transform) aus der aktuellen Bildschirmlage.
+  const naturalTop = () => dragging.getBoundingClientRect().top - currentTranslate;
+  // Element unter den Finger kleben.
+  const glue = (clientY) => {
+    currentTranslate = (clientY - grabOffset) - naturalTop();
+    dragging.style.transform = `translateY(${currentTranslate}px)`;
+  };
+  // DOM umsortieren und die Nachbarn weich an ihre neue Stelle gleiten lassen.
+  const flipReorder = (refNode) => {
+    const sibs = [...list.children].filter((el) => el !== dragging);
+    const before = new Map(sibs.map((el) => [el, el.getBoundingClientRect().top]));
+    list.insertBefore(dragging, refNode); // refNode === null -> ans Ende
+    for (const el of sibs) {
+      const delta = before.get(el) - el.getBoundingClientRect().top;
+      if (!delta) continue;
+      el.style.transition = 'none';
+      el.style.transform = `translateY(${delta}px)`;
+      requestAnimationFrame(() => {
+        el.style.transition = 'transform 0.18s ease';
+        el.style.transform = '';
+      });
+    }
+  };
+
   list.addEventListener('pointerdown', (e) => {
     const handle = e.target.closest('.handle');
     if (!handle) return;
-    dragging = handle.closest('.ex-item');
-    if (!dragging) return;
+    const item = handle.closest('.ex-item');
+    if (!item) return;
     e.preventDefault();
-    dragging.classList.add('dragging');
-    dragging.setPointerCapture?.(e.pointerId);
+    dragging = item;
+    currentTranslate = 0;
+    grabOffset = e.clientY - item.getBoundingClientRect().top;
+    item.classList.add('dragging');
+    item.setPointerCapture?.(e.pointerId);
+    document.body.classList.add('dragging-active');
+    glue(e.clientY);
 
     const onMove = (ev) => {
       const after = getDragAfter(list, ev.clientY);
-      if (after == null) list.appendChild(dragging);
-      else list.insertBefore(dragging, after);
+      if (after == null) {
+        if (list.lastElementChild !== dragging) flipReorder(null);
+      } else if (after !== dragging && dragging.nextElementSibling !== after) {
+        flipReorder(after);
+      }
+      glue(ev.clientY); // nach dem Umsortieren wieder exakt unter den Finger
     };
     const onUp = () => {
-      dragging.classList.remove('dragging');
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
-      // Reihenfolge aus DOM übernehmen
+      document.removeEventListener('pointercancel', onUp);
+      document.body.classList.remove('dragging-active');
+      const el = dragging;
+      dragging = null;
+      // sanft in die Ziel-Lücke gleiten (von currentTranslate -> 0)
+      el.style.transition = 'transform 0.18s ease';
+      el.style.transform = '';
+      const cleanup = () => {
+        el.style.transition = '';
+        el.style.transform = '';
+        el.classList.remove('dragging');
+        el.removeEventListener('transitionend', cleanup);
+      };
+      el.addEventListener('transitionend', cleanup);
+      setTimeout(cleanup, 240); // Fallback, falls keine Bewegung -> kein transitionend
+      // neue Reihenfolge übernehmen
       const set = currentSet();
       if (set) {
         set.exercises = [...list.querySelectorAll('.ex-item')].map((li) => li.dataset.id);
         saveSets(sets);
       }
-      dragging = null;
     };
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
   });
 }
 

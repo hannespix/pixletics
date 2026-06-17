@@ -213,12 +213,18 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .ex-item {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;
   background: var(--card-2); border: 1px solid var(--border); border-radius: 10px;
+  will-change: transform;
 }
 .ex-item .emoji { font-size: 20px; flex: none; }
 .ex-item .ex-name { font-weight: 600; flex: 1; min-width: 0; }
 .ex-item .ex-area { font-size: 12px; color: var(--muted); }
 .ex-item .handle { cursor: grab; color: var(--muted); font-size: 18px; padding: 0 4px; touch-action: none; }
-.ex-item.dragging { opacity: 0.5; }
+.ex-item.dragging {
+  position: relative; z-index: 20; opacity: 0.97; cursor: grabbing;
+  border-color: var(--accent); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+}
+.ex-item.dragging .handle { cursor: grabbing; }
+body.dragging-active { user-select: none; -webkit-user-select: none; cursor: grabbing; }
 .ex-item.drag-over { border-color: var(--accent); }
 .ex-item .rm { background: transparent; border: 0; color: #ff8a82; cursor: pointer; font-size: 18px; }
 
