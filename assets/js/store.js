@@ -41,6 +41,7 @@ export const DEFAULT_CONFIG = {
   // ---- Stimme & Coach ----
   voicePersona: 'standard', // gewählter Coach-Charakter (siehe coach.js)
   voiceURI: 'auto',         // gewählte Gerätestimme oder 'auto' (zum Coach passend)
+  speechEngine: 'device',   // 'device' (Gerätestimme) | 'martin' (neuronal, lazy geladen)
   voicePitch: 1.0,          // Stimmlage (0.5–1.8)
   voiceRate: 1.05,          // Sprechtempo (0.6–1.6)
   coachName: '',            // optionaler Name, mit dem der Coach dich anspricht
