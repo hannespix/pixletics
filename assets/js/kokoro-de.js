@@ -19,7 +19,7 @@ const ESPEAK_LIB = 'https://cdn.jsdelivr.net/npm/espeak-ng@1.0.2/dist/espeak-ng.
 const MODEL_URL = 'https://huggingface.co/Godelaune/Kokoro-82M-ONNX-German-Martin/resolve/main/kokoro-martin.onnx';
 const VOICE_URL = new URL('../models/martin-voice.f32', import.meta.url).href;
 
-const SAMPLE_RATE = 24000;
+export const SAMPLE_RATE = 24000;
 const MAX_PHONEME_LENGTH = 510;
 const STYLE_DIM = 256;
 
@@ -52,8 +52,7 @@ function normalizePhonemes(s) {
 let modelPromise = null;   // Promise auf { ort, session }
 let espeakFactory = null;  // Promise auf die ESpeakNg-Factory (Emscripten)
 let voicePromise = null;   // Promise auf Float32Array (510*256)
-let audioCtx = null;
-let currentSrc = null;
+let ready = null;          // { ort, session, ESpeakNg, voice }, sobald geladen
 
 // Lädt espeak-ng (volle Sprachdaten inkl. Deutsch, ~18 MB WASM) vom CDN.
 function loadEspeak() {
@@ -159,39 +158,44 @@ async function fetchWithProgress(url, onProgress) {
   return out;
 }
 
-function playFloat(float32, rate) {
-  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') { try { audioCtx.resume(); } catch {} }
-  martinStop();
-  const buf = audioCtx.createBuffer(1, float32.length, rate);
-  buf.copyToChannel(float32, 0);
-  const src = audioCtx.createBufferSource();
-  src.buffer = buf;
-  src.connect(audioCtx.destination);
-  currentSrc = src;
-  return new Promise((resolve) => {
-    src.onended = () => { if (currentSrc === src) currentSrc = null; resolve(); };
-    src.start();
-  });
+// Schneidet Stille am Anfang/Ende weg (für knackige Countdown-Ansagen).
+function trimSilence(pcm, thresh = 0.01) {
+  let a = 0, b = pcm.length;
+  while (a < b && Math.abs(pcm[a]) < thresh) a++;
+  while (b > a && Math.abs(pcm[b - 1]) < thresh) b--;
+  // kleine Polster, damit nichts abgeschnitten klingt
+  a = Math.max(0, a - 240);
+  b = Math.min(pcm.length, b + 240);
+  return a === 0 && b === pcm.length ? pcm : pcm.slice(a, b);
 }
 
-// Wandelt deutschen Text in Sprache (Stimme Martin) um und spielt sie ab.
-export async function martinSpeak(text, { onStatus, onProgress } = {}) {
+export function isMartinReady() { return !!ready; }
+
+// Lädt alle Bestandteile (Modell, espeak-ng, Stimmvektor) genau einmal.
+export async function loadMartin({ onStatus, onProgress } = {}) {
+  if (ready) return ready;
   const say = (t) => { try { onStatus && onStatus(t); } catch {} };
   const prog = (p) => { try { onProgress && onProgress(p); } catch {} };
-
   const [{ ort, session }, ESpeakNg, voice] = await Promise.all([
     loadModel(say, prog), loadEspeak(), loadVoice(),
   ]);
+  ready = { ort, session, ESpeakNg, voice };
+  return ready;
+}
 
-  say('4/4 · Wandle Text in Phoneme um (Deutsch, espeak-ng) …'); prog(null);
+// Erzeugt rohes PCM (Float32, 24 kHz) für deutschen Text – OHNE Wiedergabe.
+// Die Wiedergabe (Lautstärke, Ducking, Queue) übernimmt audio.js.
+export async function martinSynth(text) {
+  if (!ready) await loadMartin();
+  const { ort, session, ESpeakNg, voice } = ready;
+
   const raw = await phonemizeGerman(ESpeakNg, (text || '').trim() || 'Test.');
   const phonemes = [...normalizePhonemes(raw)].filter((c) => VOCAB[c] !== undefined).join('');
 
   let ids = [];
   for (const ch of phonemes) ids.push(VOCAB[ch]);
   if (ids.length > MAX_PHONEME_LENGTH) ids = ids.slice(0, MAX_PHONEME_LENGTH);
-  if (!ids.length) throw new Error('Keine verwertbaren Phoneme erzeugt (Text leer?).');
+  if (!ids.length) return new Float32Array(0);
 
   // Stimmvektor: Zeile = Anzahl der (ungepolsterten) Tokens, geklammert auf 0..509.
   const row = Math.min(ids.length, 509);
@@ -209,19 +213,8 @@ export async function martinSpeak(text, { onStatus, onProgress } = {}) {
     ? new ort.Tensor('int32', Int32Array.from([1]), [1])
     : new ort.Tensor('float32', Float32Array.from([1.0]), [1]);
 
-  say('Erzeuge Sprache (Martin) … (CPU, einen Moment)'); prog(null);
   const out = await session.run(feeds);
   const audio = out[session.outputNames[0]];
   const pcm = audio.data instanceof Float32Array ? audio.data : Float32Array.from(audio.data);
-
-  await playFloat(pcm, SAMPLE_RATE);
-  say('✓ Fertig – Wiedergabe läuft.'); prog(100);
-  return true;
-}
-
-export function martinStop() {
-  if (currentSrc) {
-    try { currentSrc.stop(); } catch {}
-    currentSrc = null;
-  }
+  return trimSilence(pcm);
 }

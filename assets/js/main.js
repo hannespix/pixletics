@@ -7,6 +7,7 @@ import {
 import {
   initAudio, sound, speak, cancelSpeech, setSpeechHooks,
   primeVoices, onVoicesReady, getGermanVoices, pickVoiceURI, setVoiceSettings,
+  setSpeechEngine, warmMartin,
 } from './audio.js';
 import { PERSONAS, getPersona, line, motivationLine, resetCoachBags } from './coach.js';
 import { buildSchedule, buildIntervalSchedule, WorkoutEngine, PHASE } from './engine.js';
@@ -15,8 +16,7 @@ import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
 import { GooeyMorph } from './gooey.js';
 import { initPWA } from './pwa.js';
-import { KOKORO_VOICES, kokoroSpeak } from './kokoro.js';
-import { martinSpeak } from './kokoro-de.js';
+import { loadMartin, isMartinReady } from './kokoro-de.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -261,57 +261,97 @@ function bindVoiceSettings() {
   bindRange('cfg-pitch', 'voicePitch', 'val-pitch', (v) => v.toFixed(2), true);
   bindRange('cfg-rate', 'voiceRate', 'val-rate', (v) => v.toFixed(2) + '×', true);
   $('#btn-voice-test')?.addEventListener('click', testVoice);
-  bindNeuralTests();
+  bindMartinEngine();
 }
 
-// Experimentelle neuronale Stimmen (Beta): laden ihr Modell nur auf Klick.
-function bindNeuralTests() {
-  const sel = $('#kokoro-voice');
-  if (sel && !sel.options.length) {
-    sel.innerHTML = KOKORO_VOICES.map((v) => `<option value="${v.id}">${escapeHtml(v.label)}</option>`).join('');
-  }
-  bindNeuralTest({
-    btn: '#btn-kokoro-test', text: '#kokoro-text', status: '#kokoro-status', bar: '#kokoro-progress',
-    label: 'Kokoro', idle: '🧪 Kokoro testen',
-    speak: (t, cb) => kokoroSpeak(t, { voice: $('#kokoro-voice')?.value || 'af_heart', ...cb }),
-  });
-  bindNeuralTest({
-    btn: '#btn-martin-test', text: '#martin-text', status: '#martin-status', bar: '#martin-progress',
-    label: 'Martin', idle: '🧪 Martin testen',
-    speak: (t, cb) => martinSpeak(t, cb),
-  });
-}
-
-// Verdrahtet einen einzelnen Test-Knopf (Status, Fortschrittsleiste, Fehler).
-function bindNeuralTest({ btn, text, status, bar, label, idle, speak }) {
-  const button = $(btn);
-  if (!button) return;
-  button.addEventListener('click', async () => {
-    const st = $(status);
-    const pb = $(bar);
-    const setStatus = (t) => { if (st) st.textContent = t; };
-    const setProgress = (pct) => {
-      if (!pb) return;
-      pb.hidden = false;
-      if (pct == null) { pb.removeAttribute('value'); } // unbestimmt
-      else { pb.value = pct; }
-    };
-    const t0 = Date.now();
-    button.disabled = true;
-    button.textContent = '⏳ Läuft …';
-    try {
-      await speak($(text)?.value || '', { onStatus: setStatus, onProgress: setProgress });
-      if (pb) pb.hidden = true;
-      setStatus(`✓ Fertig in ${((Date.now() - t0) / 1000).toFixed(1)} s. Erneut testen geht schnell (Modell im Cache).`);
-    } catch (err) {
-      console.error('[' + label + ']', err);
-      if (pb) pb.hidden = true;
-      setStatus('❌ ' + (err?.message || err) + '\n(Details in der Browser-Konsole. Nochmal versuchen ist möglich.)');
-    } finally {
-      button.disabled = false;
-      button.textContent = idle;
+// Martin (neuronale deutsche Stimme): Schalter im Stimme-Menü. Wird NUR beim
+// Aktivieren geladen, damit die App standardmäßig schlank bleibt.
+let martinActivating = false;
+function bindMartinEngine() {
+  const cb = $('#cfg-martin');
+  if (!cb) return;
+  cb.checked = config.speechEngine === 'martin';
+  cb.addEventListener('change', async () => {
+    if (cb.checked) {
+      const ok = await activateMartin();
+      cb.checked = ok; // bei Fehler Schalter zurück
+    } else {
+      config.speechEngine = 'device';
+      saveConfig(config);
+      setSpeechEngine('device');
+      martinSetStatus('Gerätestimme aktiv.');
+      martinHideProgress();
     }
   });
+  // Bei gespeicherter Auswahl Martin im Hintergrund vorladen (aus dem Cache schnell).
+  if (config.speechEngine === 'martin') {
+    setSpeechEngine('martin');
+    activateMartin(true);
+  }
+}
+
+function martinSetStatus(t) { const el = $('#martin-status'); if (el) el.textContent = t; }
+function martinHideProgress() { const pb = $('#martin-progress'); if (pb) pb.hidden = true; }
+function martinSetProgress(pct) {
+  const pb = $('#martin-progress');
+  if (!pb) return;
+  pb.hidden = false;
+  if (pct == null) pb.removeAttribute('value'); else pb.value = pct;
+}
+
+// Lädt Martin (mit Fortschritt) und schaltet die Engine um. Bei Fehler bleibt die
+// Gerätestimme aktiv. Liefert true bei Erfolg.
+async function activateMartin(silent = false) {
+  if (martinActivating) return isMartinReady();
+  martinActivating = true;
+  try {
+    if (!silent) initAudio();
+    if (isMartinReady()) {
+      config.speechEngine = 'martin'; saveConfig(config); setSpeechEngine('martin');
+      martinSetStatus('✓ Martin aktiv. Deutsche Ansagen sind an.');
+      return true;
+    }
+    await loadMartin({ onStatus: martinSetStatus, onProgress: martinSetProgress });
+    martinHideProgress();
+    config.speechEngine = 'martin'; saveConfig(config); setSpeechEngine('martin');
+    martinSetStatus('✓ Martin aktiv. Deutsche Ansagen sind an.');
+    prewarmMartin(); // Countdown-Zahlen & Standardfloskeln vorab erzeugen
+    return true;
+  } catch (err) {
+    console.error('[Martin]', err);
+    martinHideProgress();
+    martinSetStatus('❌ ' + (err?.message || err) + '\nGerätestimme bleibt aktiv.');
+    config.speechEngine = 'device'; saveConfig(config); setSpeechEngine('device');
+    return false;
+  } finally {
+    martinActivating = false;
+  }
+}
+
+// Häufige, zeitkritische Ansagen vorab synthetisieren (Cache), damit der
+// Countdown sofort kommt.
+function prewarmMartin() {
+  const phrases = [];
+  for (let i = 1; i <= 15; i++) phrases.push(String(i));
+  phrases.push('Los!', 'Pause.', 'Geschafft!', 'Noch fünfzehn Sekunden.');
+  (async () => { for (const p of phrases) { await warmMartin(p); } })();
+}
+
+// Beim „Bereit"-Zustand die Übungsnamen/Cues des Workouts vorab erzeugen, damit
+// die Ansagen zu Übungsbeginn ohne Verzögerung kommen (nur wenn Martin aktiv).
+function prewarmWorkout(steps) {
+  if (config.speechEngine !== 'martin') return;
+  const seen = new Set();
+  const texts = [];
+  for (const st of steps) {
+    const ex = st.exId ? exerciseMap[st.exId] : null;
+    if (ex && !seen.has(ex.id)) {
+      seen.add(ex.id);
+      texts.push(`${ex.name}!`);
+      if (ex.cue) texts.push(`Als Nächstes: ${ex.name}. ${ex.cue}.`);
+    }
+  }
+  (async () => { for (const t of texts) { await warmMartin(t); } })();
 }
 
 function testVoice() {
@@ -1111,6 +1151,7 @@ async function startWorkout() {
 function armRunner(steps) {
   engine.load(steps);
   engine.h = runnerHandlers(steps);
+  prewarmWorkout(steps); // bei aktivem Martin: Übungsnamen vorab synthetisieren
   const bg = $('#runner-bg');
   if (bg) bg.className = 'runner-bg prepare';
   const first = steps.find((s) => s.phase === PHASE.WORK) || steps[0];
