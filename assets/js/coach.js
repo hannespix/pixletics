@@ -24,6 +24,7 @@ export const PERSONAS = [
     rate: 1.05,
     lines: {
       start: ['Los geht es.', 'Training startet.', 'Auf geht es.', 'Wir fangen an.', 'Bereit, dann los.'],
+      ready: ['Achtung, gleich geht es weiter.', 'Bereitmachen, gleich geht es los.', 'Fertigmachen, es geht weiter.', 'Gleich wird wieder gearbeitet.', 'Kurz noch, dann weiter.'],
       next: ['Nächste Übung: {ex}.', 'Weiter mit {ex}.', 'Es folgt {ex}.', 'Jetzt kommt {ex}.', 'Als Nächstes {ex}.'],
       again: ['Noch einmal {ex}.', '{ex}, gleiche Übung.', '{ex}, weiter so.'],
       work: [
@@ -75,6 +76,7 @@ export const PERSONAS = [
     rate: 1.15,
     lines: {
       start: ['Aufstellung! Wir legen los!', 'Antreten! Training beginnt!', 'Keine Ausreden, los geht es!', 'Strammgestanden, dann Bewegung!', 'Antreten, der Speck zittert schon!'],
+      ready: ['Bereitmachen! Gleich geht es weiter!', 'Achtung! Gleich Bewegung!', 'Fertigmachen, Soldat!', 'Stellung! Gleich geht es los!', 'Antreten, gleich weiter!'],
       next: ['Antreten! Jetzt {ex}!', 'Bewegung! Es folgt {ex}!', 'Bereitmachen für {ex}!', 'Aufstellung für {ex}!', 'Jetzt {ex}, keine Diskussion!'],
       again: ['Nochmal {ex}! Keine Diskussion!', '{ex}! Und diesmal richtig!', '{ex}, von vorne, Soldat!'],
       work: [
@@ -125,6 +127,7 @@ export const PERSONAS = [
     rate: 1.1,
     lines: {
       start: ['Auf geht es, das wird stark!', 'Los, volle Energie!', 'Bereit? Dann geben wir alles!', 'Heute räumen wir ab!', 'Energie an, los geht es!'],
+      ready: ['Achtung, gleich geht es weiter!', 'Bereitmachen, gleich rocken wir wieder!', 'Fertig? Gleich geht es los!', 'Energie hoch, gleich weiter!', 'Gleich geben wir wieder Gas!'],
       next: ['Jetzt kommt {ex}, du packst das!', 'Auf zu {ex}!', 'Bereit für {ex}? Los!', 'Gleich {ex}, Feuer frei!', 'Jetzt {ex}, zeig es allen!'],
       again: ['Noch einmal {ex}, volle Energie!', '{ex}, einmal noch, du Maschine!', '{ex}, die Zugabe gehört dir!'],
       work: [
@@ -175,6 +178,7 @@ export const PERSONAS = [
     rate: 1.06,
     lines: {
       start: ['Na endlich, auf geht es!', 'Schluss mit Aufwärmen im Kopf, los!', 'Dann zeig mal, was du draufhast!', 'Na, ausgeschlafen? Dann los!', 'Der Speck wartet schon, fangen wir an!'],
+      ready: ['Achtung, gleich darfst du wieder ran.', 'Bereitmachen, die Pause ist gleich vorbei.', 'Fertigmachen, gleich geht es weiter.', 'Gleich wieder Bewegung, kein Wegducken.', 'Pause fast vorbei, gleich geht es los.'],
       next: ['So, jetzt {ex}, kein Drücken!', 'Na los, {ex}. Du wolltest doch fit werden.', 'Jetzt {ex}, der Spaß beginnt.', 'Ab zu {ex}, Sportsfreund.', 'Jetzt {ex}, und tu mal so als ob.'],
       again: ['Nochmal {ex}? Tja, selber schuld.', '{ex}, die Zweite. Genießen!', '{ex}, nochmal, du wolltest das so.'],
       work: [
@@ -238,6 +242,7 @@ export const PERSONAS = [
     rate: 1.05,
     lines: {
       start: ['Schön, dass du da bist, los geht es!', 'Wir starten, du schaffst das!', 'Auf geht es, gemeinsam durch!', 'Bereit? Dann legen wir los!', 'Heute tust du dir etwas Gutes, los!'],
+      ready: ['Achtung, gleich geht es weiter.', 'Bereitmachen, du schaffst das.', 'Fertigmachen, gleich geht es los.', 'Gleich weiter, bleib dran.', 'Kurz noch, dann gemeinsam weiter.'],
       next: ['Weiter geht es mit {ex}.', 'Jetzt {ex}, du schaffst das!', 'Als Nächstes {ex}.', 'Gleich {ex}, bereit?', 'Jetzt {ex}, ich bin bei dir.'],
       again: ['Noch ein Satz {ex}, komm!', '{ex}, einmal noch, stark bleiben!', '{ex}, nochmal, du machst das.'],
       work: [
@@ -290,6 +295,7 @@ export const PERSONAS = [
     rate: 0.9,
     lines: {
       start: ['Wir beginnen. Atme und komm an.', 'Lass uns ruhig starten.', 'Beginnen wir, ganz bei dir.', 'Atme ein, wir fangen an.', 'Ruhig ankommen, dann beginnen wir.'],
+      ready: ['Atme, gleich geht es weiter.', 'Bereite dich ruhig vor, gleich weiter.', 'Sammle dich, gleich beginnen wir wieder.', 'Gleich geht es weiter, ganz ruhig.', 'Komm zurück zum Atem, gleich weiter.'],
       next: ['Sanft weiter zu {ex}.', 'Es folgt {ex}. Bleib bei dir.', 'Nun {ex}.', 'Achtsam zu {ex}.', 'Gelassen weiter mit {ex}.'],
       again: ['Noch einmal {ex}, ganz ruhig.', '{ex}, wiederhole achtsam.', '{ex}, noch einmal, im Atem bleiben.'],
       work: [

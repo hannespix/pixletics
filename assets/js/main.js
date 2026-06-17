@@ -1353,12 +1353,16 @@ function runnerHandlers(steps) {
         }
       } else if (step.phase === PHASE.PREPARE) {
         const firstBlock = step.round === 1; // Lead-in: nur Countdown
-        // Vorschau auf die nächste Übung – Name samt kurzer Beschreibung (Cue).
-        if (!firstBlock && names) {
-          const ex = exerciseMap[step.exId];
-          const nextAt = Math.max(4, duration - 9);
-          if (secondsLeft === nextAt && config.voice && ex) {
-            speak(`Als Nächstes: ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
+        // Kurz vor dem Ende der Pause eine Vorwarnung:
+        //  • mit Übungsnamen (full/concise): „Als Nächstes: X.“
+        //  • nur Sprüche (phrases): generische „gleich geht's weiter“-Ansage
+        //  • minimal: nichts (nur Countdown)
+        if (!firstBlock && config.voice && secondsLeft === Math.max(4, duration - 9)) {
+          if (names) {
+            const ex = exerciseMap[step.exId];
+            if (ex) speak(`Als Nächstes: ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
+          } else if (phrases) {
+            speak(line(currentPersona(), 'ready') || 'Achtung, gleich geht’s weiter!');
           }
         }
         // letzte 3 Sekunden: Start-Countdown (immer).
