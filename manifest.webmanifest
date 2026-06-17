@@ -1,8 +1,11 @@
 {
   "name": "pixletics – workout timer",
   "short_name": "pixletics",
+  "id": "/pixletics/",
   "description": "Intervall-Timer für Bodyweight- & Zirkeltraining mit Coach-Ansagen, Radio und Spotify.",
   "lang": "de",
+  "dir": "ltr",
+  "categories": ["health", "fitness", "sports"],
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -226,6 +226,9 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .ex-item.dragging .handle { cursor: grabbing; }
 body.dragging-active { user-select: none; -webkit-user-select: none; cursor: grabbing; }
 .ex-item.drag-over { border-color: var(--accent); }
+.app-footer { text-align: center; padding: 18px 0 8px; }
+.app-footer a { color: var(--muted); font-size: 13px; text-decoration: none; }
+.app-footer a:hover { color: var(--text); }
 .ex-item .rm { background: transparent; border: 0; color: #ff8a82; cursor: pointer; font-size: 18px; }
 
 .library .ex-item { cursor: pointer; }
