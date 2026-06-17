@@ -2,7 +2,7 @@ import { DEFAULT_REPS } from './exercises.js';
 import {
   loadSets, saveSets, loadConfig, saveConfig,
   loadExercises, saveExercises, loadStations, saveStations, uid,
-  ensureDefaultsSeeded,
+  ensureDefaultsSeeded, loadSession, saveSession, clearSession,
 } from './store.js';
 import {
   initAudio, sound, speak, cancelSpeech, setSpeechHooks,
@@ -427,6 +427,7 @@ function startInterval() {
   saveIntervalConfig();
   const { work, rest, rounds, unit } = intervalParams();
   workoutActiveRest = false;
+  clearSession(); updateResumeButton(); // neues Workout ersetzt einen gespeicherten Stand
   const steps = buildIntervalSchedule({ work, rest, rounds, unit });
   armRunner(steps);
 }
@@ -1088,31 +1089,39 @@ async function startWorkout() {
   }
   // Aktivpause aktiv, wenn ein gewähltes Set sie vorsieht (z. B. Zirkeltraining).
   workoutActiveRest = selectedSetIds.some((id) => sets.find((s) => s.id === id)?.activeRest);
+  clearSession(); updateResumeButton(); // neues Workout ersetzt einen gespeicherten Stand
   const steps = buildSchedule(items, config);
   armRunner(steps);
 }
 
-// „Bereit“-Zustand: Runner öffnen, erste Übung als Vorschau zeigen und einen
+let pendingStartIndex = 0; // ab welchem Schritt beginRunner startet (Fortsetzen)
+
+// „Bereit“-Zustand: Runner öffnen, eine Übung als Vorschau zeigen und einen
 // Start-Knopf anbieten – so kann man vorher in Ruhe die Musik wählen. Das
-// Workout startet erst beim Tippen auf Start (beginRunner).
-function armRunner(steps) {
+// Workout startet erst beim Tippen auf Start (beginRunner). `startIndex > 0`
+// = Fortsetzen ab diesem Schritt.
+function armRunner(steps, startIndex = 0) {
+  pendingStartIndex = Math.min(Math.max(0, startIndex), Math.max(0, steps.length - 1));
+  const resuming = pendingStartIndex > 0;
   engine.load(steps);
   engine.h = runnerHandlers(steps);
   const bg = $('#runner-bg');
   if (bg) bg.className = 'runner-bg prepare';
-  const first = steps.find((s) => s.phase === PHASE.WORK) || steps[0];
-  const ex = first && (first.exId ? exerciseMap[first.exId] : { name: first.label, emoji: '⏱️', cue: '' });
-  $('#phase-label').textContent = 'Bereit';
+  // Vorschau: beim Fortsetzen der aktuelle Schritt, sonst die erste Übung.
+  const preview = resuming ? steps[pendingStartIndex] : (steps.find((s) => s.phase === PHASE.WORK) || steps[0]);
+  const ex = preview && (preview.exId ? exerciseMap[preview.exId] : { name: preview.label, emoji: '⏱️', cue: '' });
+  $('#phase-label').textContent = resuming ? 'Fortsetzen' : 'Bereit';
   $('#exercise-name').textContent = ex ? `${ex.emoji} ${ex.name}` : '';
-  $('#exercise-cue').textContent = 'Wähle ggf. Musik – dann auf Start';
-  $('#big-timer').textContent = first ? String(first.duration).padStart(2, '0') : '00';
+  $('#exercise-cue').textContent = resuming ? 'Weiter, wo du aufgehört hast – auf Start' : 'Wähle ggf. Musik – dann auf Start';
+  $('#big-timer').textContent = preview ? String(preview.duration).padStart(2, '0') : '00';
   $('#phase-icon').textContent = '';
   $('#next-up').textContent = '';
   $('#runner-round').textContent = '';
   $('#runner-session').textContent = '';
   $('#runner-progress-bar').style.width = '0%';
+  $('#btn-runner-start').textContent = resuming ? '▶︎ Fortsetzen' : '▶︎ Start';
   $('#btn-runner-start').hidden = false;
-  $('#runner-workout-sec').hidden = true; // Pause/Skip erst nach dem Start
+  $('#runner-workout-sec').hidden = true; // Steuerung erst nach dem Start
   $('#runner').hidden = false;
   pauseHeaderLoop();
 }
@@ -1123,7 +1132,59 @@ function beginRunner() {
   $('#runner-workout-sec').hidden = false;
   $('#btn-pause').textContent = '⏸';
   requestWakeLock();
-  engine.start();
+  engine.start(pendingStartIndex);
+  pendingStartIndex = 0;
+}
+
+// ---------------- Workout-Status sichern / fortsetzen ----------------
+// Die Schrittliste hat Zusatz-Eigenschaften am Array (totalRounds …), die JSON
+// nicht mitnimmt – daher getrennt als meta sichern und beim Laden wieder anhängen.
+function serializeSteps(steps) {
+  return {
+    steps: steps.map((s) => ({ ...s })),
+    meta: {
+      totalRounds: steps.totalRounds, lapLength: steps.lapLength,
+      totalLaps: steps.totalLaps, totalSeconds: steps.totalSeconds,
+      interval: !!steps.interval, unit: steps.unit,
+    },
+  };
+}
+function deserializeSteps(data) {
+  const steps = (data.steps || []).map((s) => ({ ...s }));
+  const m = data.meta || {};
+  steps.totalRounds = m.totalRounds; steps.lapLength = m.lapLength;
+  steps.totalLaps = m.totalLaps; steps.totalSeconds = m.totalSeconds;
+  if (m.interval) steps.interval = true;
+  steps.unit = m.unit;
+  return steps;
+}
+
+function saveCurrentSession() {
+  const steps = engine.steps;
+  if (!steps || !steps.length) return;
+  saveSession({
+    data: serializeSteps(steps),
+    index: engine.index,
+    activeRest: workoutActiveRest,
+    savedAt: Date.now(),
+  });
+}
+
+// „Fortsetzen“-Knopf je nach gespeichertem Workout ein-/ausblenden.
+function updateResumeButton() {
+  const btn = $('#btn-resume');
+  if (btn) btn.hidden = !loadSession();
+}
+
+function resumeWorkout() {
+  const session = loadSession();
+  if (!session || !session.data) { updateResumeButton(); return; }
+  initAudio();
+  resetCoachBags();
+  workoutActiveRest = !!session.activeRest;
+  const steps = deserializeSteps(session.data);
+  if (!steps.length) { clearSession(); updateResumeButton(); return; }
+  armRunner(steps, Math.min(session.index || 0, steps.length - 1));
 }
 
 function fmtTime(ms) {
@@ -1138,8 +1199,8 @@ function runnerHandlers(steps) {
   const interval = !!steps.interval; // reiner Intervall-Timer (kein exId)
   return {
     onPhase(step, index) {
-      // Intervalle haben keine Übung -> generisches Anzeige-Objekt aus dem Label.
-      const ex = step.exId ? exerciseMap[step.exId] : { name: step.label, emoji: '⏱️', cue: '' };
+      // Intervalle (oder zwischenzeitlich gelöschte Übungen) -> generisches Objekt.
+      const ex = (step.exId ? exerciseMap[step.exId] : null) || { name: step.label || 'Übung', emoji: '🏋️', cue: '' };
       bg.className = 'runner-bg ' + step.phase;
       const lapLen = steps.lapLength || steps.length;
       const repInfo = step.repsTotal > 1 ? ` · Satz ${step.rep}/${step.repsTotal}` : '';
@@ -1279,6 +1340,7 @@ function runnerHandlers(steps) {
         speak(announceFlags().phrases ? line(currentPersona(), 'finish', { name: config.coachName }) : 'Geschafft!', { interrupt: true });
       }
       releaseWakeLock();
+      clearSession(); updateResumeButton(); // beendetes Workout nicht zum Fortsetzen anbieten
     },
   };
 }
@@ -1308,6 +1370,8 @@ function showNextAfter(steps, index) {
 }
 
 function stopRunner() {
+  // Laufendes (noch nicht beendetes) Workout sichern, damit man fortsetzen kann.
+  if (engine.running) saveCurrentSession();
   engine.stop();
   cancelSpeech();
   spotify.unduck();
@@ -1316,13 +1380,22 @@ function stopRunner() {
   $('#btn-runner-start').hidden = true; // „Bereit“-Knopf zurücksetzen
   $('#runner').hidden = true;
   resumeHeaderLoop(); // Logo-Schleife wieder aufnehmen
+  updateResumeButton();
 }
 
 // Runner-Steuerung
 $('#btn-start').addEventListener('click', startWorkout);
+$('#btn-resume').addEventListener('click', resumeWorkout);
 $('#btn-runner-start').addEventListener('click', beginRunner);
 $('#btn-close-runner').addEventListener('click', stopRunner);
+$('#btn-prev').addEventListener('click', () => engine.prev());
 $('#btn-skip').addEventListener('click', () => engine.skip());
+
+// Beim Schließen/Wegschalten der App ein laufendes Workout sichern (Fortsetzen).
+window.addEventListener('pagehide', () => { if (engine.running) saveCurrentSession(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && engine.running) saveCurrentSession();
+});
 $('#btn-pause').addEventListener('click', () => {
   engine.toggle();
   $('#btn-pause').textContent = engine.paused ? '▶' : '⏸';
@@ -1498,6 +1571,7 @@ async function init() {
   renderVoiceSettings();
   setupSortable();
   updatePlanSummary();
+  updateResumeButton(); // „Fortsetzen“ zeigen, falls ein Workout offen ist
   renderSpotify();
   applyMusicVolume(); // gespeicherte Musik-Lautstärke (Radio) anwenden
   startHeaderLoop(); // animiertes Kopfzeilen-Logo (kein Intro-Splash mehr)

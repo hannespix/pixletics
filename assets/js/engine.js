@@ -105,14 +105,22 @@ export class WorkoutEngine {
     return this.steps[this.index] || null;
   }
 
-  start() {
+  // Startet das Workout. Optional ab einem bestimmten Schritt (zum Fortsetzen).
+  start(fromIndex = 0) {
     if (!this.steps.length) return;
     this.running = true;
     this.paused = false;
-    this.index = 0;
-    this._elapsedBefore = 0;
+    this.index = Math.min(Math.max(0, fromIndex | 0), this.steps.length - 1);
+    this._elapsedBefore = this._elapsedUntil(this.index);
     this._enterPhase();
     this._loop();
+  }
+
+  // Bis (ausschließlich) Schritt i bereits verstrichene Zeit (ms).
+  _elapsedUntil(i) {
+    let ms = 0;
+    for (let k = 0; k < i && k < this.steps.length; k++) ms += this.steps[k].duration * 1000;
+    return ms;
   }
 
   _enterPhase() {
@@ -177,6 +185,14 @@ export class WorkoutEngine {
   skip() {
     if (!this.running) return;
     this._advance();
+  }
+
+  // Einen Schritt zurück (an den Anfang des vorherigen Schritts).
+  prev() {
+    if (!this.running) return;
+    this.index = Math.max(0, this.index - 1);
+    this._elapsedBefore = this._elapsedUntil(this.index);
+    this._enterPhase();
   }
 
   pause() {
