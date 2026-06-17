@@ -1,7 +1,4 @@
-// Audio-Ausgabe: Signaltöne (WebAudio) und Sprachansagen (SpeechSynthesis oder
-// neuronale Stimme „Martin" via kokoro-de.js).
-import { martinSynth, SAMPLE_RATE as MARTIN_SR } from './kokoro-de.js';
-
+// Audio-Ausgabe: Signaltöne (WebAudio) und Sprachansagen (SpeechSynthesis).
 let ctx = null;
 
 // Stimmen-Verwaltung
@@ -277,83 +274,7 @@ export function setSpeechHooks({ start, end }) {
   onSpeakEnd = end;
 }
 
-// ---------------- Sprach-Engine: Gerätestimme (default) oder Martin ----------------
-let speechEngine = 'device';
-export function setSpeechEngine(engine) { speechEngine = engine === 'martin' ? 'martin' : 'device'; }
-export function getSpeechEngine() { return speechEngine; }
-
-// Martin: erzeugtes PCM nach Text cachen (Countdown-Zahlen u. Ä. sind so sofort
-// da), simple Wiedergabe-Queue mit Interrupt-Unterstützung.
-const martinPcmCache = new Map();
-const martinQueue = [];
-let martinPlaying = false;
-let martinCurrentSrc = null;
-let martinGen = 0; // erhöht sich bei jedem Interrupt -> verwirft veraltete Synthese
-
-async function getMartinPcm(text) {
-  if (martinPcmCache.has(text)) return martinPcmCache.get(text);
-  const pcm = await martinSynth(text);
-  if (martinPcmCache.size > 160) martinPcmCache.delete(martinPcmCache.keys().next().value);
-  martinPcmCache.set(text, pcm);
-  return pcm;
-}
-
-// Synthese im Voraus (Cache füllen), ohne Wiedergabe – für niedrige Latenz.
-export async function warmMartin(text) {
-  try { await getMartinPcm(text); } catch {}
-}
-
-function stopMartin() {
-  martinGen++;
-  martinQueue.length = 0;
-  if (martinCurrentSrc) { try { martinCurrentSrc.stop(); } catch {} martinCurrentSrc = null; }
-}
-
-function playMartinPcm(pcm) {
-  return new Promise((resolve) => {
-    if (!ctx || currentVolume <= 0 || !pcm || !pcm.length) { resolve(); return; }
-    if (ctx.state === 'suspended') { try { ctx.resume(); } catch {} }
-    const buf = ctx.createBuffer(1, pcm.length, MARTIN_SR);
-    buf.copyToChannel(pcm, 0);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    const g = ctx.createGain();
-    g.gain.value = currentVolume;
-    src.connect(g).connect(ctx.destination);
-    martinCurrentSrc = src;
-    if (onSpeakStart) onSpeakStart();
-    src.onended = () => {
-      if (martinCurrentSrc === src) martinCurrentSrc = null;
-      if (onSpeakEnd) onSpeakEnd();
-      resolve();
-    };
-    src.start();
-  });
-}
-
-async function pumpMartin() {
-  if (martinPlaying) return;
-  martinPlaying = true;
-  while (martinQueue.length) {
-    const { text, gen } = martinQueue.shift();
-    if (gen !== martinGen) continue; // wurde zwischenzeitlich unterbrochen
-    let pcm;
-    try { pcm = await getMartinPcm(text); } catch (e) { console.error('[Martin speak]', e); continue; }
-    if (gen !== martinGen) continue; // während der Synthese unterbrochen
-    await playMartinPcm(pcm);
-  }
-  martinPlaying = false;
-}
-
-function speakMartin(text, interrupt) {
-  if (interrupt) stopMartin();
-  martinQueue.push({ text, gen: martinGen });
-  pumpMartin();
-}
-
 export function speak(text, { interrupt = false, pitch, rate } = {}) {
-  if (!text) return;
-  if (speechEngine === 'martin') { speakMartin(String(text), interrupt); return; }
   if (!('speechSynthesis' in window)) return;
   const synth = window.speechSynthesis;
   if (interrupt) synth.cancel();
@@ -373,5 +294,4 @@ export function speak(text, { interrupt = false, pitch, rate } = {}) {
 
 export function cancelSpeech() {
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  stopMartin();
 }
