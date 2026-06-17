@@ -161,6 +161,10 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .slider-row .slider-val { color: var(--accent); font-weight: 700; }
 .slider-row input[type="range"] { width: 100%; accent-color: var(--accent); height: 24px; }
 
+/* Kokoro-Test (Beta) */
+.kokoro-test { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.kokoro-test #kokoro-status { display: block; margin-top: 8px; }
+
 /* ---------- Sets-Liste ---------- */
 .sets-list { display: grid; gap: 10px; margin-top: 12px; grid-template-columns: minmax(0, 1fr); }
 .set-row {
