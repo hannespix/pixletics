@@ -71,8 +71,8 @@ export const PERSONAS = [
     emoji: '🪖',
     desc: 'Laut, tief, befehlend. Keine Ausreden, kein Mitleid!',
     gender: 'male',
-    pitch: 0.7,
-    rate: 1.18,
+    pitch: 0.85,
+    rate: 1.15,
     lines: {
       start: ['Aufstellung! Wir legen los!', 'Antreten! Training beginnt!', 'Keine Ausreden, los geht es!', 'Strammgestanden, dann Bewegung!', 'Antreten, der Speck zittert schon!'],
       next: ['Antreten! Jetzt {ex}!', 'Bewegung! Es folgt {ex}!', 'Bereitmachen für {ex}!', 'Aufstellung für {ex}!', 'Jetzt {ex}, keine Diskussion!'],
