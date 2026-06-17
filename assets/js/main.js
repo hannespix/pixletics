@@ -15,6 +15,7 @@ import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
 import { GooeyMorph } from './gooey.js';
 import { initPWA } from './pwa.js';
+import { KOKORO_VOICES, kokoroSpeak } from './kokoro.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -259,6 +260,32 @@ function bindVoiceSettings() {
   bindRange('cfg-pitch', 'voicePitch', 'val-pitch', (v) => v.toFixed(2), true);
   bindRange('cfg-rate', 'voiceRate', 'val-rate', (v) => v.toFixed(2) + '×', true);
   $('#btn-voice-test')?.addEventListener('click', testVoice);
+  bindKokoroTest();
+}
+
+// Experimenteller Kokoro-Test (Beta): lädt das neuronale Modell nur auf Klick.
+function bindKokoroTest() {
+  const sel = $('#kokoro-voice');
+  if (sel && !sel.options.length) {
+    sel.innerHTML = KOKORO_VOICES.map((v) => `<option value="${v.id}">${escapeHtml(v.label)}</option>`).join('');
+  }
+  const btn = $('#btn-kokoro-test');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const status = $('#kokoro-status');
+    const setStatus = (t) => { if (status) status.textContent = t; };
+    btn.disabled = true;
+    try {
+      await kokoroSpeak($('#kokoro-text')?.value || '', {
+        voice: $('#kokoro-voice')?.value || 'af_heart',
+        onStatus: setStatus,
+      });
+    } catch (err) {
+      setStatus('Fehler: ' + (err?.message || err) + ' (WebGPU/Netz prüfen)');
+    } finally {
+      btn.disabled = false;
+    }
+  });
 }
 
 function testVoice() {

@@ -143,6 +143,16 @@
             </label>
           </div>
           <button class="btn" id="btn-voice-test">▶︎ Stimme testen</button>
+
+          <div class="kokoro-test">
+            <p class="muted small">🧪 <strong>Kokoro (Beta)</strong> – neuronale Stimme direkt im Browser. Lädt beim ersten Mal ~80 MB und braucht WebGPU für flüssiges Tempo. <strong>Aktuell ohne offizielles Deutsch</strong> – deutsche Texte klingen englisch ausgesprochen; rein zum Antesten von Klang &amp; Performance.</p>
+            <div class="voice-grid">
+              <label>Kokoro-Stimme<select id="kokoro-voice"></select></label>
+              <label class="voice-full">Beispieltext<input id="kokoro-text" type="text" value="Los! Kniebeugen. Hüfte zurück, Knie nach außen." /></label>
+            </div>
+            <button class="btn" id="btn-kokoro-test">🧪 Kokoro testen</button>
+            <span class="muted small" id="kokoro-status"></span>
+          </div>
         </details>
       </div>
 
