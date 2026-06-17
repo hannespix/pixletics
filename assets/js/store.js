@@ -6,6 +6,7 @@ const CONFIG_KEY = 'freeletics.config.v2';
 const EXERCISES_KEY = 'freeletics.exercises.v1';
 const STATIONS_KEY = 'freeletics.stations.v1';
 const SEED_KEY = 'freeletics.seed.v1';
+const SESSION_KEY = 'freeletics.session.v1';
 
 // Kuratierte Power-Sender quer durch die Genres (alle HTTPS-Direktstreams,
 // auf Erreichbarkeit/Audio-Antwort geprüft). Nutzer können eigene hinzufügen.
@@ -114,6 +115,17 @@ export function loadConfig() {
 
 export function saveConfig(config) {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+}
+
+// ---------------- Laufendes Workout (zum Fortsetzen nach Verlassen) ----------------
+export function loadSession() {
+  return safeParse(localStorage.getItem(SESSION_KEY), null);
+}
+export function saveSession(session) {
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch {}
+}
+export function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
 }
 
 export function uid(prefix = 'set') {
