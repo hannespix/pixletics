@@ -97,6 +97,14 @@ export function primeVoices() {
   loadVoices();
 }
 
+// Prüft, ob ein Sprachcode wirklich Deutsch ist. WICHTIG nicht nur „enthält de",
+// sonst matchen Devanagari-Stimmen (z. B. kok-Deva-IN „Konkani") über das „de" in
+// „Deva". Daher am Anfang verankern (de, de-DE, de_DE) plus ISO-639-2 deu/ger.
+function isGermanLang(lang = '') {
+  const l = String(lang).toLowerCase();
+  return /^de([-_]|$)/.test(l) || l === 'deu' || l === 'ger';
+}
+
 function loadVoices() {
   if (!('speechSynthesis' in window)) return;
   const collect = () => {
@@ -104,7 +112,7 @@ function loadVoices() {
     if (!list.length) return;
     allVoices = list;
     germanVoices = list
-      .filter((v) => /de(-|_)?/i.test(v.lang))
+      .filter((v) => isGermanLang(v.lang))
       .map((v) => ({
         voiceURI: v.voiceURI, name: v.name, lang: v.lang,
         gender: guessGender(v.name), quality: voiceQuality(v.name, v.localService),
