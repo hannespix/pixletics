@@ -134,12 +134,36 @@ function announceFlags() {
   };
 }
 
+// Sanfte Grenzen für Stimmlage/Tempo – zu tiefe/hohe oder zu schnelle/langsame
+// Werte klingen über die Web-Speech-API schnell roboterhaft. MÜSSEN mit den
+// Slider-Grenzen in index.html übereinstimmen.
+const PITCH_MIN = 0.8, PITCH_MAX = 1.2;
+const RATE_MIN = 0.85, RATE_MAX = 1.25;
+const clampRange = (v, lo, hi, dflt) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : dflt;
+};
+
+// Gespeicherte Werte einmalig in den erlaubten Bereich ziehen (z. B. alte,
+// extreme Persona-Vorgaben), damit Regler, Anzeige und Ausgabe übereinstimmen.
+function normalizeVoiceRanges() {
+  const pitch = clampRange(config.voicePitch, PITCH_MIN, PITCH_MAX, 1.0);
+  const rate = clampRange(config.voiceRate, RATE_MIN, RATE_MAX, 1.05);
+  if (pitch !== config.voicePitch || rate !== config.voiceRate) {
+    config.voicePitch = pitch;
+    config.voiceRate = rate;
+    saveConfig(config);
+  }
+}
+
 // Aktuelle Stimm-Einstellungen an die Audio-Schicht übergeben.
 function applyVoiceSettings() {
   const persona = currentPersona();
   let voiceURI = config.voiceURI;
   if (!voiceURI || voiceURI === 'auto') voiceURI = pickVoiceURI(persona.gender);
-  setVoiceSettings({ voiceURI, pitch: config.voicePitch, rate: config.voiceRate, volume: config.voiceVolume });
+  const pitch = clampRange(config.voicePitch, PITCH_MIN, PITCH_MAX, 1.0);
+  const rate = clampRange(config.voiceRate, RATE_MIN, RATE_MAX, 1.05);
+  setVoiceSettings({ voiceURI, pitch, rate, volume: config.voiceVolume });
 }
 
 // Musik-Lautstärke (Radio + Spotify) anwenden.
@@ -237,6 +261,7 @@ function selectPersona(id) {
 }
 
 function bindVoiceSettings() {
+  normalizeVoiceRanges(); // alte/extreme Werte in den sanften Bereich ziehen
   $('#cfg-coachname')?.addEventListener('input', (e) => {
     config.coachName = e.target.value.trim().slice(0, 20);
     saveConfig(config);
