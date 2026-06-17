@@ -16,6 +16,7 @@ import { encodeShare, decodeShare } from './share.js';
 import { GooeyMorph } from './gooey.js';
 import { initPWA } from './pwa.js';
 import { KOKORO_VOICES, kokoroSpeak } from './kokoro.js';
+import { germanSpeak } from './germantts.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -260,45 +261,55 @@ function bindVoiceSettings() {
   bindRange('cfg-pitch', 'voicePitch', 'val-pitch', (v) => v.toFixed(2), true);
   bindRange('cfg-rate', 'voiceRate', 'val-rate', (v) => v.toFixed(2) + '×', true);
   $('#btn-voice-test')?.addEventListener('click', testVoice);
-  bindKokoroTest();
+  bindNeuralTests();
 }
 
-// Experimenteller Kokoro-Test (Beta): lädt das neuronale Modell nur auf Klick.
-function bindKokoroTest() {
+// Experimentelle neuronale Stimmen (Beta): laden ihr Modell nur auf Klick.
+function bindNeuralTests() {
   const sel = $('#kokoro-voice');
   if (sel && !sel.options.length) {
     sel.innerHTML = KOKORO_VOICES.map((v) => `<option value="${v.id}">${escapeHtml(v.label)}</option>`).join('');
   }
-  const btn = $('#btn-kokoro-test');
-  if (!btn) return;
-  btn.addEventListener('click', async () => {
-    const status = $('#kokoro-status');
-    const bar = $('#kokoro-progress');
-    const setStatus = (t) => { if (status) status.textContent = t; };
+  bindNeuralTest({
+    btn: '#btn-kokoro-test', text: '#kokoro-text', status: '#kokoro-status', bar: '#kokoro-progress',
+    label: 'Kokoro', idle: '🧪 Kokoro testen',
+    speak: (t, cb) => kokoroSpeak(t, { voice: $('#kokoro-voice')?.value || 'af_heart', ...cb }),
+  });
+  bindNeuralTest({
+    btn: '#btn-german-test', text: '#german-text', status: '#german-status', bar: '#german-progress',
+    label: 'Deutsch', idle: '🧪 Deutsch testen',
+    speak: (t, cb) => germanSpeak(t, cb),
+  });
+}
+
+// Verdrahtet einen einzelnen Test-Knopf (Status, Fortschrittsleiste, Fehler).
+function bindNeuralTest({ btn, text, status, bar, label, idle, speak }) {
+  const button = $(btn);
+  if (!button) return;
+  button.addEventListener('click', async () => {
+    const st = $(status);
+    const pb = $(bar);
+    const setStatus = (t) => { if (st) st.textContent = t; };
     const setProgress = (pct) => {
-      if (!bar) return;
-      bar.hidden = false;
-      if (pct == null) { bar.removeAttribute('value'); } // unbestimmt
-      else { bar.value = pct; }
+      if (!pb) return;
+      pb.hidden = false;
+      if (pct == null) { pb.removeAttribute('value'); } // unbestimmt
+      else { pb.value = pct; }
     };
     const t0 = Date.now();
-    btn.disabled = true;
-    btn.textContent = '⏳ Läuft …';
+    button.disabled = true;
+    button.textContent = '⏳ Läuft …';
     try {
-      await kokoroSpeak($('#kokoro-text')?.value || '', {
-        voice: $('#kokoro-voice')?.value || 'af_heart',
-        onStatus: setStatus,
-        onProgress: setProgress,
-      });
-      if (bar) bar.hidden = true;
-      setStatus(`✓ Fertig in ${((Date.now() - t0) / 1000).toFixed(1)} s. Erneutes Testen geht jetzt schnell (Modell im Cache).`);
+      await speak($(text)?.value || '', { onStatus: setStatus, onProgress: setProgress });
+      if (pb) pb.hidden = true;
+      setStatus(`✓ Fertig in ${((Date.now() - t0) / 1000).toFixed(1)} s. Erneut testen geht schnell (Modell im Cache).`);
     } catch (err) {
-      console.error('[Kokoro]', err);
-      if (bar) bar.hidden = true;
+      console.error('[' + label + ']', err);
+      if (pb) pb.hidden = true;
       setStatus('❌ ' + (err?.message || err) + '\n(Details in der Browser-Konsole. Nochmal versuchen ist möglich.)');
     } finally {
-      btn.disabled = false;
-      btn.textContent = '🧪 Kokoro testen';
+      button.disabled = false;
+      button.textContent = idle;
     }
   });
 }
