@@ -322,16 +322,22 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .ctrl:active { transform: scale(0.94); }
 .ctrl-skip { width: auto; border-radius: 999px; padding: 0 22px; font-size: 16px; font-weight: 700; }
 
-/* Musik-Steuerung als eigene, abgesetzte Karte */
-.runner-music {
-  margin: 4px 16px; padding: 10px 12px 12px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.04); border: 1px solid #2a3142; border-radius: 14px;
+/* Schnellzugriff im Runner: zwei saubere Buttons (Coach & Musik) */
+.runner-access { display: flex; gap: 12px; justify-content: center; padding: 2px 0 6px; }
+.access-btn {
+  flex: 1; max-width: 200px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 16px; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 16px;
+  background: var(--card-2); border: 1px solid var(--border); color: var(--text);
 }
-.runner-music .runner-section-label { margin-top: 0; }
-.rm-now { text-align: center; min-height: 18px; margin-bottom: 8px; }
-.rm-now .rm-src { font-weight: 700; font-size: 13px; color: var(--text); }
-.rm-now .rm-track { color: var(--muted); font-size: 13px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.access-btn:active { transform: scale(0.97); }
+.access-btn:hover { filter: brightness(1.1); }
+.access-btn .ab-ic { font-size: 22px; }
+.runner-nowline {
+  text-align: center; min-height: 18px; padding: 0 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+.runner-nowline .rm-src { font-weight: 700; font-size: 13px; color: var(--text); }
+.runner-nowline .rm-track { color: var(--muted); font-size: 13px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rm-row { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
 .rm-group { display: flex; align-items: center; gap: 6px; }
 .rm-label { color: var(--muted); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -392,7 +398,7 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 /* ---------- Musik-Schnellwahl (Modal) ---------- */
 .music-btn { font-size: 18px; line-height: 1; padding: 4px 6px; border-radius: 8px; }
 .music-btn:hover { color: var(--text); background: var(--card-2); }
-#music-modal { z-index: 70; } /* über dem Runner (z-index 60) */
+#music-modal, #coach-modal { z-index: 70; } /* über dem Runner (z-index 60) */
 .music-modal-card { width: min(440px, 100%); }
 .mm-radio { display: grid; gap: 6px; margin: 4px 0 8px; max-height: 52vh; overflow: auto; }
 .mm-station {
@@ -411,11 +417,5 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .mm-vol .slider-head { display: flex; justify-content: space-between; align-items: baseline; }
 .mm-vol .slider-val { color: var(--accent); font-weight: 700; }
 .mm-vol input[type="range"] { width: 100%; accent-color: var(--accent); height: 24px; }
-
-/* Runner: Musik-Info als klar antippbarer Einstieg ins Musik-Modal */
-.rm-pick {
-  display: block; width: 100%; background: transparent; border: 0; color: inherit;
-  cursor: pointer; padding: 0 0 6px;
-}
-.rm-pick .runner-section-label { color: var(--accent); }
-.rm-pick:active { opacity: 0.7; }
+/* Transport-Reihe (Radio/Spotify) im Musik-Modal etwas Abstand geben */
+.music-modal-card .rm-row { margin-top: 14px; }

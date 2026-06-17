@@ -254,26 +254,16 @@
       </div>
     </div>
 
-    <!-- Musik-Steuerung (separat) -->
-    <div class="runner-section runner-music">
-      <button class="rm-pick" id="btn-runner-music" title="Musik wählen – Sender oder Spotify">
-        <span class="runner-section-label">Musik · 🎵 wählen ›</span>
-        <span class="rm-now" id="runner-nowplaying"><span class="muted small">Tippen, um Sender/Spotify zu wählen</span></span>
+    <!-- Schnellzugriff: Coach & Musik -->
+    <div class="runner-section runner-access">
+      <button class="access-btn" id="btn-runner-coach" title="Coach-Einstellungen">
+        <span class="ab-ic">🎙️</span><span class="ab-tx">Coach</span>
       </button>
-      <div class="rm-row">
-        <div class="rm-group">
-          <button class="ctrl ctrl-sp" id="btn-radio-toggle" title="Radio an/aus">📻</button>
-          <span class="rm-label">Radio</span>
-        </div>
-        <span class="rm-sep" aria-hidden="true"></span>
-        <div class="rm-group">
-          <button class="ctrl ctrl-sp" id="btn-prev-track" title="Vorheriger Titel">⏮</button>
-          <button class="ctrl ctrl-sp" id="btn-sp-toggle" title="Play/Pause">⏯</button>
-          <button class="ctrl ctrl-sp" id="btn-next-track" title="Nächster Titel">⏭</button>
-          <span class="rm-label">Spotify</span>
-        </div>
-      </div>
+      <button class="access-btn" id="btn-runner-music" title="Musik wählen – Sender oder Spotify">
+        <span class="ab-ic">🎵</span><span class="ab-tx">Musik</span>
+      </button>
     </div>
+    <div class="runner-nowline" id="runner-nowplaying"><span class="muted small">Tippen, um Sender/Spotify zu wählen</span></div>
   </div>
 
   <!-- ============ SET-EDITOR (Modal) ============ -->
@@ -356,6 +346,49 @@
       <p class="muted small">Sender antippen zum Abspielen.</p>
       <div id="mm-radio" class="mm-radio"></div>
       <div id="mm-spotify" class="mm-spotify"></div>
+      <div class="rm-row">
+        <div class="rm-group">
+          <button class="ctrl ctrl-sp" id="btn-radio-toggle" title="Radio an/aus">📻</button>
+          <span class="rm-label">Radio</span>
+        </div>
+        <span class="rm-sep" aria-hidden="true"></span>
+        <div class="rm-group">
+          <button class="ctrl ctrl-sp" id="btn-prev-track" title="Vorheriger Titel">⏮</button>
+          <button class="ctrl ctrl-sp" id="btn-sp-toggle" title="Play/Pause">⏯</button>
+          <button class="ctrl ctrl-sp" id="btn-next-track" title="Nächster Titel">⏭</button>
+          <span class="rm-label">Spotify</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ COACH (Modal, im laufenden Workout) ============ -->
+  <div class="modal" id="coach-modal" hidden>
+    <div class="modal-card">
+      <div class="row-between">
+        <h3>🎙️ Coach</h3>
+        <button class="icon-btn" id="btn-close-coach" title="Schließen">✕</button>
+      </div>
+      <div class="voice-grid">
+        <label class="voice-full">Charakter<select id="rc-persona"></select></label>
+        <label class="voice-full">Ansagen
+          <select id="rc-verbosity">
+            <option value="full">Voll – Sprüche + Übungsnamen</option>
+            <option value="phrases">Sprüche, ohne Übungsnamen</option>
+            <option value="concise">Knapp – nur das Wichtigste</option>
+            <option value="minimal">Minimal – nur Countdown</option>
+          </select>
+        </label>
+      </div>
+      <div class="toggles">
+        <label class="switch"><input type="checkbox" id="rc-voice" /> <span>Sprachansagen</span></label>
+        <label class="switch"><input type="checkbox" id="rc-beeps" /> <span>Signaltöne</span></label>
+        <label class="switch"><input type="checkbox" id="rc-duck" /> <span>Musik bei Ansage leiser</span></label>
+      </div>
+      <label class="mm-vol">
+        <span class="slider-head">🔊 Coach-Lautstärke <span class="slider-val" id="rc-val-voicevol"></span></span>
+        <input type="range" id="rc-voicevol" min="0" max="100" step="5" />
+      </label>
     </div>
   </div>
 
