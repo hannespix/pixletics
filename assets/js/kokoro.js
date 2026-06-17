@@ -11,6 +11,8 @@
 // Wir nutzen bewusst WASM (CPU) + q8: läuft auf jedem Gerät ohne WebGPU und lädt
 // am wenigsten herunter. Etwas langsamer, aber zuverlässig zum Antesten.
 
+import { makeProgressCallback } from './neural-util.js';
+
 const KOKORO_LIB = 'https://esm.sh/kokoro-js@1.2.1';
 const KOKORO_MODEL = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 
@@ -26,9 +28,6 @@ export const KOKORO_VOICES = [
 
 let ttsPromise = null;     // Promise auf die geladene KokoroTTS-Instanz
 let currentAudio = null;   // aktuell spielendes <audio> (zum Stoppen)
-
-const mb = (b) => (b / 1048576).toFixed(1);
-const shortFile = (f) => String(f).split('/').pop();
 
 // Lädt Bibliothek + Modell genau einmal, mit Fortschritts-Rückmeldung.
 //   onStatus(text)      – Textstatus für die UI
@@ -49,27 +48,7 @@ function loadKokoro(onStatus, onProgress) {
       const KokoroTTS = mod.KokoroTTS || mod.default?.KokoroTTS;
       if (!KokoroTTS) throw new Error('kokoro-js geladen, aber kein KokoroTTS-Export gefunden.');
 
-      // Fortschritt aller herunterzuladenden Dateien aggregieren.
-      const files = {};
-      const progress_callback = (p) => {
-        if (!p) return;
-        if (p.file && typeof p.loaded === 'number') {
-          files[p.file] = { loaded: p.loaded, total: p.total || 0 };
-        } else if (p.status === 'done' && p.file && files[p.file]) {
-          files[p.file].loaded = files[p.file].total || files[p.file].loaded;
-        }
-        let loaded = 0, total = 0;
-        for (const k in files) { loaded += files[k].loaded; total += files[k].total; }
-        const pct = total ? Math.min(100, Math.round((loaded / total) * 100)) : null;
-        prog(pct);
-        const cur = p.file ? shortFile(p.file) : '';
-        say(
-          `2/2 · Lade Sprachmodell (CPU/WASM, q8) …\n` +
-          `↓ ${mb(loaded)} / ${total ? mb(total) : '?'} MB${pct != null ? ` · ${pct}%` : ''}` +
-          (cur ? `\nDatei: ${cur}` : '')
-        );
-      };
-
+      const progress_callback = makeProgressCallback(say, prog, '2/2 · Lade Sprachmodell (CPU/WASM, q8) …');
       say('2/2 · Lade Sprachmodell (CPU/WASM, q8, ~86 MB beim ersten Mal) …');
       prog(null);
       let tts;

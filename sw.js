@@ -2,7 +2,7 @@
 // Strategie: Network-first für eigene Dateien (immer aktuell, sonst Cache als
 // Offline-Fallback). Fremd-URLs (Radio-Streams, SomaFM, Spotify) gehen direkt
 // ans Netz und werden NICHT gecacht.
-const CACHE = 'pixletics-v2';
+const CACHE = 'pixletics-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -19,6 +19,9 @@ const ASSETS = [
   './assets/js/share.js',
   './assets/js/gooey.js',
   './assets/js/pwa.js',
+  './assets/js/neural-util.js',
+  './assets/js/kokoro.js',
+  './assets/js/germantts.js',
   './assets/audio/applause.wav',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',

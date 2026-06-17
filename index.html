@@ -144,8 +144,10 @@
           </div>
           <button class="btn" id="btn-voice-test">▶︎ Stimme testen</button>
 
+          <p class="muted small neural-intro">🧪 <strong>Experimentell:</strong> neuronale Stimmen komplett im Browser (laden beim ersten Mal einmalig herunter, danach aus dem Cache). Nur zum Antesten – kein Einfluss auf die normalen Ansagen.</p>
+
           <div class="kokoro-test">
-            <p class="muted small">🧪 <strong>Kokoro (Beta)</strong> – neuronale Stimme direkt im Browser. Lädt beim ersten Mal ~80 MB und braucht WebGPU für flüssiges Tempo. <strong>Aktuell ohne offizielles Deutsch</strong> – deutsche Texte klingen englisch ausgesprochen; rein zum Antesten von Klang &amp; Performance.</p>
+            <p class="muted small"><strong>Kokoro (Englisch)</strong> – sehr natürliche Stimme, läuft auf CPU/WASM (~86 MB, q8). <strong>Kein offizielles Deutsch</strong> – deutsche Texte klingen englisch ausgesprochen; gut zum Beurteilen der Klangqualität (am besten mit einem englischen Satz).</p>
             <div class="voice-grid">
               <label>Kokoro-Stimme<select id="kokoro-voice"></select></label>
               <label class="voice-full">Beispieltext<input id="kokoro-text" type="text" value="Los! Kniebeugen. Hüfte zurück, Knie nach außen." /></label>
@@ -153,6 +155,16 @@
             <button class="btn" id="btn-kokoro-test">🧪 Kokoro testen</button>
             <progress id="kokoro-progress" max="100" value="0" hidden></progress>
             <div class="muted small kokoro-status" id="kokoro-status"></div>
+          </div>
+
+          <div class="kokoro-test">
+            <p class="muted small"><strong>Deutsch (MMS)</strong> – echte deutsche Aussprache, neuronal via transformers.js, läuft offline auf CPU/WASM. Etwas robotischer als Kokoro, aber korrektes Deutsch – der direkte Vergleich.</p>
+            <div class="voice-grid">
+              <label class="voice-full">Beispieltext<input id="german-text" type="text" value="Los! Kniebeugen. Hüfte zurück, Knie nach außen." /></label>
+            </div>
+            <button class="btn" id="btn-german-test">🧪 Deutsch testen</button>
+            <progress id="german-progress" max="100" value="0" hidden></progress>
+            <div class="muted small kokoro-status" id="german-status"></div>
           </div>
         </details>
       </div>
