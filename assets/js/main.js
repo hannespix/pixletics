@@ -171,16 +171,31 @@ function renderVoiceSettings() {
     host.appendChild(item);
   });
 
-  // Gerätestimmen-Auswahl
+  // Gerätestimmen-Auswahl: kuratierte Kurzliste statt aller Systemstimmen –
+  // bis zu 2 weibliche + 2 männliche (beste Qualität zuerst), klar gekennzeichnet.
   const sel = $('#cfg-voiceuri');
   if (sel) {
-    const list = getGermanVoices(); // beste Qualität zuerst sortiert
-    const opts = ['<option value="auto">Automatisch (beste deutsche Stimme)</option>'];
-    list.forEach((v) => {
+    const list = getGermanVoices(); // präzise deutsche Stimmen, beste zuerst
+    const females = list.filter((v) => v.gender === 'female').slice(0, 2);
+    const males = list.filter((v) => v.gender === 'male').slice(0, 2);
+    const picked = [...females, ...males];
+    // Falls zu wenige eindeutig geschlechtliche Stimmen: mit übrigen auffüllen.
+    for (const v of list) {
+      if (picked.length >= 4) break;
+      if (!picked.includes(v)) picked.push(v);
+    }
+    // Gespeicherte Stimme sicher anzeigen, auch wenn nicht in der Kurzliste.
+    if (config.voiceURI && config.voiceURI !== 'auto' && !picked.some((v) => v.voiceURI === config.voiceURI)) {
+      const cur = list.find((v) => v.voiceURI === config.voiceURI);
+      if (cur) picked.push(cur);
+    }
+    const label = (v) => {
       const g = v.gender === 'female' ? ' ♀' : v.gender === 'male' ? ' ♂' : '';
       const star = v.quality >= 4 ? ' ⭐' : ''; // hochwertige (neuronale/Cloud-)Stimme
-      opts.push(`<option value="${escapeHtml(v.voiceURI)}">${escapeHtml(v.name)}${g}${star}</option>`);
-    });
+      return `${escapeHtml(v.name)}${g}${star}`;
+    };
+    const opts = ['<option value="auto">Automatisch (beste deutsche Stimme)</option>'];
+    picked.forEach((v) => opts.push(`<option value="${escapeHtml(v.voiceURI)}">${label(v)}</option>`));
     sel.innerHTML = opts.join('');
     const wanted = config.voiceURI || 'auto';
     sel.value = wanted;
