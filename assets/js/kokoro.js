@@ -1,15 +1,16 @@
 // Kokoro-TTS (Beta, experimentell): neuronale Sprachsynthese komplett im Browser.
 // Wird NUR auf ausdrücklichen Wunsch geladen (Button in den Einstellungen) –
-// die Bibliothek (~transformers.js + onnxruntime-web) und das Modell (~80 MB)
+// die Bibliothek (transformers.js + onnxruntime-web) und das Modell (~86 MB, q8)
 // werden per dynamischem Import von einem CDN bzw. von HuggingFace geholt und
-// danach im Browser-Cache gehalten. Für den Normalbetrieb der App wird hier
-// nichts geladen.
+// danach im Browser-Cache gehalten. Für den Normalbetrieb wird hier nichts geladen.
 //
 // WICHTIG: Das offizielle Kokoro-Modell kann (noch) KEIN Deutsch – die Stimmen
 // sind englisch. Deutsche Texte klingen daher englisch ausgesprochen. Dieser
-// Test dient dazu, Klang und Performance auf dem echten Gerät zu beurteilen.
+// Test dient zur Beurteilung von Klang und Performance auf dem echten Gerät.
+//
+// Wir nutzen bewusst WASM (CPU) + q8: läuft auf jedem Gerät ohne WebGPU und lädt
+// am wenigsten herunter. Etwas langsamer, aber zuverlässig zum Antesten.
 
-// Modell-Repository (ONNX-Variante, die kokoro-js nutzt) und CDN der Bibliothek.
 const KOKORO_LIB = 'https://esm.sh/kokoro-js@1.2.1';
 const KOKORO_MODEL = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 
@@ -26,21 +27,62 @@ export const KOKORO_VOICES = [
 let ttsPromise = null;     // Promise auf die geladene KokoroTTS-Instanz
 let currentAudio = null;   // aktuell spielendes <audio> (zum Stoppen)
 
-// Lädt Bibliothek + Modell genau einmal. onStatus(text) für UI-Rückmeldung.
-function loadKokoro(onStatus) {
+const mb = (b) => (b / 1048576).toFixed(1);
+const shortFile = (f) => String(f).split('/').pop();
+
+// Lädt Bibliothek + Modell genau einmal, mit Fortschritts-Rückmeldung.
+//   onStatus(text)      – Textstatus für die UI
+//   onProgress(pct|null)– Gesamtfortschritt 0..100 (oder null = unbestimmt)
+function loadKokoro(onStatus, onProgress) {
   if (!ttsPromise) {
     ttsPromise = (async () => {
       const say = (t) => { try { onStatus && onStatus(t); } catch {} };
-      say('Lade Kokoro-Bibliothek …');
-      const mod = await import(/* @vite-ignore */ KOKORO_LIB);
+      const prog = (p) => { try { onProgress && onProgress(p); } catch {} };
+
+      say('1/2 · Lade Kokoro-Bibliothek vom CDN …');
+      let mod;
+      try {
+        mod = await import(/* @vite-ignore */ KOKORO_LIB);
+      } catch (e) {
+        throw new Error('Bibliothek konnte nicht geladen werden (CDN/Netz?). ' + (e?.message || e));
+      }
       const KokoroTTS = mod.KokoroTTS || mod.default?.KokoroTTS;
-      if (!KokoroTTS) throw new Error('kokoro-js konnte nicht geladen werden.');
-      const webgpu = typeof navigator !== 'undefined' && 'gpu' in navigator;
-      say(`Lade Sprachmodell … (~80 MB, nur beim ersten Mal · ${webgpu ? 'WebGPU' : 'WASM'})`);
-      const tts = await KokoroTTS.from_pretrained(KOKORO_MODEL, {
-        dtype: webgpu ? 'fp32' : 'q8',
-        device: webgpu ? 'webgpu' : 'wasm',
-      });
+      if (!KokoroTTS) throw new Error('kokoro-js geladen, aber kein KokoroTTS-Export gefunden.');
+
+      // Fortschritt aller herunterzuladenden Dateien aggregieren.
+      const files = {};
+      const progress_callback = (p) => {
+        if (!p) return;
+        if (p.file && typeof p.loaded === 'number') {
+          files[p.file] = { loaded: p.loaded, total: p.total || 0 };
+        } else if (p.status === 'done' && p.file && files[p.file]) {
+          files[p.file].loaded = files[p.file].total || files[p.file].loaded;
+        }
+        let loaded = 0, total = 0;
+        for (const k in files) { loaded += files[k].loaded; total += files[k].total; }
+        const pct = total ? Math.min(100, Math.round((loaded / total) * 100)) : null;
+        prog(pct);
+        const cur = p.file ? shortFile(p.file) : '';
+        say(
+          `2/2 · Lade Sprachmodell (CPU/WASM, q8) …\n` +
+          `↓ ${mb(loaded)} / ${total ? mb(total) : '?'} MB${pct != null ? ` · ${pct}%` : ''}` +
+          (cur ? `\nDatei: ${cur}` : '')
+        );
+      };
+
+      say('2/2 · Lade Sprachmodell (CPU/WASM, q8, ~86 MB beim ersten Mal) …');
+      prog(null);
+      let tts;
+      try {
+        tts = await KokoroTTS.from_pretrained(KOKORO_MODEL, {
+          dtype: 'q8',
+          device: 'wasm',
+          progress_callback,
+        });
+      } catch (e) {
+        throw new Error('Modell-Download/-Init fehlgeschlagen. ' + (e?.name || '') + ': ' + (e?.message || e));
+      }
+      prog(100);
       return tts;
     })().catch((err) => {
       ttsPromise = null; // bei Fehler erneut versuchbar
@@ -51,10 +93,10 @@ function loadKokoro(onStatus) {
 }
 
 // Erzeugt Sprache aus Text und spielt sie ab. Liefert true bei Erfolg.
-export async function kokoroSpeak(text, { voice = 'af_heart', onStatus } = {}) {
+export async function kokoroSpeak(text, { voice = 'af_heart', onStatus, onProgress } = {}) {
   const say = (t) => { try { onStatus && onStatus(t); } catch {} };
-  const tts = await loadKokoro(onStatus);
-  say('Erzeuge Sprache …');
+  const tts = await loadKokoro(onStatus, onProgress);
+  say('Erzeuge Sprache … (beim ersten Mal etwas Geduld – läuft auf der CPU)');
   const audio = await tts.generate((text || '').trim() || 'Test.', { voice });
   const blob = audio.toBlob();
   const url = URL.createObjectURL(blob);
@@ -63,7 +105,7 @@ export async function kokoroSpeak(text, { voice = 'af_heart', onStatus } = {}) {
   currentAudio = el;
   el.addEventListener('ended', () => URL.revokeObjectURL(url));
   await el.play();
-  say('');
+  say('✓ Fertig – Wiedergabe läuft.');
   return true;
 }
 
