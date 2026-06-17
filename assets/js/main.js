@@ -273,17 +273,32 @@ function bindKokoroTest() {
   if (!btn) return;
   btn.addEventListener('click', async () => {
     const status = $('#kokoro-status');
+    const bar = $('#kokoro-progress');
     const setStatus = (t) => { if (status) status.textContent = t; };
+    const setProgress = (pct) => {
+      if (!bar) return;
+      bar.hidden = false;
+      if (pct == null) { bar.removeAttribute('value'); } // unbestimmt
+      else { bar.value = pct; }
+    };
+    const t0 = Date.now();
     btn.disabled = true;
+    btn.textContent = '⏳ Läuft …';
     try {
       await kokoroSpeak($('#kokoro-text')?.value || '', {
         voice: $('#kokoro-voice')?.value || 'af_heart',
         onStatus: setStatus,
+        onProgress: setProgress,
       });
+      if (bar) bar.hidden = true;
+      setStatus(`✓ Fertig in ${((Date.now() - t0) / 1000).toFixed(1)} s. Erneutes Testen geht jetzt schnell (Modell im Cache).`);
     } catch (err) {
-      setStatus('Fehler: ' + (err?.message || err) + ' (WebGPU/Netz prüfen)');
+      console.error('[Kokoro]', err);
+      if (bar) bar.hidden = true;
+      setStatus('❌ ' + (err?.message || err) + '\n(Details in der Browser-Konsole. Nochmal versuchen ist möglich.)');
     } finally {
       btn.disabled = false;
+      btn.textContent = '🧪 Kokoro testen';
     }
   });
 }
