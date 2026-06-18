@@ -314,11 +314,27 @@ function selectedExerciseIds() {
   return selectedSetIds.flatMap((id) => sets.find((s) => s.id === id)?.exercises || []);
 }
 
-// Für den Ablaufplan: nur existierende Übungen mit ihrer Wiederholungszahl.
+// Wiederholungen einer Übung IN EINEM SET: set-spezifischer Wert, sonst der
+// Standardwert der Übung. So kann dieselbe Übung je Set unterschiedlich oft laufen.
+function setReps(set, exId) {
+  const v = set?.reps?.[exId];
+  if (Number.isFinite(v) && v > 0) return v;
+  return exerciseMap[exId]?.reps || DEFAULT_REPS;
+}
+
+// Für den Ablaufplan: nur existierende Übungen mit ihrer (set-spezifischen)
+// Wiederholungszahl – Reihenfolge wie in den gewählten Sets.
 function selectedExercises() {
-  return selectedExerciseIds()
-    .filter((exId) => exerciseMap[exId])
-    .map((exId) => ({ exId, reps: exerciseMap[exId].reps || DEFAULT_REPS }));
+  const out = [];
+  for (const setId of selectedSetIds) {
+    const set = sets.find((s) => s.id === setId);
+    if (!set) continue;
+    for (const exId of set.exercises) {
+      if (!exerciseMap[exId]) continue;
+      out.push({ exId, reps: setReps(set, exId) });
+    }
+  }
+  return out;
 }
 
 function updatePlanSummary() {
@@ -493,10 +509,25 @@ function renderEditor() {
       <span class="handle" title="Ziehen zum Sortieren">⠿</span>
       <span class="emoji">${escapeHtml(ex.emoji)}</span>
       <span class="ex-name">${escapeHtml(ex.name)}<div class="ex-area">${escapeHtml(ex.area)}</div></span>
-      <span class="reps-badge" title="Wiederholungen">×${ex.reps || DEFAULT_REPS}</span>
+      <span class="reps-step" title="Wiederholungen in diesem Set">
+        <button type="button" class="reps-btn" data-d="-1" aria-label="weniger Wiederholungen">−</button>
+        <span class="reps-val">×${setReps(set, exId)}</span>
+        <button type="button" class="reps-btn" data-d="1" aria-label="mehr Wiederholungen">+</button>
+      </span>
       <button class="rm" title="Entfernen">✕</button>`;
+    const valEl = li.querySelector('.reps-val');
+    li.querySelectorAll('.reps-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const next = Math.max(1, Math.min(12, setReps(set, exId) + Number(btn.dataset.d)));
+        if (!set.reps) set.reps = {};
+        set.reps[exId] = next;
+        valEl.textContent = '×' + next;
+        saveSets(sets);
+      });
+    });
     li.querySelector('.rm').addEventListener('click', () => {
       set.exercises = set.exercises.filter((id) => id !== exId);
+      if (set.reps) delete set.reps[exId];
       saveSets(sets);
       renderEditor();
     });
@@ -602,8 +633,11 @@ function deleteExEditor() {
   const ex = exerciseMap[editorExId];
   if (!confirm(`Übung „${ex?.name || ''}“ wirklich löschen? Sie wird auch aus allen Sets entfernt.`)) return;
   exercises = exercises.filter((e) => e.id !== editorExId);
-  // Auch aus allen Sets entfernen.
-  sets.forEach((s) => (s.exercises = s.exercises.filter((id) => id !== editorExId)));
+  // Auch aus allen Sets (samt set-spezifischer Wiederholungen) entfernen.
+  sets.forEach((s) => {
+    s.exercises = s.exercises.filter((id) => id !== editorExId);
+    if (s.reps) delete s.reps[editorExId];
+  });
   saveExercises(exercises);
   saveSets(sets);
   rebuildExerciseMap();
