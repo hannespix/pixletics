@@ -9,13 +9,13 @@ export const PHASE = { PREPARE: 'prepare', WORK: 'work', REST: 'rest', DONE: 'do
 // Diese Sequenz wird durchlaufen und so oft wiederholt, bis die Gesamtdauer
 // (totalMinutes) erreicht ist.
 // `items` ist ein Array aus { exId, reps }.
-export function buildSchedule(items, config) {
+export function buildSchedule(items, config, { wholeLaps = false } = {}) {
   const { workSeconds, pauseSeconds, totalMinutes } = config;
   // Pause + Vorbereitung sind zusammengelegt: vor jeder Übung ein Block, in dem
   // man sich erholt UND gleich zu Beginn hört, was als Nächstes kommt.
   const cycle = pauseSeconds + workSeconds;
   const totalSeconds = totalMinutes * 60;
-  const maxRounds = Math.max(1, Math.floor(totalSeconds / cycle));
+  let maxRounds = Math.max(1, Math.floor(totalSeconds / cycle));
   const steps = [];
   if (!items.length) return steps;
 
@@ -25,6 +25,13 @@ export function buildSchedule(items, config) {
   for (const it of items) {
     const reps = Math.max(1, it.reps || 1);
     for (let r = 0; r < reps; r++) sequence.push({ exId: it.exId, rep: r + 1, repsTotal: reps });
+  }
+
+  // Zirkel: auf volle Runden kürzen (kein angebrochener letzter Durchlauf, der
+  // sonst mit „Runde geschafft“ + nur einer Übung am Ende komisch wirkt) –
+  // solange mindestens eine volle Runde übrig bleibt.
+  if (wholeLaps && sequence.length > 0 && maxRounds >= sequence.length) {
+    maxRounds = Math.floor(maxRounds / sequence.length) * sequence.length;
   }
 
   for (let i = 0; i < maxRounds; i++) {
