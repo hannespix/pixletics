@@ -128,6 +128,10 @@
             <label>Dein Name (optional)<input id="cfg-coachname" type="text" maxlength="20" placeholder="z. B. Alex" /></label>
             <label>Gerätestimme<select id="cfg-voiceuri"></select></label>
           </div>
+          <div class="toggles">
+            <label class="switch"><input type="checkbox" id="cfg-comments" /> <span>Motivationssprüche &amp; Kommentare</span></label>
+          </div>
+          <p class="muted small">Aus = nur die wichtigen Ansagen (Übungsname, „Als Nächstes“, Countdown), ohne Sprüche.</p>
           <p class="muted small">⭐ = besonders natürliche Stimme. Tipp: Android nutzt „Google Deutsch"; am iPhone unter <em>Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen</em> eine deutsche <em>Premium</em>-/<em>Enhanced</em>-Stimme laden – die App wählt sie dann automatisch.</p>
           <div class="slider-row">
             <label>
@@ -382,6 +386,7 @@
       </div>
       <div class="toggles">
         <label class="switch"><input type="checkbox" id="rc-voice" /> <span>Sprachansagen</span></label>
+        <label class="switch"><input type="checkbox" id="rc-comments" /> <span>Motivationssprüche</span></label>
         <label class="switch"><input type="checkbox" id="rc-beeps" /> <span>Signaltöne</span></label>
         <label class="switch"><input type="checkbox" id="rc-duck" /> <span>Musik bei Ansage leiser</span></label>
       </div>

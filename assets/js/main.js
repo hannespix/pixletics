@@ -125,12 +125,16 @@ function verbosityLevel() {
   return v;
 }
 // names = Übungsnamen ansagen; phrases = Coach-Sprüche/Kommentare ansagen.
+// Motivations-/Kommentar-Sprüche lassen sich separat ganz abschalten
+// (config.coachComments) – dann kommen nur die wichtigen Ansagen (Namen,
+// Countdown, Status), ohne Sticheleien.
 function announceFlags() {
   const v = verbosityLevel();
+  const commentsOn = config.coachComments !== false;
   return {
     v,
     names: v === 'full' || v === 'concise',
-    phrases: v === 'full' || v === 'phrases',
+    phrases: (v === 'full' || v === 'phrases') && commentsOn,
   };
 }
 
@@ -227,6 +231,7 @@ function renderVoiceSettings() {
   // Felder & Schieberegler
   if ($('#cfg-coachname')) $('#cfg-coachname').value = config.coachName || '';
   if ($('#cfg-verbosity')) $('#cfg-verbosity').value = config.verbosity || 'full';
+  if ($('#cfg-comments')) $('#cfg-comments').checked = config.coachComments !== false;
   setSlider('cfg-voicevol', 'val-voicevol', Math.round((config.voiceVolume ?? 1) * 100), (v) => Math.round(v) + ' %');
   setSlider('cfg-pitch', 'val-pitch', config.voicePitch, (v) => v.toFixed(2));
   setSlider('cfg-rate', 'val-rate', config.voiceRate, (v) => v.toFixed(2) + '×');
@@ -273,6 +278,10 @@ function bindVoiceSettings() {
   });
   $('#cfg-verbosity')?.addEventListener('change', (e) => {
     config.verbosity = e.target.value;
+    saveConfig(config);
+  });
+  $('#cfg-comments')?.addEventListener('change', (e) => {
+    config.coachComments = e.target.checked;
     saveConfig(config);
   });
   const bindRange = (id, key, valId, fmt, apply) => {
@@ -1026,6 +1035,7 @@ function bindCoachModal() {
     sel.addEventListener('change', (e) => selectPersona(e.target.value));
   }
   $('#rc-verbosity')?.addEventListener('change', (e) => { config.verbosity = e.target.value; saveConfig(config); });
+  $('#rc-comments')?.addEventListener('change', (e) => { config.coachComments = e.target.checked; saveConfig(config); });
   $('#rc-voice')?.addEventListener('change', (e) => { config.voice = e.target.checked; saveConfig(config); });
   $('#rc-beeps')?.addEventListener('change', (e) => { config.beeps = e.target.checked; saveConfig(config); });
   $('#rc-duck')?.addEventListener('change', (e) => { config.duckSpotify = e.target.checked; saveConfig(config); });
@@ -1045,6 +1055,7 @@ function openCoachModal() {
   initAudio();
   if ($('#rc-persona')) $('#rc-persona').value = config.voicePersona || 'standard';
   if ($('#rc-verbosity')) $('#rc-verbosity').value = config.verbosity || 'full';
+  if ($('#rc-comments')) $('#rc-comments').checked = config.coachComments !== false;
   if ($('#rc-voice')) $('#rc-voice').checked = !!config.voice;
   if ($('#rc-beeps')) $('#rc-beeps').checked = !!config.beeps;
   if ($('#rc-duck')) $('#rc-duck').checked = !!config.duckSpotify;
@@ -1218,7 +1229,8 @@ async function startWorkout() {
   // Aktivpause aktiv, wenn ein gewähltes Set sie vorsieht (z. B. Zirkeltraining).
   workoutActiveRest = selectedSetIds.some((id) => sets.find((s) => s.id === id)?.activeRest);
   clearSession(); updateResumeButton(); // neues Workout ersetzt einen gespeicherten Stand
-  const steps = buildSchedule(items, config);
+  // Zirkel (Aktivpause) enden auf einer vollen Runde – kein angebrochener Durchlauf.
+  const steps = buildSchedule(items, config, { wholeLaps: workoutActiveRest });
   armRunner(steps);
 }
 
@@ -1325,6 +1337,11 @@ function fmtTime(ms) {
 function runnerHandlers(steps) {
   const bg = $('#runner-bg');
   const interval = !!steps.interval; // reiner Intervall-Timer (kein exId)
+  // Vorbereitungsschritt direkt vor der letzten Übung – für „Letzte Übung“ statt
+  // „gleich geht's weiter“ (am Ende kommt nichts mehr „weiter“).
+  let lastWorkIndex = -1;
+  for (let i = 0; i < steps.length; i++) if (steps[i].phase === PHASE.WORK) lastWorkIndex = i;
+  const finalPrepare = lastWorkIndex > 0 ? steps[lastWorkIndex - 1] : null;
   return {
     onPhase(step, index) {
       // Intervalle (oder zwischenzeitlich gelöschte Übungen) -> generisches Objekt.
@@ -1432,11 +1449,12 @@ function runnerHandlers(steps) {
         //  • nur Sprüche (phrases): generische „gleich geht's weiter“-Ansage
         //  • minimal: nichts (nur Countdown)
         if (!firstBlock && config.voice && secondsLeft === Math.max(4, duration - 9)) {
+          const isFinal = step === finalPrepare;
           if (names) {
             const ex = exerciseMap[step.exId];
-            if (ex) speak(`Als Nächstes: ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
+            if (ex) speak(`${isFinal ? 'Letzte Übung' : 'Als Nächstes'}: ${ex.name}.${ex.cue ? ' ' + ex.cue + '.' : ''}`);
           } else if (phrases) {
-            speak(line(currentPersona(), 'ready') || 'Achtung, gleich geht’s weiter!');
+            speak(isFinal ? 'Achtung, letzte Übung!' : (line(currentPersona(), 'ready') || 'Achtung, gleich geht’s weiter!'));
           }
         }
         // letzte 3 Sekunden: Start-Countdown (immer).
