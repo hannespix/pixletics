@@ -1254,6 +1254,8 @@ function armRunner(steps, startIndex = 0) {
   $('#exercise-name').textContent = ex ? `${ex.emoji} ${ex.name}` : '';
   $('#exercise-cue').textContent = resuming ? 'Weiter, wo du aufgehört hast – auf Start' : 'Wähle ggf. Musik – dann auf Start';
   $('#big-timer').textContent = preview ? String(preview.duration).padStart(2, '0') : '00';
+  const ring0 = $('#timer-ring');
+  if (ring0) { ring0.classList.remove('final'); ring0.style.setProperty('--p', '1'); ring0.style.setProperty('--ring', 'var(--blue)'); }
   $('#phase-icon').textContent = '';
   $('#next-up').textContent = '';
   $('#runner-round').textContent = '';
@@ -1347,6 +1349,13 @@ function runnerHandlers(steps) {
       // Intervalle (oder zwischenzeitlich gelöschte Übungen) -> generisches Objekt.
       const ex = (step.exId ? exerciseMap[step.exId] : null) || { name: step.label || 'Übung', emoji: '🏋️', cue: '' };
       bg.className = 'runner-bg ' + step.phase;
+      // Timer-Ring zum Phasenstart füllen + Akzentfarbe je Phase.
+      const ring = $('#timer-ring');
+      if (ring) {
+        ring.classList.remove('final');
+        ring.style.setProperty('--p', '1');
+        ring.style.setProperty('--ring', step.phase === PHASE.WORK ? 'var(--accent)' : 'var(--blue)');
+      }
       const lapLen = steps.lapLength || steps.length;
       const repInfo = step.repsTotal > 1 ? ` · Satz ${step.rep}/${step.repsTotal}` : '';
       let roundLabel;
@@ -1478,9 +1487,17 @@ function runnerHandlers(steps) {
       $('#runner-session').textContent = `Noch ${fmtTime(sessionRemaining)}`;
       const frac = 1 - sessionRemaining / (steps.totalSeconds * 1000);
       $('#runner-progress-bar').style.width = `${Math.min(100, frac * 100)}%`;
+      // Timer-Ring leert sich über die aktuelle Phase; letzte 3 Sek. dramatisch.
+      const ring = $('#timer-ring');
+      if (ring && step && step.duration) {
+        ring.style.setProperty('--p', Math.max(0, Math.min(1, remainingMs / (step.duration * 1000))).toFixed(4));
+        ring.classList.toggle('final', secondsLeft <= 3);
+      }
     },
     onFinish() {
       setPhaseUI('Geschafft! 🎉', null, '🏁');
+      const ring = $('#timer-ring');
+      if (ring) { ring.classList.remove('final'); ring.style.setProperty('--p', '1'); ring.style.setProperty('--ring', 'var(--green)'); }
       $('#exercise-name').textContent = 'Sehr gut!';
       $('#big-timer').textContent = '✓';
       $('#exercise-cue').textContent = 'Workout abgeschlossen';

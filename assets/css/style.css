@@ -304,11 +304,27 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
   background: var(--bg); overflow: hidden;
 }
 .runner[hidden] { display: none; }
-.runner-bg { position: absolute; inset: 0; transition: background 0.6s ease; opacity: 0.9; z-index: 0; }
-.runner-bg.prepare { background: radial-gradient(900px 500px at 50% 0, #2a3550, var(--bg)); }
-.runner-bg.work { background: radial-gradient(900px 500px at 50% 0, #4a1d12, var(--bg)); }
-.runner-bg.rest { background: radial-gradient(900px 500px at 50% 0, #123a25, var(--bg)); }
+.runner-bg { position: absolute; inset: 0; transition: background 0.6s ease; opacity: 0.95; z-index: 0; overflow: hidden; }
+.runner-bg.prepare { background: radial-gradient(900px 520px at 50% -5%, #2a3550, var(--bg)); }
+.runner-bg.work { background: radial-gradient(900px 520px at 50% -5%, #5a2113, var(--bg)); }
+.runner-bg.rest { background: radial-gradient(900px 520px at 50% -5%, #103f28, var(--bg)); }
 .runner > *:not(.runner-bg) { position: relative; z-index: 1; }
+
+/* Lebendiger, langsam driftender Aurora-Schleier über dem Phasen-Verlauf. */
+.runner-aurora {
+  position: absolute; inset: -25%; pointer-events: none;
+  background:
+    radial-gradient(38% 38% at 28% 26%, rgba(255, 90, 54, 0.20), transparent 70%),
+    radial-gradient(42% 42% at 74% 62%, rgba(58, 160, 255, 0.16), transparent 70%),
+    radial-gradient(36% 36% at 60% 18%, rgba(255, 174, 0, 0.12), transparent 70%);
+  filter: blur(40px);
+  animation: auroraDrift 22s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift {
+  0%   { transform: translate3d(-4%, -3%, 0) scale(1.05) rotate(0deg); }
+  100% { transform: translate3d(4%, 4%, 0) scale(1.18) rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) { .runner-aurora { animation: none; } }
 
 .runner-top { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; padding-top: max(16px, env(safe-area-inset-top)); }
 .runner-top-btns { display: flex; align-items: center; gap: 6px; }
@@ -317,36 +333,73 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .runner-meta #runner-round { font-weight: 700; color: var(--text); }
 
 .runner-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px; }
-.phase-label { text-transform: uppercase; letter-spacing: 3px; font-size: 15px; color: var(--accent-2); font-weight: 800; }
-.exercise-name { font-size: clamp(30px, 8vw, 64px); font-weight: 900; margin: 6px 0 2px; }
+.phase-label { text-transform: uppercase; letter-spacing: 4px; font-size: 15px; color: var(--accent-2); font-weight: 800; text-shadow: 0 0 18px rgba(255, 174, 0, 0.45); }
+.exercise-name { font-size: clamp(30px, 8vw, 60px); font-weight: 900; margin: 6px 0 2px; letter-spacing: -0.5px; }
 .exercise-cue { color: var(--muted); font-size: 16px; min-height: 22px; }
-.big-timer { font-size: clamp(96px, 34vw, 260px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; margin: 6px 0; }
+/* Timer-Ring: kreisförmiger Fortschritt (leert sich über die Phase) + Glow.
+   --p = 1 (voll) … 0 (leer); --ring = Akzentfarbe je Phase (per JS). */
+.timer-ring {
+  --p: 1; --ring: var(--accent);
+  position: relative; width: min(64vw, 300px); aspect-ratio: 1; margin: 6px 0;
+  display: grid; place-items: center; flex: none;
+}
+.timer-ring::before {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from -90deg, var(--ring) calc(var(--p) * 360deg), rgba(255, 255, 255, 0.07) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 13px), #000 calc(100% - 12px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 13px), #000 calc(100% - 12px));
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--ring) 55%, transparent));
+  transition: filter 0.3s ease;
+}
+.big-timer {
+  position: relative; z-index: 1;
+  font-size: clamp(80px, 30vw, 220px); font-weight: 900; line-height: 1;
+  font-variant-numeric: tabular-nums; letter-spacing: -2px;
+  text-shadow: 0 0 28px rgba(0, 0, 0, 0.35);
+}
 .big-timer.pulse { animation: pulse 0.5s ease; }
-@keyframes pulse { 0% { transform: scale(1); } 40% { transform: scale(1.12); color: var(--accent); } 100% { transform: scale(1); } }
-.phase-icon { font-size: 48px; min-height: 52px; }
+@keyframes pulse { 0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); } }
+/* Letzte Sekunden: Zahl + Ring werden Akzent, kräftigeres Glühen. */
+.timer-ring.final { --ring: var(--accent); }
+.timer-ring.final .big-timer { color: var(--accent); text-shadow: 0 0 34px rgba(255, 90, 54, 0.7); }
+.timer-ring.final::before { filter: drop-shadow(0 0 18px var(--accent)); }
+.phase-icon { font-size: 44px; min-height: 48px; }
 .runner-start { width: auto; min-width: 220px; margin: 18px 0 0; padding: 16px 40px; }
 .runner-start[hidden] { display: none; }
 .next-up { color: var(--muted); font-size: 15px; min-height: 20px; }
 
-.runner-progress { height: 6px; background: #232834; margin: 0 18px; border-radius: 3px; overflow: hidden; }
-#runner-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.25s linear; }
+.runner-progress { height: 6px; background: rgba(255, 255, 255, 0.06); margin: 0 18px; border-radius: 3px; overflow: hidden; }
+#runner-progress-bar {
+  height: 100%; width: 0%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 12px rgba(255, 90, 54, 0.65);
+  transition: width 0.25s linear;
+}
 
 .runner-section { padding: 0 16px; }
 .runner-section-label { display: block; text-align: center; color: var(--muted); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; margin: 2px 0 6px; }
 .runner-controls { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 0 0 10px; flex-wrap: wrap; }
 .ctrl {
-  background: var(--card-2); border: 1px solid var(--border); color: var(--text);
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); color: var(--text);
   font-size: 22px; width: 64px; height: 64px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  transition: transform 0.06s ease, filter 0.15s ease;
 }
 .ctrl:active { transform: scale(0.94); }
 .ctrl-skip { width: auto; border-radius: 999px; padding: 0 22px; font-size: 16px; font-weight: 700; }
+/* Pause = zentrale Aktion: Akzent + Glühen. */
+#btn-pause {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: 0; color: #1a1208;
+  box-shadow: 0 6px 20px rgba(255, 90, 54, 0.45);
+}
 
 /* Schnellzugriff im Runner: zwei saubere Buttons (Coach & Musik) */
 .runner-access { display: flex; gap: 12px; justify-content: center; padding: 2px 0 6px; }
 .access-btn {
   flex: 1; max-width: 200px; display: flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 14px 16px; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 16px;
-  background: var(--card-2); border: 1px solid var(--border); color: var(--text);
+  padding: 14px 16px; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 16px; color: var(--text);
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
 .access-btn:active { transform: scale(0.97); }
 .access-btn:hover { filter: brightness(1.1); }
