@@ -25,6 +25,16 @@ body {
   color: var(--text);
   min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
+  /* App-weit keine versehentliche Textmarkierung (z. B. beim Drag & Drop). */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* Echte Eingabefelder dürfen natürlich markiert/bearbeitet werden. */
+input, textarea, [contenteditable="true"], [contenteditable=""] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
 }
 
 /* ---------- Topbar ---------- */
