@@ -119,7 +119,7 @@ export class FigureAnimator {
 // Hilfen für die Solver
 function depth(p, sign) { return [p[0] + DEPTH * sign, p[1]]; }
 // Komplettes Skelett aus Schlüsselpunkten ableiten (mit Tiefe nah/fern).
-function rig({ hip, shoulder, ankle, hand, toe, kneeBend, elbowBend, headAng, footAng, armFK }) {
+function rig({ hip, shoulder, ankle, hand, toe, kneeBend, elbowBend, headAng, footAng, armFK, armUp, armFore }) {
   const hipN = depth(hip, 1), hipF = depth(hip, -1);
   const sN = depth(shoulder, 1), sF = depth(shoulder, -1);
   const ankN = depth(ankle, 1), ankF = depth(ankle, -1);
@@ -128,9 +128,11 @@ function rig({ hip, shoulder, ankle, hand, toe, kneeBend, elbowBend, headAng, fo
   const toeN = toe ? depth(toe, 1) : addv(ankN, dir(footAng), BONE.foot);
   const toeF = toe ? depth(toe, -1) : addv(ankF, dir(footAng), BONE.foot);
   let elbowN, handN, elbowF, handF;
-  if (armFK != null) { // freie Arme per Vorwärtskinematik (Winkel)
-    elbowN = addv(sN, dir(armFK), BONE.upArm); handN = addv(elbowN, dir(armFK), BONE.foreArm);
-    elbowF = addv(sF, dir(armFK), BONE.upArm); handF = addv(elbowF, dir(armFK), BONE.foreArm);
+  if (armUp != null || armFK != null) { // freie Arme per Vorwärtskinematik (Winkel)
+    const u = armUp != null ? armUp : armFK;            // Oberarm-Winkel
+    const f = armFore != null ? armFore : u;            // Unterarm-Winkel (sonst gerade)
+    elbowN = addv(sN, dir(u), BONE.upArm); handN = addv(elbowN, dir(f), BONE.foreArm);
+    elbowF = addv(sF, dir(u), BONE.upArm); handF = addv(elbowF, dir(f), BONE.foreArm);
   } else { // gestützte Arme: Hand am Boden verankert -> IK
     const hN = depth(hand, 1), hF = depth(hand, -1);
     elbowN = ik2(sN, hN, BONE.upArm, BONE.foreArm, elbowBend); handN = hN;
@@ -139,6 +141,14 @@ function rig({ hip, shoulder, ankle, hand, toe, kneeBend, elbowBend, headAng, fo
   const neck = addv(shoulder, dir(headAng), BONE.neck);
   const head = addv(neck, dir(headAng), BONE.head);
   return { hip, shoulder, head, hipN, hipF, sN, sF, kneeN, ankN, toeN, kneeF, ankF, toeF, elbowN, handN, elbowF, handF };
+}
+
+// Stehende Grundhaltung (Füße am Boden, Beine ~gerade) – Basis für Pausen-Idles.
+function stand({ hipBob = 0, lean = 3, headAng = 2, armUp, armFore }) {
+  const ankle = [CX, GROUND_Y - 1];
+  const hip = [CX, GROUND_Y - 37 - hipBob];
+  const shoulder = addv(hip, dir(lean), BONE.torso);
+  return rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng, armUp, armFore });
 }
 
 // viewBox je Übung aus der echten Bounding-Box über die ganze Animation
@@ -188,5 +198,27 @@ export const EXERCISES = {
       const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin); // Hüfte auf der Brett-Linie
       return rig({ hip, shoulder, ankle, hand, toe, kneeBend: 1, elbowBend: 1, headAng: 98 });
     },
+  },
+
+  // ---- Pausen-Idles (Männchen entspannt sich) ----
+  // Durchatmen, Hände in die Hüften, Brust hebt/senkt sich.
+  rest_breathe: {
+    duration: 2800, pingpong: true,
+    solve(t) { return stand({ hipBob: lerp(0, 2.2, t), lean: 3, headAng: lerp(3, 0, t), armUp: 206, armFore: 124 }); },
+  },
+  // Recken/Strecken: Arme über den Kopf, leicht nach hinten.
+  rest_stretch: {
+    duration: 2600, pingpong: true,
+    solve(t) { const arm = lerp(150, 8, t); return stand({ hipBob: lerp(0, 2, t), lean: lerp(4, -3, t), headAng: lerp(3, -4, t), armUp: arm, armFore: arm }); },
+  },
+  // Seitneigung (lockern), Arme hängen locker.
+  rest_sidebend: {
+    duration: 2800, pingpong: true,
+    solve(t) { const lean = lerp(-11, 11, t); return stand({ lean, headAng: lean, armUp: lerp(188, 202, t), armFore: lerp(190, 206, t) }); },
+  },
+  // Arme locker vor/zurück schwingen + leichtes Wippen.
+  rest_swing: {
+    duration: 1500, pingpong: true,
+    solve(t) { const sw = lerp(150, 232, t); return stand({ hipBob: lerp(0, 2.5, t), lean: 3, headAng: 2, armUp: sw, armFore: sw + 6 }); },
   },
 };
