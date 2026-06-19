@@ -1820,7 +1820,6 @@ function runnerHandlers(steps) {
           if (config.voice) speak(String(secondsLeft));
         }
       } else if (step.phase === PHASE.PREPARE) {
-        maybePreviewNext(secondsLeft, duration); // Hybrid-Pause: Vorschau der nächsten Übung
         const firstBlock = step.round === 1; // Lead-in: nur Countdown
         // Kurz vor dem Ende der Pause eine Vorwarnung:
         //  • mit Übungsnamen (full/concise): „Als Nächstes: X.“
@@ -1885,45 +1884,25 @@ function runnerHandlers(steps) {
 // ---- Übungs-Vorführung (Holzpuppe) ----
 // Welche Übung welche Animation bekommt (wird nach und nach erweitert).
 const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups', lunges: 'lunges', highknees: 'highknees', climbers: 'climbers', situps: 'situps', crunches: 'crunches', legraises: 'legraises', bridge: 'bridge', superman: 'superman', calfraises: 'calfraises', jumpsquats: 'jumpsquats', plank: 'plank', pikepushups: 'pikepushups', diamond: 'diamond' };
-const REST_ANIMS = ['rest_breathe', 'rest_stretch', 'rest_sidebend', 'rest_swing'];
-const PREVIEW_SPEED = 0.55; // Pausen-Vorschau der nächsten Übung ~halbes Tempo
-let figureAnimator = null, _lastRest = -1;
-let _previewExId = null, _previewDone = false; // Hybrid-Pause: Idle -> Vorschau
-// Zufälliges Pausen-Idle wählen – nie zweimal dasselbe hintereinander.
-function pickRest() {
-  let i;
-  do { i = Math.floor(Math.random() * REST_ANIMS.length); } while (i === _lastRest && REST_ANIMS.length > 1);
-  _lastRest = i;
-  return REST_ANIMS[i];
-}
-// WORK: Übungs-Animation (falls vorhanden). PAUSE (PREPARE): erst entspanntes
-// Idle (durchatmen), in den letzten Sekunden eine langsame Vorschau der
-// kommenden Übung (siehe maybePreviewNext) – das Männchen geht in Position.
+const PREVIEW_SPEED = 0.55; // In der Pause die Übung in ~halbem Tempo vorführen
+let figureAnimator = null;
+// Holzpuppe führt in BEIDEN Phasen dieselbe Übung vor: in der Pause (PREPARE)
+// langsam als Vorschau ("Danach: …"), in der WORK-Phase im vollen Tempo. Kein
+// separates Idle mehr. Übergänge (Übung A -> B) morphen weich + Kamera wandert mit.
 function updateRunnerFigure(exId, phase) {
   const wrap = $('#exercise-figure'); const ring = $('#timer-ring');
   if (!wrap || !ring) return;
-  _previewExId = null; _previewDone = false;
-  let key = null;
-  if (phase === PHASE.WORK) key = (exId && FIGURE_ANIMS[exId]) ? FIGURE_ANIMS[exId] : null;
-  else if (phase === PHASE.PREPARE) { key = pickRest(); _previewExId = (exId && FIGURE_ANIMS[exId]) ? exId : null; }
-  if (key) {
+  const key = (exId && FIGURE_ANIMS[exId]) ? FIGURE_ANIMS[exId] : null;
+  const active = key && (phase === PHASE.WORK || phase === PHASE.PREPARE);
+  if (active) {
     if (!figureAnimator) figureAnimator = new FigureAnimator($('#exercise-figure-svg'));
-    figureAnimator.play(key); // WORK volles Tempo, PAUSE ruhiges Idle
+    figureAnimator.play(key, { speed: phase === PHASE.WORK ? 1 : PREVIEW_SPEED });
     wrap.hidden = false;
     ring.classList.add('has-figure'); // Zahl klein nach oben, Figur mittig
   } else {
     figureAnimator?.stop();
     wrap.hidden = true;
     ring.classList.remove('has-figure');
-  }
-}
-// In den letzten Sekunden der Pause die kommende Übung langsam vormachen.
-function maybePreviewNext(secondsLeft, duration) {
-  if (_previewDone || !_previewExId || !figureAnimator) return;
-  const at = Math.min(7, Math.max(3, Math.floor(duration / 2)));
-  if (secondsLeft <= at) {
-    figureAnimator.play(FIGURE_ANIMS[_previewExId], { speed: PREVIEW_SPEED });
-    _previewDone = true;
   }
 }
 
