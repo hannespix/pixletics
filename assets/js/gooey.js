@@ -22,6 +22,7 @@ export class GooeyMorph {
     this.state = 'a'; // welcher Layer gerade „fest“ sichtbar ist
     this.looping = false;
     this._t = null;
+    this.onReturnToA = opts.onReturnToA || null; // Callback beim Morph zurück zu Layer A
     this._setStatic(this.a, this.b);
   }
 
@@ -48,6 +49,8 @@ export class GooeyMorph {
   morph(duration = 2000) {
     const from = this.state === 'a' ? this.a : this.b;
     const to = this.state === 'a' ? this.b : this.a;
+    // Beim Wechsel zurück zu Layer A („pixletics“) den Sync-Callback auslösen.
+    if (this.state === 'b' && this.onReturnToA) this.onReturnToA();
     return new Promise((resolve) => {
       const t0 = performance.now();
       this._applyFilter(true);
