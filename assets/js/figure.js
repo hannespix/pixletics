@@ -617,6 +617,47 @@ export const EXERCISES = {
     },
   },
 
+  // Schulterklopfen: hoher Stütz (Brett), abwechselnd hebt eine Hand ab und tippt
+  // die gegenüberliegende Schulter; die andere Hand stützt am Boden. Zehen fix.
+  shouldertaps: {
+    duration: 1600, loop: 'cycle',
+    solve(t) {
+      const toe = [20, GROUND_Y - 1], ankle = [20, GROUND_Y - 7];
+      const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
+      const shoulder = addv(ankle, dir(70), bodyLen);
+      const hip = addv(ankle, dir(70), BONE.thigh + BONE.shin);
+      const floor = [shoulder[0], GROUND_Y - 1];       // Stützhand unter der Schulter
+      const s = Math.sin(2 * Math.PI * t);
+      const nTap = Math.max(0, s), fTap = Math.max(0, -s);
+      const o = { hip, shoulder, ankle, toe, kneeBend: 1, elbowBend: 1, headAng: 104 };
+      // Tipp-Arm per FK (Hand zur Brust/Schulter), Stütz-Arm per IK zum Boden.
+      const up = (tap) => lerp(182, 300, tap);          // unten am Boden -> hoch zur Schulter
+      const fore = (tap) => lerp(182, 232, tap);
+      if (nTap > 0) { o.armUpN = up(nTap); o.armForeN = fore(nTap); o.handF = floor; }
+      else if (fTap > 0) { o.armUpF = up(fTap); o.armForeF = fore(fTap); o.handN = floor; }
+      else { o.handN = floor; o.handF = floor; }
+      return rig(o);
+    },
+  },
+
+  // Plank Jacks: Brett-Stütz auf den Händen (fix), die Füße hüpfen auf/zu
+  // (in der Seitenansicht als kleines Vor/Zurück angedeutet). Hüfte/Rumpf bleibt.
+  plankjacks: {
+    duration: 600,
+    solve(t) {
+      const hand = [76, GROUND_Y - 1];
+      const shoulder = [70, GROUND_Y - 29];
+      const hip = addv(shoulder, dir(250), BONE.torso);
+      const spread = lerp(1, 9, t);                     // Füße zu -> auseinander
+      const baseX = 22;
+      return rig({
+        hip, shoulder, hand, elbowBend: 1, headAng: 116,
+        ankleN: [baseX + spread, GROUND_Y - 3], kneeBendN: 1, footAngN: 250,
+        ankleF: [baseX - spread, GROUND_Y - 3], kneeBendF: 1, footAngF: 250,
+      });
+    },
+  },
+
   // Kurzer neutraler Stand (Arme locker an der Seite, leichtes Atmen) – wird als
   // 1-Sekunden-Übergang zwischen den Übungen gezeigt (Männchen "steht kurz").
   idle: {
