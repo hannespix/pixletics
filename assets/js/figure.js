@@ -412,6 +412,23 @@ export const EXERCISES = {
     },
   },
 
+  // Beinheben: Rückenlage, Oberkörper flach am Boden (fix), Arme neben dem
+  // Körper. Die gestreckten Beine heben gemeinsam um die Hüfte vom Boden bis
+  // fast senkrecht und senken wieder (Bauch/unterer Rücken).
+  legraises: {
+    duration: 1900,
+    solve(t) {
+      const hip = [56, GROUND_Y - 4];
+      const shoulder = addv(hip, dir(270), BONE.torso); // Rumpf flach nach links am Boden
+      const legAng = lerp(92, 6, t);                     // Beine waagerecht -> fast senkrecht
+      return rig({
+        hip, shoulder, headAng: 274,                     // Kopf liegt am Boden
+        thighAng: legAng, shinAng: legAng, footAng: legAng + 20, // Beine gestreckt zusammen
+        armUp: 96, armFore: 96,                           // Arme flach am Boden neben dem Körper
+      });
+    },
+  },
+
   // ---- Pausen-Idles (Männchen entspannt sich) ----
   // Durchatmen, Hände in die Hüften, Brust hebt/senkt sich.
   rest_breathe: {
