@@ -10,6 +10,7 @@ import {
 } from './audio.js';
 import { PERSONAS, getPersona, line, motivationLine, resetCoachBags } from './coach.js';
 import { buildSchedule, buildIntervalSchedule, WorkoutEngine, PHASE } from './engine.js';
+import { generateSet } from './setgen.js';
 import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
@@ -471,6 +472,7 @@ function renderSetsList() {
     row.innerHTML = `
       <div>
         <div class="sr-name">${escapeHtml(set.name)}</div>
+        ${set.desc ? `<div class="sr-desc">${escapeHtml(set.desc)}</div>` : ''}
         <div class="sr-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => exerciseMap[id]?.name).filter(Boolean).join(', ') || '—'}</div>
       </div>
       <span class="icon-btn">✎</span>`;
@@ -486,12 +488,75 @@ $('#btn-new-set').addEventListener('click', () => {
   openEditor(set.id);
 });
 
+// ================ AUTO-SET-ASSISTENT ================
+// Sammelt Parameter und erzeugt per Algorithmus ein ausgewogenes Set.
+let wizardParams = { intensity: 'mittel', goal: 'mix', focus: ['ganzkoerper'], durationMin: 20 };
+
+// Eine Segment-Gruppe (Einfachauswahl) verdrahten.
+function setupSegGroup(sel, onChange) {
+  const group = $(sel);
+  if (!group) return;
+  group.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-v]');
+    if (!btn) return;
+    group.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === btn));
+    onChange(btn.dataset.v);
+  });
+}
+setupSegGroup('#wiz-intensity', (v) => { wizardParams.intensity = v; });
+setupSegGroup('#wiz-goal', (v) => { wizardParams.goal = v; });
+
+// Körperfokus: Mehrfachauswahl, „Ganzkörper" ist exklusiv.
+$('#wiz-focus').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-v]');
+  if (!btn) return;
+  const v = btn.dataset.v;
+  let focus = wizardParams.focus.slice();
+  if (v === 'ganzkoerper') {
+    focus = ['ganzkoerper'];
+  } else {
+    focus = focus.filter((f) => f !== 'ganzkoerper');
+    focus = focus.includes(v) ? focus.filter((f) => f !== v) : [...focus, v];
+    if (!focus.length) focus = ['ganzkoerper'];
+  }
+  wizardParams.focus = focus;
+  $('#wiz-focus').querySelectorAll('button').forEach((b) => b.classList.toggle('on', focus.includes(b.dataset.v)));
+});
+
+$('#wiz-duration').addEventListener('input', (e) => {
+  wizardParams.durationMin = Number(e.target.value);
+  $('#wiz-duration-val').textContent = e.target.value;
+});
+
+// Sekunden pro Übung (Pause + Belastung) zur Dauer-Abschätzung.
+function cycleSeconds() {
+  return Math.max(20, (config.pauseSeconds || 30) + (config.workSeconds || 30));
+}
+
+$('#btn-auto-set').addEventListener('click', () => { $('#set-wizard').hidden = false; });
+$('#btn-close-wizard').addEventListener('click', () => { $('#set-wizard').hidden = true; });
+
+$('#btn-generate-set').addEventListener('click', () => {
+  const res = generateSet(exercises, wizardParams, cycleSeconds());
+  if (!res || !res.exercises.length) {
+    alert('Mit diesem Fokus stehen zu wenige Übungen zur Verfügung. Wähle einen breiteren Körperfokus.');
+    return;
+  }
+  const set = { id: uid(), name: res.name, desc: res.desc, exercises: res.exercises, gen: res.gen };
+  sets.push(set);
+  saveSets(sets);
+  $('#set-wizard').hidden = true;
+  openEditor(set.id);
+});
+
 // ================ SET EDITOR ================
 function openEditor(setId) {
   editorSetId = setId;
   const set = sets.find((s) => s.id === setId);
   if (!set) return;
   $('#editor-name').value = set.name;
+  $('#editor-desc').value = set.desc || '';
+  $('#btn-regenerate-set').hidden = !set.gen; // nur bei auto-erstellten Sets
   renderEditor();
   $('#set-editor').hidden = false;
 }
@@ -769,6 +834,26 @@ $('#editor-name').addEventListener('input', (e) => {
     set.name = e.target.value;
     saveSets(sets);
   }
+});
+$('#editor-desc').addEventListener('input', (e) => {
+  const set = currentSet();
+  if (set) {
+    set.desc = e.target.value;
+    saveSets(sets);
+  }
+});
+// Auto-erstelltes Set mit denselben Parametern neu würfeln (frische Variante).
+$('#btn-regenerate-set').addEventListener('click', () => {
+  const set = currentSet();
+  if (!set || !set.gen) return;
+  const res = generateSet(exercises, set.gen, cycleSeconds());
+  if (!res || !res.exercises.length) return;
+  set.exercises = res.exercises;
+  set.desc = res.desc;
+  if (set.reps) set.reps = {}; // set-spezifische Wiederholungen zurücksetzen
+  saveSets(sets);
+  $('#editor-desc').value = set.desc;
+  renderEditor();
 });
 $('#btn-save-set').addEventListener('click', closeEditor);
 $('#btn-close-editor').addEventListener('click', closeEditor);

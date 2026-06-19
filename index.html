@@ -171,7 +171,10 @@
       <div class="card">
         <div class="row-between">
           <h2>Deine Übungssets</h2>
-          <button class="btn" id="btn-new-set">+ Neues Set</button>
+          <div class="set-head-btns">
+            <button class="btn btn-accent" id="btn-auto-set">✨ Auto-Set</button>
+            <button class="btn" id="btn-new-set">+ Neues Set</button>
+          </div>
         </div>
         <p class="muted">Tippe auf ein Set zum Bearbeiten. Hake die gewünschten Übungen an und ziehe sie per Drag &amp; Drop in die richtige Reihenfolge.</p>
         <div id="sets-list" class="sets-list"></div>
@@ -279,6 +282,7 @@
         <input class="set-name-input" id="editor-name" placeholder="Set-Name" />
         <button class="icon-btn" id="btn-close-editor">✕</button>
       </div>
+      <textarea class="set-desc-input" id="editor-desc" rows="2" placeholder="Beschreibung (optional) – wofür ist dieses Set, wie wirkt es?"></textarea>
       <p class="muted small">Angehakte Übungen sind im Set. Ziehe am ⠿ Griff, um die Reihenfolge zu ändern.</p>
       <div class="editor-cols">
         <div>
@@ -292,7 +296,60 @@
       </div>
       <div class="row-between editor-actions">
         <button class="btn btn-danger" id="btn-delete-set">Set löschen</button>
-        <button class="btn btn-primary" id="btn-save-set">Fertig</button>
+        <div class="set-head-btns">
+          <button class="btn" id="btn-regenerate-set" hidden>🎲 Neu würfeln</button>
+          <button class="btn btn-primary" id="btn-save-set">Fertig</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ AUTO-SET-ASSISTENT (Modal) ============ -->
+  <div class="modal" id="set-wizard" hidden>
+    <div class="modal-card wizard-card">
+      <div class="row-between">
+        <h2 style="margin:0">✨ Set automatisch erstellen</h2>
+        <button class="icon-btn" id="btn-close-wizard">✕</button>
+      </div>
+      <p class="muted small">Beantworte ein paar Fragen – pixletics stellt dir ein passendes, abwechslungsreiches Set zusammen.</p>
+
+      <div class="wiz-field">
+        <label class="wiz-label">Intensität</label>
+        <div class="seg" id="wiz-intensity">
+          <button type="button" data-v="locker">Locker</button>
+          <button type="button" data-v="mittel" class="on">Mittel</button>
+          <button type="button" data-v="intensiv">Intensiv</button>
+        </div>
+      </div>
+
+      <div class="wiz-field">
+        <label class="wiz-label">Schwerpunkt</label>
+        <div class="seg" id="wiz-goal">
+          <button type="button" data-v="kraft">Kraft</button>
+          <button type="button" data-v="mix" class="on">Mix</button>
+          <button type="button" data-v="ausdauer">Ausdauer</button>
+        </div>
+      </div>
+
+      <div class="wiz-field">
+        <label class="wiz-label">Körperfokus <span class="muted small">(Mehrfachauswahl)</span></label>
+        <div class="chips" id="wiz-focus">
+          <button type="button" data-v="ganzkoerper" class="on">Ganzkörper</button>
+          <button type="button" data-v="oberkoerper">Oberkörper</button>
+          <button type="button" data-v="unterkoerper">Unterkörper</button>
+          <button type="button" data-v="core">Bauch &amp; Core</button>
+          <button type="button" data-v="cardio">Cardio</button>
+        </div>
+      </div>
+
+      <div class="wiz-field">
+        <label class="wiz-label" for="wiz-duration">Gewünschte Dauer: <strong id="wiz-duration-val">20</strong> Min.</label>
+        <input type="range" id="wiz-duration" min="8" max="60" step="2" value="20" />
+      </div>
+
+      <div class="row-between editor-actions">
+        <span class="muted small" id="wiz-hint"></span>
+        <button class="btn btn-primary" id="btn-generate-set">Set erstellen</button>
       </div>
     </div>
   </div>
