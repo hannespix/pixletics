@@ -181,17 +181,20 @@ main {
 @media (prefers-reduced-motion: reduce) { .app-aurora { animation: none; } }
 .train-hero { margin: 6px 2px 24px; animation: pi-in 0.45s ease both; }
 .hero-title {
-  margin: 0 0 20px; font-size: clamp(23px, 6.4vw, 28px); font-weight: 900; line-height: 1.22;
-  letter-spacing: -0.3px; color: var(--text); min-height: 2.44em; display: flex; align-items: flex-end;
-  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45);
-  transition: opacity 0.32s ease, filter 0.32s ease, transform 0.32s ease; will-change: opacity, filter;
+  position: relative; margin: 0 0 20px; min-height: 2.44em;
+  font-size: clamp(23px, 6.4vw, 28px); font-weight: 900; line-height: 1.22;
+  letter-spacing: -0.3px; color: var(--text); text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45);
 }
-.hero-title.swap { opacity: 0; filter: blur(10px); transform: translateY(8px); }
+/* Zwei übereinanderliegende Slogan-Layer für den Gooey-Morph (wie das Logo). */
+.slogan-layer {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: flex-end; will-change: opacity, filter;
+}
+#slogan-b { opacity: 0; }
 /* Akzent-Wort im Slogan (zweifarbig) */
 .hero-accent {
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  text-shadow: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-title { transition: none; }

@@ -120,18 +120,31 @@ function sloganHTML(s) {
   const inner = s.split('*').map((part, i) => (i % 2 ? `<span class="hero-accent">${escapeHtml(part)}</span>` : escapeHtml(part))).join('');
   return `<span class="hero-line">${inner}</span>`; // ein Flex-Item -> Leerzeichen bleiben erhalten
 }
-// Neuer Slogan mit Blur-Morph. Wird synchron zum Logo ausgelöst (siehe
-// headerMorph.onReturnToA): immer wenn das Logo zurück zu „pixletics“ morpht.
+// Eigener Gooey-Morph für den Slogan (zwei Layer, gleicher Effekt wie das Logo).
+let sloganMorph = null;
+(function initSlogan() {
+  const stage = $('#hero-slogan'), a = $('#slogan-a'), b = $('#slogan-b');
+  if (!stage || !a || !b) return;
+  a.innerHTML = sloganHTML(pickSlogan()); // zufälliger Startslogan
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return; // statisch
+  sloganMorph = new GooeyMorph({
+    stage, layerA: a, layerB: b,
+    blur: document.querySelector('#goo-slogan feGaussianBlur'),
+    matrix: document.querySelector('#goo-slogan feColorMatrix'),
+    disp: document.querySelector('#goo-slogan feDisplacementMap'),
+    filterId: 'goo-slogan',
+    maxBlur: 12, gooStd: 7, threshBase: 16, threshAmp: 26, offBase: -7, offAmp: -11,
+    dispBase: 0, dispAmp: 3, keepFilter: false,
+  });
+})();
+// Slogan wechseln – synchron zum Logo (gleicher Gooey-Effekt UND gleiche Dauer),
+// ausgelöst über headerMorph.onReturnToA beim Zurück-Morphen zu „pixletics“.
 function swapSlogan() {
-  const el = $('#hero-slogan');
-  if (!el) return;
-  const next = pickSlogan();
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { el.innerHTML = sloganHTML(next); return; }
-  el.classList.add('swap');                                          // ausblenden + verschwimmen
-  setTimeout(() => { el.innerHTML = sloganHTML(next); el.classList.remove('swap'); }, 320); // einblenden (Blur-Morph)
+  if (!sloganMorph) return;
+  const target = sloganMorph.state === 'a' ? $('#slogan-b') : $('#slogan-a');
+  target.innerHTML = sloganHTML(pickSlogan()); // Zielebene mit neuem Slogan füllen
+  sloganMorph.morph(HEAD_LOOP.duration);       // exakt so lang wie der Logo-Morph
 }
-// Startwert (zufällig) setzen.
-(() => { const el = $('#hero-slogan'); if (el) el.innerHTML = sloganHTML(pickSlogan()); })();
 
 // ================ TRAINING VIEW ================
 // Label-Maps für die Auto-Set-Metadaten (vgl. setgen.js).
