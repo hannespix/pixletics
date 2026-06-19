@@ -366,6 +366,15 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .phase-label { text-transform: uppercase; letter-spacing: 4px; font-size: 15px; color: var(--accent-2); font-weight: 800; text-shadow: 0 0 18px rgba(255, 174, 0, 0.45); }
 .exercise-name { font-size: clamp(30px, 8vw, 60px); font-weight: 900; margin: 6px 0 2px; letter-spacing: -0.5px; }
 .exercise-cue { color: var(--muted); font-size: 16px; min-height: 22px; }
+/* Auffällige „So geht's"-Anleitungs-Pille im Runner (statt unscheinbarem Icon) */
+.howto-pill {
+  display: inline-flex; align-items: center; gap: 6px; margin: 10px auto 2px;
+  padding: 8px 16px; border-radius: 999px; border: 1px solid var(--accent);
+  background: rgba(255, 90, 54, 0.12); color: var(--accent); font-weight: 700;
+  font-size: 14px; cursor: pointer; transition: transform 0.05s ease, filter 0.15s ease;
+}
+.howto-pill:active { transform: scale(0.96); }
+.howto-pill[hidden] { display: none; }
 /* Timer-Ring: kreisförmiger Fortschritt (leert sich über die Phase) + Glow.
    --p = 1 (voll) … 0 (leer); --ring = Akzentfarbe je Phase (per JS). */
 .timer-ring {
@@ -525,8 +534,12 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 /* ---------------- Übungsanleitung (So geht's / Worauf achten) ---------------- */
 #howto-modal { z-index: 70; } /* über dem Runner (z-index 60) */
 .howto-modal-card { width: min(440px, 100%); }
-/* Editierbare Anleitung im Übungs-Editor */
-.ex-howto-edit { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 12px; display: grid; gap: 12px; }
+/* Anleitung im Übungs-Editor: erst ansehen, Bearbeiten per Button */
+.ex-howto-section { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 12px; }
+.ex-howto-view { margin-bottom: 10px; }
+.btn-small { padding: 7px 12px; font-size: 13px; }
+.ex-howto-edit { display: grid; gap: 12px; margin-top: 4px; }
+.ex-howto-edit[hidden] { display: none; }
 .ex-howto-field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 14px; }
 .ex-howto-field textarea {
   background: var(--bg-2); border: 1px solid var(--border); color: var(--text);

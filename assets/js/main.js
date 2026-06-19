@@ -673,6 +673,15 @@ function openExEditor(exId) {
   const h = resolveHowto(ex) || { steps: [], tips: [] };
   $('#ex-steps').value = (h.steps || []).join('\n');
   $('#ex-tips').value = (h.tips || []).join('\n');
+  // Anleitung standardmäßig nur ANZEIGEN; Bearbeiten erst auf Knopfdruck.
+  const viewHtml = howtoHtml(exId);
+  const view = $('#ex-howto-view');
+  view.innerHTML = viewHtml || '<p class="muted small">Noch keine Anleitung hinterlegt.</p>';
+  view.hidden = false;
+  $('#ex-howto-edit').hidden = true;
+  const editBtn = $('#btn-edit-howto');
+  editBtn.hidden = false;
+  editBtn.textContent = viewHtml ? '✏️ Anleitung bearbeiten' : '＋ Anleitung hinzufügen';
   $('#btn-delete-ex').style.visibility = ex ? 'visible' : 'hidden';
   $('#exercise-editor').hidden = false;
 }
@@ -1705,6 +1714,13 @@ $('#btn-new-ex').addEventListener('click', () => openExEditor(null));
 $('#btn-close-ex-editor').addEventListener('click', closeExEditor);
 $('#btn-save-ex').addEventListener('click', saveExEditor);
 $('#btn-delete-ex').addEventListener('click', deleteExEditor);
+// Anleitung von „nur ansehen" zu „bearbeiten" umschalten.
+$('#btn-edit-howto').addEventListener('click', () => {
+  $('#ex-howto-view').hidden = true;
+  $('#btn-edit-howto').hidden = true;
+  $('#ex-howto-edit').hidden = false;
+  $('#ex-steps').focus();
+});
 
 // ---------------- Radio / Sender-Editor: Buttons ----------------
 $('#btn-new-station').addEventListener('click', () => openStationEditor(null));

@@ -35,12 +35,18 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   reiches** Set zusammen (gleichmäßige Muskelabdeckung, Aufwärmen/Finisher,
   passende Beschreibung). Per **„Neu würfeln"** gibt es jederzeit eine frische
   Variante.
-- **Übungsanleitungen (ℹ️)**: Zu jeder Standard-Übung gibt es eine verständliche
+- **Übungsanleitungen**: Zu jeder Standard-Übung gibt es eine verständliche
   Schritt-für-Schritt-**Durchführung** plus **„Worauf besonders achten"**
-  (Technik, Sicherheit, häufige Fehler) – sichtbar im Übungs-Editor und während
-  des Trainings über den **ℹ️-Button** im Runner. Die Anleitungen sind **frei
-  editierbar** (eine Anweisung pro Zeile) – auch für **selbst angelegte Übungen**;
-  die kuratierten Texte dienen als Vorlage.
+  (Technik, Sicherheit, häufige Fehler). Im Training erscheint dazu in jeder
+  Pause/Übung eine gut sichtbare **„ℹ️ So geht's"-Schaltfläche** für die
+  anstehende Übung. Im Übungs-Editor wird die Anleitung zunächst nur **angezeigt**;
+  **Bearbeiten** erfolgt bewusst erst per Button – frei editierbar (eine Anweisung
+  pro Zeile), auch für **selbst angelegte Übungen** (die kuratierten Texte dienen
+  als Vorlage).
+- **Aussprache-Korrektur (Sprachausgabe)**: Knifflige Wörter (Anglizismen wie
+  *Skater*, *Burpees*, *Mountain Climbers* oder Vokalfolgen wie *beeindruckt*)
+  werden für die deutsche Text-to-Speech lautnah umgeschrieben, damit sie korrekt
+  klingen – die Anzeige bleibt unverändert (`fixPronunciation` in `audio.js`).
 - **Pause = Pause + Vorbereitung**: Vor jeder Übung gibt es **einen** Block
   (standardmäßig 30 s), in dem man sich erholt und **gleich zu Beginn die
   nächste Übung angesagt** bekommt – so kann man sich mental vorbereiten.

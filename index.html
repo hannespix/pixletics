@@ -236,7 +236,6 @@
         <span id="runner-session"></span>
       </div>
       <div class="runner-top-btns">
-        <button class="icon-btn" id="btn-runner-howto" title="So führst du die Übung aus" aria-label="Übungsanleitung" hidden>ℹ︎</button>
         <button class="icon-btn" id="btn-fs-runner" title="Vollbild umschalten" aria-label="Vollbild umschalten">⛶</button>
         <button class="icon-btn" id="btn-close-runner" title="Beenden">✕</button>
       </div>
@@ -246,6 +245,7 @@
       <div class="phase-label" id="phase-label">Bereit</div>
       <div class="exercise-name" id="exercise-name"></div>
       <div class="exercise-cue" id="exercise-cue"></div>
+      <button class="howto-pill" id="btn-runner-howto" hidden>ℹ️ So geht's – Anleitung</button>
       <div class="timer-ring" id="timer-ring"><div class="big-timer" id="big-timer">00</div></div>
       <div class="phase-icon" id="phase-icon"></div>
       <div class="next-up" id="next-up"></div>
@@ -369,13 +369,17 @@
         <label>Wiederholungen<input type="number" id="ex-reps" min="1" max="6" step="1" /></label>
         <label class="ex-form-cue">Beschreibung<input id="ex-cue" placeholder="kurzer Bewegungshinweis" /></label>
       </div>
-      <div class="ex-howto-edit">
-        <label class="ex-howto-field">So führst du sie aus <span class="muted small">– Durchführung, eine Anweisung pro Zeile</span>
-          <textarea id="ex-steps" rows="4" placeholder="Eine Anweisung pro Zeile, z. B.&#10;Schulterbreiter Stand, Fußspitzen leicht nach außen.&#10;Hüfte zurückschieben und in die Knie gehen …"></textarea>
-        </label>
-        <label class="ex-howto-field">⚠️ Worauf besonders achten <span class="muted small">– ein Punkt pro Zeile</span>
-          <textarea id="ex-tips" rows="4" placeholder="Ein Hinweis pro Zeile, z. B.&#10;Knie folgen der Richtung der Fußspitzen.&#10;Fersen bleiben am Boden."></textarea>
-        </label>
+      <div class="ex-howto-section">
+        <div class="ex-howto ex-howto-view" id="ex-howto-view"></div>
+        <button type="button" class="btn btn-small" id="btn-edit-howto">✏️ Anleitung bearbeiten</button>
+        <div class="ex-howto-edit" id="ex-howto-edit" hidden>
+          <label class="ex-howto-field">So führst du sie aus <span class="muted small">– Durchführung, eine Anweisung pro Zeile</span>
+            <textarea id="ex-steps" rows="4" placeholder="Eine Anweisung pro Zeile, z. B.&#10;Schulterbreiter Stand, Fußspitzen leicht nach außen.&#10;Hüfte zurückschieben und in die Knie gehen …"></textarea>
+          </label>
+          <label class="ex-howto-field">⚠️ Worauf besonders achten <span class="muted small">– ein Punkt pro Zeile</span>
+            <textarea id="ex-tips" rows="4" placeholder="Ein Hinweis pro Zeile, z. B.&#10;Knie folgen der Richtung der Fußspitzen.&#10;Fersen bleiben am Boden."></textarea>
+          </label>
+        </div>
       </div>
       <div class="row-between editor-actions">
         <button class="btn btn-danger" id="btn-delete-ex">Löschen</button>
