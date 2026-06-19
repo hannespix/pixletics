@@ -145,8 +145,10 @@ export class FigureAnimator {
       if (!this.anim) { this.raf = null; return; }
       const dur = (this.anim.duration || 1500) / (this.speedFactor || 1);
       const u = ((now - this.t0) % dur) / dur;
-      const tri = u < 0.5 ? u * 2 : (1 - u) * 2; // 0 -> 1 -> 0 (Ping-Pong)
-      this.setPoints(this.anim.solve(easeInOut(tri)));
+      // 'cycle': durchlaufende Schleife (z. B. Lauf-/Marschbewegung, t=0 == t=1);
+      // sonst Ping-Pong (0 -> 1 -> 0) mit Ease für Hin-/Her-Bewegungen.
+      const tt = this.anim.loop === 'cycle' ? u : easeInOut(u < 0.5 ? u * 2 : (1 - u) * 2);
+      this.setPoints(this.anim.solve(tt));
       this.raf = requestAnimationFrame(tick);
     };
     this.raf = requestAnimationFrame(tick);
@@ -166,12 +168,23 @@ function rig(o) {
   const { hip, shoulder } = o;
   const headAng = o.headAng ?? 0;
   // Ein Bein (sign: +1 = nah/vorne, -1 = fern/hinten).
+  // FK (Oberschenkel-/Schienbein-Winkel) für angehobene Beine (Knieheben,
+  // Mountain Climbers, Beinheben …) ODER IK zum fixen Fuß am Boden.
   const leg = (sign) => {
+    const hipP = depth(hip, sign);
+    const footAng = (sign > 0 ? o.footAngN : o.footAngF) ?? o.footAng;
+    const thighAng = (sign > 0 ? o.thighAngN : o.thighAngF) ?? o.thighAng;
+    if (thighAng != null) {
+      const shinAng = (sign > 0 ? o.shinAngN : o.shinAngF) ?? o.shinAng ?? thighAng;
+      const knee = addv(hipP, dir(thighAng), BONE.thigh);
+      const ank = addv(knee, dir(shinAng), BONE.shin);
+      const toe = addv(ank, dir(footAng ?? shinAng), BONE.foot);
+      return [hipP, knee, ank, toe];
+    }
     const ankle = (sign > 0 ? o.ankleN : o.ankleF) || o.ankle;
     const toeP = (sign > 0 ? o.toeN : o.toeF) || o.toe;
     const kneeBend = (sign > 0 ? o.kneeBendN : o.kneeBendF) ?? o.kneeBend;
-    const footAng = (sign > 0 ? o.footAngN : o.footAngF) ?? o.footAng;
-    const hipP = depth(hip, sign), ankP = depth(ankle, sign);
+    const ankP = depth(ankle, sign);
     const knee = ik2(hipP, ankP, BONE.thigh, BONE.shin, kneeBend);
     const toe = toeP ? depth(toeP, sign) : addv(ankP, dir(footAng), BONE.foot);
     return [hipP, knee, ankP, toe];
@@ -271,6 +284,34 @@ export const EXERCISES = {
         ankleN, kneeBendN: -1, footAngN: 90,            // vorderes Knie nach vorne über den Knöchel
         ankleF, kneeBendF: -1, footAngF: 148,           // hinteres Bein, Ballen/Ferse hoch
         armUp: 205, armFore: 120,                        // Hände locker in die Hüften
+      });
+    },
+  },
+
+  // Knieheben: zügiges Marschieren auf der Stelle mit hohen Knien. Immer ein Bein
+  // gestreckt am Boden (Kontaktpunkt), das andere zieht das Knie auf Hüfthöhe
+  // (Schienbein hängt, Zehen nach unten). Die beiden Beine heben in getrennten
+  // Halbphasen -> nie schwebt die Figur. Arme pumpen gegengleich (gleichseitiger
+  // Arm nach hinten, wenn das Knie hochkommt), Ellbogen gebeugt nach hinten.
+  highknees: {
+    duration: 900, loop: 'cycle',
+    solve(t) {
+      const hip = [CX, GROUND_Y - 37];
+      const lean = 6;
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      const s = Math.sin(2 * Math.PI * t);
+      const nearLift = Math.max(0, s);            // 1. Hälfte: nahes Knie hoch
+      const farLift = Math.max(0, -s);            // 2. Hälfte: fernes Knie hoch
+      const thigh = (l) => lerp(180, 74, l);       // gestreckt unten -> Knie auf Hüfthöhe
+      const shin = (l) => lerp(180, 150, l);       // Schienbein hängt beim Heben
+      const foot = (l) => lerp(95, 165, l);        // Fuß flach -> Zehen nach unten
+      const upN = 182 + 35 * s, upF = 182 - 35 * s; // Armpump gegengleich
+      return rig({
+        hip, shoulder, headAng: lean,
+        thighAngN: thigh(nearLift), shinAngN: shin(nearLift), footAngN: foot(nearLift),
+        thighAngF: thigh(farLift), shinAngF: shin(farLift), footAngF: foot(farLift),
+        armUpN: upN, armForeN: upN - 50,
+        armUpF: upF, armForeF: upF - 50,
       });
     },
   },
