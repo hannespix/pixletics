@@ -1080,17 +1080,56 @@ function updateRunnerNowPlaying() {
 }
 
 // ================ RADIO ================
+// Genre-Filter für die Senderlisten (Musik-Tab + Schnellwahl-Modal).
+const RADIO_CATS = [
+  ['electro', 'Electro/EDM'],
+  ['pop', 'Pop & Charts'],
+  ['hiphop', 'HipHop & Rap'],
+  ['rock', 'Rock'],
+  ['metal', 'Metal'],
+  ['retro', '80er/90er'],
+];
+let radioFilter = 'all';
+const isKnownCat = (c) => RADIO_CATS.some(([k]) => k === c);
+function stationsForFilter() {
+  if (radioFilter === 'all') return stations;
+  if (radioFilter === 'sonstige') return stations.filter((s) => !isKnownCat(s.cat));
+  return stations.filter((s) => s.cat === radioFilter);
+}
+function renderStationFilter(host, rerender) {
+  if (!host) return;
+  const present = new Set(stations.map((s) => s.cat).filter(isKnownCat));
+  const cats = [['all', 'Alle'], ...RADIO_CATS.filter(([k]) => present.has(k))];
+  if (stations.some((s) => !isKnownCat(s.cat))) cats.push(['sonstige', 'Sonstige']);
+  if (!cats.some(([k]) => k === radioFilter)) radioFilter = 'all'; // Fallback
+  host.innerHTML = '';
+  cats.forEach(([key, label]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'radio-filter-chip' + (radioFilter === key ? ' on' : '');
+    b.textContent = label;
+    b.addEventListener('click', () => { radioFilter = key; rerender(); });
+    host.appendChild(b);
+  });
+}
+
 function renderRadio() {
   const host = $('#radio-list');
   if (!host) return;
+  renderStationFilter($('#radio-filter'), renderRadio);
   host.innerHTML = '';
   if (!stations.length) {
     host.innerHTML = '<p class="muted">Noch keine Sender. Lege mit „+ Sender“ welche an.</p>';
     return;
   }
+  const list = stationsForFilter();
+  if (!list.length) {
+    host.innerHTML = '<p class="muted small">Keine Sender in diesem Genre.</p>';
+    return;
+  }
   // Nach Genre gruppieren.
   const byGenre = {};
-  stations.forEach((s) => {
+  list.forEach((s) => {
     const g = s.genre || 'Sonstige';
     (byGenre[g] ||= []).push(s);
   });
@@ -1158,13 +1197,17 @@ function renderMusicModal() {
     const lab = $('#val-musicvol');
     if (lab) lab.textContent = pct + ' %';
   }
+  renderStationFilter($('#mm-filter'), renderMusicModal);
   const list = $('#mm-radio');
   list.innerHTML = '';
+  const stns = stationsForFilter();
   if (!stations.length) {
     list.innerHTML = '<p class="muted small">Noch keine Sender. Lege im Tab „Musik“ welche an.</p>';
+  } else if (!stns.length) {
+    list.innerHTML = '<p class="muted small">Keine Sender in diesem Genre.</p>';
   } else {
     const byGenre = {};
-    stations.forEach((s) => { (byGenre[s.genre || 'Sonstige'] ||= []).push(s); });
+    stns.forEach((s) => { (byGenre[s.genre || 'Sonstige'] ||= []).push(s); });
     Object.keys(byGenre).sort().forEach((genre) => {
       const head = document.createElement('div');
       head.className = 'radio-genre';

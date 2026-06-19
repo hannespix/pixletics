@@ -91,14 +91,16 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   eine **längere Pause** und die Ansage „Runde X geschafft". Beim Zirkel wird ab
   Runde 2 die **Aktivpause angekündigt**.
 - **Musik** (Tab „Musik"): zwei Optionen –
-  - **Internet-Radio**: kuratierte Sender mit Schwerpunkt **Rock, 70er/80er/90er
-    & Workout** (RADIO BOB! 80er/90er Rock, ROCK ANTENNE inkl. Classic Perlen &
-    Heavy Metal, plus viele **werbefreie SomaFM**-Streams: Underground 80s, Left
-    Coast 70s, BAGeL Radio, Metal Detector, Indie Pop Rocks, Beat Blender …),
-    **ohne Login/Key/Premium**. Eigene Sender (HTTPS-Stream-URL) lassen sich
-    hinzufügen. Für SomaFM wird der **aktuell laufende Song** angezeigt (andere
-    Sender liefern im Browser keine Track-Infos). Standard-Sender ist
-    **RADIO BOB! 80er Rock**.
+  - **Internet-Radio**: ~30 kuratierte Sender quer durch die Genres – Auswahl
+    nach **werbefrei/werbearm, nur Musik, workout-tauglich** (nicht zu langsam),
+    mit Schwerpunkt **Electro/EDM** (SomaFM Beat Blender, DEF CON, The Trip,
+    Dub Step Beyond, Suburbs of Goa, cliqhop, PopTron + bigFM Dance/Groove Night/
+    Workout) sowie **Pop & Charts**, **HipHop & Rap** (bigFM Deutschrap/Old School,
+    SomaFM Fluid), **Rock**, **Metal** und **80er/90er**. Ein **Genre-Filter**
+    (Chip-Leiste) hält die Liste übersichtlich. Alles **ohne Login/Key/Premium**;
+    eigene Sender (HTTPS-Stream-URL) lassen sich hinzufügen. Für SomaFM wird der
+    **aktuell laufende Song** angezeigt (andere Sender liefern im Browser keine
+    Track-Infos).
   - **Spotify** (optional, ohne Key): jeder verbindet einfach seinen **eigenen
     Account** („Mit Spotify verbinden"), läuft im Browser mit und ist von hier
     steuerbar. Benötigt **Spotify Premium**. (Die App-Client-ID ist fest
