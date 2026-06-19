@@ -108,7 +108,7 @@ const HERO_SLOGANS = [
   'Jede *Wiederholung* zählt.', 'Weniger *Bierbauch*, mehr Power!', 'Einmal richtig *auspowern*!',
   'Dein Körper kann *mehr*, als du denkst.', 'Los, der *Schweiß* darf fließen!',
 ];
-let _sloganTimer = null, _lastSlogan = -1;
+let _lastSlogan = -1;
 function pickSlogan() {
   let i;
   do { i = Math.floor(Math.random() * HERO_SLOGANS.length); } while (i === _lastSlogan && HERO_SLOGANS.length > 1);
@@ -120,19 +120,18 @@ function sloganHTML(s) {
   const inner = s.split('*').map((part, i) => (i % 2 ? `<span class="hero-accent">${escapeHtml(part)}</span>` : escapeHtml(part))).join('');
   return `<span class="hero-line">${inner}</span>`; // ein Flex-Item -> Leerzeichen bleiben erhalten
 }
-function startSloganRotator() {
+// Neuer Slogan mit Blur-Morph. Wird synchron zum Logo ausgelöst (siehe
+// headerMorph.onReturnToA): immer wenn das Logo zurück zu „pixletics“ morpht.
+function swapSlogan() {
   const el = $('#hero-slogan');
   if (!el) return;
-  el.innerHTML = sloganHTML(pickSlogan());
-  if (_sloganTimer) clearInterval(_sloganTimer);
-  _sloganTimer = setInterval(() => {
-    const next = pickSlogan();
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { el.innerHTML = sloganHTML(next); return; }
-    el.classList.add('swap');                                          // ausblenden + verschwimmen
-    setTimeout(() => { el.innerHTML = sloganHTML(next); el.classList.remove('swap'); }, 320); // einblenden (Blur-Morph)
-  }, 10000);
+  const next = pickSlogan();
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { el.innerHTML = sloganHTML(next); return; }
+  el.classList.add('swap');                                          // ausblenden + verschwimmen
+  setTimeout(() => { el.innerHTML = sloganHTML(next); el.classList.remove('swap'); }, 320); // einblenden (Blur-Morph)
 }
-startSloganRotator();
+// Startwert (zufällig) setzen.
+(() => { const el = $('#hero-slogan'); if (el) el.innerHTML = sloganHTML(pickSlogan()); })();
 
 // ================ TRAINING VIEW ================
 // Label-Maps für die Auto-Set-Metadaten (vgl. setgen.js).
@@ -2098,6 +2097,9 @@ function startHeaderLoop() {
       // Kein Dauer-Wabern: Filter nur während des Wechsels, dazwischen scharf.
       dispBase: 0, dispAmp: 2.0, keepFilter: false,
     });
+    // Slogan synchron wechseln: immer wenn das Logo zurück zu „pixletics“ morpht
+    // (also jede zweite Logo-Animation) erscheint ein neuer Slogan.
+    headerMorph.onReturnToA = swapSlogan;
   }
   headerMorph.loop(HEAD_LOOP);
 }
