@@ -351,24 +351,25 @@ export const EXERCISES = {
     },
   },
 
-  // Mountain Climbers: hoher Stütz (Hände fix am Boden), Körper als Brett. Die
-  // Knie ziehen abwechselnd nach vorne zur Brust und strecken zurück. Jedes Bein
-  // zieht in seiner eigenen Halbphase an (das andere bleibt hinten gestreckt) ->
-  // immer Bodenkontakt, kein Chaos. Füße per IK, bleiben über dem Boden.
+  // Mountain Climbers: Stütz auf den Händen (fix), Hüfte leicht angehoben. Die
+  // Knie ziehen abwechselnd nach vorne zur Brust und strecken zurück zum Boden.
+  // Beine per Vorwärtskinematik (Winkel) -> kein Umklappen der Knie; jedes Bein
+  // treibt in seiner Halbphase, das andere bleibt hinten gestreckt am Boden.
   climbers: {
     duration: 820, loop: 'cycle',
     solve(t) {
-      const hand = [74, GROUND_Y - 1];                 // Hände fix am Boden
-      const shoulder = [68, GROUND_Y - 30];            // Schultern über den Händen
-      const hip = addv(shoulder, dir(250), BONE.torso); // Brett-Linie nach hinten-unten
+      const hand = [72, GROUND_Y - 1];                 // Hände fix am Boden
+      const shoulder = [64, GROUND_Y - 26];            // Schultern über den Händen
+      const hip = [44, GROUND_Y - 42];                 // Hüfte angehoben (Platz für die Beine)
       const sgn = Math.sin(2 * Math.PI * t);
       const nD = Math.max(0, sgn), fD = Math.max(0, -sgn); // near treibt 1. Hälfte, far 2.
-      // Fuß-Ziel: gestreckt hinten <-> Knie zur Brust (vorn, unter den Körper angehoben).
-      const ank = (d) => [lerp(15, 54, d), lerp(GROUND_Y - 8, GROUND_Y - 21, d)];
+      const thigh = (d) => lerp(208, 116, d);          // hinten unten -> Knie nach vorne zur Brust
+      const shin = (d) => lerp(208, 188, d);           // gestreckt -> Fuß unter dem Knie
+      const foot = (d) => lerp(206, 165, d);
       return rig({
         hip, shoulder, hand, elbowBend: 1, headAng: 120,
-        ankleN: ank(nD), kneeBendN: 1, footAngN: lerp(232, 292, nD),
-        ankleF: ank(fD), kneeBendF: 1, footAngF: lerp(232, 292, fD),
+        thighAngN: thigh(nD), shinAngN: shin(nD), footAngN: foot(nD),
+        thighAngF: thigh(fD), shinAngF: shin(fD), footAngF: foot(fD),
       });
     },
   },
@@ -574,6 +575,13 @@ export const EXERCISES = {
       const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
       return rig({ hip, shoulder, ankle, hand, toe, kneeBend: 1, elbowBend: 1, headAng: 98 });
     },
+  },
+
+  // Kurzer neutraler Stand (Arme locker an der Seite, leichtes Atmen) – wird als
+  // 1-Sekunden-Übergang zwischen den Übungen gezeigt (Männchen "steht kurz").
+  idle: {
+    duration: 2400, pingpong: true,
+    solve(t) { return stand({ hipBob: lerp(0, 1.4, t), lean: 3, headAng: 2, armUp: 196, armFore: 182 }); },
   },
 
   // ---- Pausen-Idles (Männchen entspannt sich) ----
