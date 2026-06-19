@@ -19,7 +19,7 @@ const TRANS_MS = 650;
 // Konstante Bühnen-Größe: jede Übung wird in einem quadratischen Fenster fester
 // Kantenlänge zentriert -> gleicher Figur-Maßstab überall (kein Wachsen/Schrumpfen),
 // aber jede Übung sitzt mittig in der Bubble (das "Kamera"-Fenster wandert mit).
-const STAGE_S = 92;
+const STAGE_S = 82;
 const parseVB = (s) => s.split(' ').map(Number);
 const lerpVB = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t), lerp(a[3], b[3], t)];
 // Zwei Posen (Punkt-Wörterbücher gleicher Schlüssel) Punkt für Punkt mischen.
@@ -68,12 +68,16 @@ export class FigureAnimator {
 
   _build() {
     this.svg.setAttribute('viewBox', `${CX - STAGE_S / 2} 6 ${STAGE_S} ${STAGE_S}`);
+    // Zeichenreihenfolge hinten->vorne: ferne Glieder, Rumpf, KOPF, dann nahe
+    // Glieder. So liegt der Kopf hinter dem nahen Arm (Superman/Arme über Kopf:
+    // Arm vor dem Kopf) und vor den fernen Gliedern.
     this.thighF = this._line('fig-limb fig-far', 7, 0.45);
     this.shinF = this._line('fig-limb fig-far', 7, 0.45);
     this.footF = this._line('fig-limb fig-far', 6, 0.45);
     this.upArmF = this._line('fig-limb fig-far', 6, 0.45);
     this.foreArmF = this._line('fig-limb fig-far', 6, 0.45);
     this.torso = this._line('fig-torso', 12);
+    this.cHead = this._dot(BONE.head, 'fig-head');
     this.thighN = this._line('fig-limb', 7.5);
     this.shinN = this._line('fig-limb', 7.5);
     this.footN = this._line('fig-limb', 6.5);
@@ -82,7 +86,6 @@ export class FigureAnimator {
     this.jHip = this._dot(3.2, 'fig-joint');
     this.jShoulder = this._dot(3.2, 'fig-joint');
     this.jHand = this._dot(3.4, 'fig-joint');
-    this.cHead = this._dot(BONE.head, 'fig-head');
   }
 
   setPoints(P) {
@@ -258,7 +261,7 @@ function stageViewBox(a) {
     const P = a.solve(i / 16);
     for (const k in P) {
       const p = P[k]; if (!Array.isArray(p)) continue;
-      const r = k === 'head' ? BONE.head + 1 : 4; // Kopfradius bzw. Strich/Gelenk abdecken
+      const r = k === 'head' ? BONE.head : 3; // Kopfradius bzw. Strich/Gelenk abdecken
       minx = Math.min(minx, p[0] - r); maxx = Math.max(maxx, p[0] + r);
       miny = Math.min(miny, p[1] - r); maxy = Math.max(maxy, p[1] + r);
     }
@@ -298,22 +301,23 @@ export const EXERCISES = {
     },
   },
 
-  // Ausfallschritt: vorderer Fuß flach am Boden, hinterer auf dem Ballen (Ferse
-  // hoch). Die Hüfte senkt sich gerade nach unten -> vorderes Knie beugt über dem
-  // Knöchel nach vorne, hinteres Knie sinkt zum Boden; Oberkörper bleibt aufrecht.
-  // Beide Füße bleiben fix am Boden (Kontaktpunkte), Knie per IK nachgezogen.
+  // Ausfallschritte „auf der Stelle": abwechselnd vor- und zurücktreten. Ein Fuß
+  // tritt nach vorne (flach), der andere bleibt hinten auf dem Ballen, die Hüfte
+  // senkt sich -> vorderes Knie über dem Knöchel, hinteres Knie zum Boden; dann
+  // zurück durch den Stand und auf die andere Seite. Hände locker in der Hüfte.
   lunges: {
-    duration: 1900,
+    duration: 2600, loop: 'cycle',
     solve(t) {
-      const ankleN = [60, GROUND_Y - 1];               // vorderer Fuß flach, fix
-      const ankleF = [34, GROUND_Y - 7];               // hinterer Fuß auf dem Ballen, fix
-      const hip = [lerp(49, 48, t), lerp(GROUND_Y - 36, GROUND_Y - 27, t)]; // senkt sich
-      const lean = lerp(3, 7, t);                       // Oberkörper fast aufrecht
+      const s = Math.sin(2 * Math.PI * t);             // +: nahes Bein vorn, -: fernes Bein vorn
+      const amt = Math.abs(s);                          // 0 Stand .. 1 tiefer Ausfallschritt
+      const nearBack = Math.max(0, -s), farBack = Math.max(0, s);
+      const hip = [CX, GROUND_Y - 37 + 10 * amt];       // senkt sich beim Ausfallschritt
+      const lean = 4 + 4 * amt;
       const shoulder = addv(hip, dir(lean), BONE.torso);
       return rig({
         hip, shoulder, headAng: lean,
-        ankleN, kneeBendN: -1, footAngN: 90,            // vorderes Knie nach vorne über den Knöchel
-        ankleF, kneeBendF: -1, footAngF: 148,           // hinteres Bein, Ballen/Ferse hoch
+        ankleN: [CX + 15 * s, GROUND_Y - 1 - 6 * nearBack], kneeBendN: -1, footAngN: lerp(90, 150, nearBack),
+        ankleF: [CX - 15 * s, GROUND_Y - 1 - 6 * farBack], kneeBendF: -1, footAngF: lerp(90, 150, farBack),
         armUp: 205, armFore: 120,                        // Hände locker in die Hüften
       });
     },
@@ -348,24 +352,23 @@ export const EXERCISES = {
   },
 
   // Mountain Climbers: hoher Stütz (Hände fix am Boden), Körper als Brett. Die
-  // Beine wechseln im Laufschritt: ein Knie zieht nach vorne zur Brust (Fuß
-  // angehoben/getuckt), das andere streckt sich nach hinten zum Boden. Beide
-  // Beine gegenphasig (cycle) – die Hände bleiben der fixe Kontaktpunkt.
+  // Knie ziehen abwechselnd nach vorne zur Brust und strecken zurück. Jedes Bein
+  // zieht in seiner eigenen Halbphase an (das andere bleibt hinten gestreckt) ->
+  // immer Bodenkontakt, kein Chaos. Füße per IK, bleiben über dem Boden.
   climbers: {
-    duration: 720, loop: 'cycle',
+    duration: 820, loop: 'cycle',
     solve(t) {
-      const hand = [76, GROUND_Y - 1];                 // Hände fix am Boden
-      const shoulder = [70, GROUND_Y - 30];            // Schultern über den Händen
-      const hip = addv(shoulder, dir(250), BONE.torso); // Brett-Linie nach hinten
-      // Fuß-Ziel je Bein: hinten am Boden (gestreckt) <-> vorn unter die Brust
-      // angehoben (Knie zur Brust). Über IK -> Füße bleiben immer über dem Boden.
-      const dN = (1 - Math.cos(2 * Math.PI * t)) / 2;
-      const dF = (1 + Math.cos(2 * Math.PI * t)) / 2;  // gegenphasig
-      const ank = (d) => [lerp(22, 56, d), lerp(GROUND_Y - 4, GROUND_Y - 18, d)];
+      const hand = [74, GROUND_Y - 1];                 // Hände fix am Boden
+      const shoulder = [68, GROUND_Y - 30];            // Schultern über den Händen
+      const hip = addv(shoulder, dir(250), BONE.torso); // Brett-Linie nach hinten-unten
+      const sgn = Math.sin(2 * Math.PI * t);
+      const nD = Math.max(0, sgn), fD = Math.max(0, -sgn); // near treibt 1. Hälfte, far 2.
+      // Fuß-Ziel: gestreckt hinten <-> Knie zur Brust (vorn, unter den Körper angehoben).
+      const ank = (d) => [lerp(15, 54, d), lerp(GROUND_Y - 8, GROUND_Y - 21, d)];
       return rig({
-        hip, shoulder, hand, elbowBend: 1, headAng: 116,
-        ankleN: ank(dN), kneeBendN: -1, footAngN: lerp(250, 300, dN),
-        ankleF: ank(dF), kneeBendF: -1, footAngF: lerp(250, 300, dF),
+        hip, shoulder, hand, elbowBend: 1, headAng: 120,
+        ankleN: ank(nD), kneeBendN: 1, footAngN: lerp(232, 292, nD),
+        ankleF: ank(fD), kneeBendF: 1, footAngF: lerp(232, 292, fD),
       });
     },
   },
