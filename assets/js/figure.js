@@ -25,7 +25,11 @@ const lerpVB = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2]
 // Zwei Posen (Punkt-Wörterbücher gleicher Schlüssel) Punkt für Punkt mischen.
 function lerpPose(A, B, t) {
   const o = {};
-  for (const k in B) { const a = A[k], b = B[k]; o[k] = (Array.isArray(a) && Array.isArray(b)) ? mix(a, b, t) : b; }
+  for (const k in B) {
+    const a = A[k], b = B[k];
+    const pt = Array.isArray(a) && Array.isArray(b) && a.length === 2 && typeof a[0] === 'number';
+    o[k] = pt ? mix(a, b, t) : b; // Punkte mischen; props/sonstiges -> Ziel übernehmen
+  }
   return o;
 }
 
@@ -68,6 +72,8 @@ export class FigureAnimator {
 
   _build() {
     this.svg.setAttribute('viewBox', `${CX - STAGE_S / 2} 6 ${STAGE_S} ${STAGE_S}`);
+    // Requisiten-Ebene HINTER der Figur (Box, Bank, Wand, Sprossen, Ringe …).
+    this.gBack = document.createElementNS(SVGNS, 'g'); this.svg.appendChild(this.gBack);
     // Zeichenreihenfolge hinten->vorne: ferne Glieder, Rumpf, KOPF, dann nahe
     // Glieder. So liegt der Kopf hinter dem nahen Arm (Superman/Arme über Kopf:
     // Arm vor dem Kopf) und vor den fernen Gliedern.
@@ -86,10 +92,32 @@ export class FigureAnimator {
     this.jHip = this._dot(3.2, 'fig-joint');
     this.jShoulder = this._dot(3.2, 'fig-joint');
     this.jHand = this._dot(3.4, 'fig-joint');
+    // Requisiten-Ebene VOR der Figur (gehaltene Geräte: Hantel, Ball, Stange …).
+    this.gFront = document.createElementNS(SVGNS, 'g'); this.svg.appendChild(this.gFront);
+  }
+
+  // Geräte/Requisiten zeichnen (pr.front -> vor der Figur, sonst dahinter).
+  // type: 'rect'|'circle'|'line'; optional fill/stroke/sw; kettlebell: 'kb'.
+  _drawProps(list) {
+    this.gBack.replaceChildren(); this.gFront.replaceChildren();
+    if (!list) return;
+    for (const pr of list) {
+      const g = pr.front ? this.gFront : this.gBack;
+      const add = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); g.appendChild(e); return e; };
+      const fill = pr.fill || '#8a929e', stroke = pr.stroke || fill, sw = pr.sw || 4;
+      if (pr.type === 'rect') add('rect', { x: pr.x, y: pr.y, width: pr.w, height: pr.h, rx: pr.rx || 1.5, fill });
+      else if (pr.type === 'circle') add('circle', { cx: pr.x, cy: pr.y, r: pr.r, fill });
+      else if (pr.type === 'line') add('line', { x1: pr.x1, y1: pr.y1, x2: pr.x2, y2: pr.y2, stroke, 'stroke-width': sw, 'stroke-linecap': 'round', fill: 'none' });
+      else if (pr.type === 'kb') { // Kettlebell: Kugel + Bügel
+        add('path', { d: `M ${pr.x - pr.r * 0.7} ${pr.y - pr.r * 0.4} q ${pr.r * 0.7} ${-pr.r} ${pr.r * 1.4} 0`, fill: 'none', stroke: pr.stroke || '#3a3f47', 'stroke-width': 2.4 });
+        add('circle', { cx: pr.x, cy: pr.y, r: pr.r, fill: pr.fill || '#3a3f47' });
+      }
+    }
   }
 
   setPoints(P) {
     const set = (l, a, b) => { l.setAttribute('x1', a[0].toFixed(2)); l.setAttribute('y1', a[1].toFixed(2)); l.setAttribute('x2', b[0].toFixed(2)); l.setAttribute('y2', b[1].toFixed(2)); };
+    this._drawProps(P.props);
     set(this.torso, P.hip, P.shoulder);
     set(this.thighF, P.hipF, P.kneeF); set(this.shinF, P.kneeF, P.ankF); set(this.footF, P.ankF, P.toeF);
     set(this.upArmF, P.sF, P.elbowF); set(this.foreArmF, P.elbowF, P.handF);
@@ -257,13 +285,17 @@ function viewBoxFor(a) { return a._vb || (a._vb = computeViewBox(a)); }
 function stageViewBox(a) {
   if (a._svb) return a._svb;
   let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+  const ext = (x, y, r = 0) => { minx = Math.min(minx, x - r); maxx = Math.max(maxx, x + r); miny = Math.min(miny, y - r); maxy = Math.max(maxy, y + r); };
   for (let i = 0; i <= 16; i++) {
     const P = a.solve(i / 16);
     for (const k in P) {
       const p = P[k]; if (!Array.isArray(p)) continue;
-      const r = k === 'head' ? BONE.head : 3; // Kopfradius bzw. Strich/Gelenk abdecken
-      minx = Math.min(minx, p[0] - r); maxx = Math.max(maxx, p[0] + r);
-      miny = Math.min(miny, p[1] - r); maxy = Math.max(maxy, p[1] + r);
+      ext(p[0], p[1], k === 'head' ? BONE.head : 3); // Kopfradius bzw. Strich/Gelenk
+    }
+    for (const pr of (P.props || [])) { // Geräte mit einrahmen
+      if (pr.type === 'rect') { ext(pr.x, pr.y); ext(pr.x + pr.w, pr.y + pr.h); }
+      else if (pr.type === 'circle' || pr.type === 'kb') ext(pr.x, pr.y, pr.r + 2);
+      else if (pr.type === 'line') { ext(pr.x1, pr.y1, 2); ext(pr.x2, pr.y2, 2); }
     }
   }
   const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
@@ -718,6 +750,53 @@ export const EXERCISES = {
         armUpN: arm(fSt), armForeN: arm(fSt) - 42,        // gegengleich zum nahen Bein
         armUpF: arm(nSt), armForeF: arm(nSt) - 42,
       });
+    },
+  },
+
+  // Burpees: explosiv aus der Hocke nach oben springen (Arme über Kopf) und
+  // wieder tief runter, Hände Richtung Boden. Ping-Pong (Sprung <-> Hocke).
+  burpees: {
+    duration: 1100,
+    solve(t) {
+      const ankle = [CX, lerp(GROUND_Y - 13, GROUND_Y - 1, t)]; // Sprung: Füße ab -> unten am Boden
+      const hip = [CX, lerp(GROUND_Y - 45, GROUND_Y - 18, t)];  // hoch -> tiefe Hocke
+      const lean = lerp(4, 42, t);                               // aufrecht -> stark vorgebeugt
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      const arm = lerp(8, 122, t);                               // über Kopf -> nach unten-vorne
+      return rig({
+        hip, shoulder, headAng: lerp(4, 30, t),
+        ankle, kneeBend: -1, footAng: lerp(150, 92, t),          // gespitzt im Sprung -> flach unten
+        armUp: arm, armFore: arm,
+      });
+    },
+  },
+
+  // Wandsitzen: Rücken an der Wand, Oberschenkel waagerecht, Schienbeine senkrecht.
+  // Statischer Halt (leichtes Wippen). Wand als Requisite hinter dem Rücken.
+  wallsit: {
+    duration: 2800, pingpong: true,
+    solve(t) {
+      const hip = [50, GROUND_Y - 23 + lerp(0, 1.4, t)];
+      const ankle = [66, GROUND_Y - 1];
+      const shoulder = addv(hip, dir(352), BONE.torso);          // Rücken fast senkrecht an der Wand
+      const P = rig({ hip, shoulder, headAng: 354, ankle, kneeBend: -1, footAng: 92, armFK: 92 });
+      P.props = [{ type: 'rect', x: 28, y: 40, w: 6, h: 66, fill: '#5b6472' }]; // Wand
+      return P;
+    },
+  },
+
+  // Trizeps-Dips: Hände hinter dem Körper auf einer Bank/Kiste, Beine vorne,
+  // Ellbogen nach hinten beugen -> Gesäß senkt/hebt sich. Bank als Requisite.
+  tricepdips: {
+    duration: 1700,
+    solve(t) {
+      const hand = [32, GROUND_Y - 27];                          // Hände auf der Bankkante (hinten)
+      const shoulder = [42, lerp(GROUND_Y - 48, GROUND_Y - 36, t)]; // senkt sich beim Dip
+      const hip = [50, lerp(GROUND_Y - 30, GROUND_Y - 20, t)];
+      const ankle = [70, GROUND_Y - 1];                          // Füße vorne am Boden
+      const P = rig({ hip, shoulder, hand, elbowBend: 1, headAng: 6, ankle, kneeBend: -1, footAng: 92 });
+      P.props = [{ type: 'rect', x: 16, y: GROUND_Y - 27, w: 24, h: 28, fill: '#7a5a3c' }]; // Bank/Kiste
+      return P;
     },
   },
 
