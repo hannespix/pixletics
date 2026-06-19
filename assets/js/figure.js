@@ -46,7 +46,7 @@ const CX = 50, GROUND_Y = 104, DEPTH = 2.6;
 export class FigureAnimator {
   constructor(svg) {
     this.svg = svg;
-    this.raf = null; this.anim = null; this.t0 = 0; this.trans = null; this._lastP = null;
+    this.raf = null; this.anim = null; this.t0 = 0; this.trans = null; this._lastP = null; this.speedFactor = 1;
     this._build();
     this.setPoints(EXERCISES.squats.solve(0));
     this._lastP = null; // erster play() soll nicht aus dieser Default-Pose morphen
@@ -96,11 +96,22 @@ export class FigureAnimator {
     this._lastP = P;
   }
 
-  play(anim) {
+  play(anim, opts = {}) {
     const a = typeof anim === 'string' ? EXERCISES[anim] : anim;
     if (!a) { this.stop(); return false; }
-    this.anim = a;
+    const speed = opts.speed ?? 1;
     this.svg.setAttribute('viewBox', STAGE); // feste Bühne -> kein Skalensprung
+    // Gleiche Animation, läuft schon -> nur das Tempo ändern (Phase beibehalten),
+    // damit die langsame Pausen-Vorschau nahtlos ins volle Übungstempo übergeht.
+    if (a === this.anim && this.raf && !this.trans) {
+      const base = a.duration || 1500, now = performance.now();
+      const cur = base / this.speedFactor;
+      const u = ((now - this.t0) % cur) / cur;
+      this.speedFactor = speed;
+      this.t0 = now - u * (base / speed);
+      return true;
+    }
+    this.anim = a; this.speedFactor = speed;
     if (this._lastP) {
       // Sanfter Übergang: aus der aktuellen Pose in die neue Animation morphen
       // (z. B. Männchen "steht auf" vom Liegestütz in die Pausen-Idle).
@@ -132,7 +143,7 @@ export class FigureAnimator {
         return;
       }
       if (!this.anim) { this.raf = null; return; }
-      const dur = this.anim.duration || 1500;
+      const dur = (this.anim.duration || 1500) / (this.speedFactor || 1);
       const u = ((now - this.t0) % dur) / dur;
       const tri = u < 0.5 ? u * 2 : (1 - u) * 2; // 0 -> 1 -> 0 (Ping-Pong)
       this.setPoints(this.anim.solve(easeInOut(tri)));
@@ -141,31 +152,46 @@ export class FigureAnimator {
     this.raf = requestAnimationFrame(tick);
   }
 
-  stop() { if (this.raf) cancelAnimationFrame(this.raf); this.raf = null; this.anim = null; this.trans = null; this._lastP = null; }
+  stop() { if (this.raf) cancelAnimationFrame(this.raf); this.raf = null; this.anim = null; this.trans = null; this._lastP = null; this.speedFactor = 1; }
 }
 
 // Hilfen für die Solver
 function depth(p, sign) { return [p[0] + DEPTH * sign, p[1]]; }
 // Komplettes Skelett aus Schlüsselpunkten ableiten (mit Tiefe nah/fern).
-function rig({ hip, shoulder, ankle, hand, toe, kneeBend, elbowBend, headAng, footAng, armFK, armUp, armFore }) {
-  const hipN = depth(hip, 1), hipF = depth(hip, -1);
-  const sN = depth(shoulder, 1), sF = depth(shoulder, -1);
-  const ankN = depth(ankle, 1), ankF = depth(ankle, -1);
-  const kneeN = ik2(hipN, ankN, BONE.thigh, BONE.shin, kneeBend);
-  const kneeF = ik2(hipF, ankF, BONE.thigh, BONE.shin, kneeBend);
-  const toeN = toe ? depth(toe, 1) : addv(ankN, dir(footAng), BONE.foot);
-  const toeF = toe ? depth(toe, -1) : addv(ankF, dir(footAng), BONE.foot);
-  let elbowN, handN, elbowF, handF;
-  if (armUp != null || armFK != null) { // freie Arme per Vorwärtskinematik (Winkel)
-    const u = armUp != null ? armUp : armFK;            // Oberarm-Winkel
-    const f = armFore != null ? armFore : u;            // Unterarm-Winkel (sonst gerade)
-    elbowN = addv(sN, dir(u), BONE.upArm); handN = addv(elbowN, dir(f), BONE.foreArm);
-    elbowF = addv(sF, dir(u), BONE.upArm); handF = addv(elbowF, dir(f), BONE.foreArm);
-  } else { // gestützte Arme: Hand am Boden verankert -> IK
-    const hN = depth(hand, 1), hF = depth(hand, -1);
-    elbowN = ik2(sN, hN, BONE.upArm, BONE.foreArm, elbowBend); handN = hN;
-    elbowF = ik2(sF, hF, BONE.upArm, BONE.foreArm, elbowBend); handF = hF;
-  }
+// Schlüsselpunkte -> komplettes Skelett (Tiefe nah/fern). Beine und Arme können
+// pro Seite unabhängig gesetzt werden (Suffix N = nah/vorne, F = fern/hinten),
+// sonst gelten die symmetrischen Werte. So lassen sich Schrittstellungen
+// (Ausfallschritt, Knieheben, Mountain Climbers …) anatomisch korrekt bauen.
+function rig(o) {
+  const { hip, shoulder } = o;
+  const headAng = o.headAng ?? 0;
+  // Ein Bein (sign: +1 = nah/vorne, -1 = fern/hinten).
+  const leg = (sign) => {
+    const ankle = (sign > 0 ? o.ankleN : o.ankleF) || o.ankle;
+    const toeP = (sign > 0 ? o.toeN : o.toeF) || o.toe;
+    const kneeBend = (sign > 0 ? o.kneeBendN : o.kneeBendF) ?? o.kneeBend;
+    const footAng = (sign > 0 ? o.footAngN : o.footAngF) ?? o.footAng;
+    const hipP = depth(hip, sign), ankP = depth(ankle, sign);
+    const knee = ik2(hipP, ankP, BONE.thigh, BONE.shin, kneeBend);
+    const toe = toeP ? depth(toeP, sign) : addv(ankP, dir(footAng), BONE.foot);
+    return [hipP, knee, ankP, toe];
+  };
+  // Ein Arm: freie Winkel (FK) ODER Hand am Boden verankert (IK).
+  const arm = (sign) => {
+    const sP = depth(shoulder, sign);
+    const up = (sign > 0 ? o.armUpN : o.armUpF) ?? o.armUp ?? o.armFK;
+    if (up != null) {
+      const fore = (sign > 0 ? o.armForeN : o.armForeF) ?? o.armFore ?? up;
+      const elbow = addv(sP, dir(up), BONE.upArm);
+      return [sP, elbow, addv(elbow, dir(fore), BONE.foreArm)];
+    }
+    const handP = depth((sign > 0 ? o.handN : o.handF) || o.hand, sign);
+    return [sP, ik2(sP, handP, BONE.upArm, BONE.foreArm, o.elbowBend), handP];
+  };
+  const [hipN, kneeN, ankN, toeN] = leg(1);
+  const [hipF, kneeF, ankF, toeF] = leg(-1);
+  const [sN, elbowN, handN] = arm(1);
+  const [sF, elbowF, handF] = arm(-1);
   const neck = addv(shoulder, dir(headAng), BONE.neck);
   const head = addv(neck, dir(headAng), BONE.head);
   return { hip, shoulder, head, hipN, hipF, sN, sF, kneeN, ankN, toeN, kneeF, ankF, toeF, elbowN, handN, elbowF, handF };
@@ -225,6 +251,27 @@ export const EXERCISES = {
       const shoulder = addv(ankle, dir(bodyAng), bodyLen);
       const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin); // Hüfte auf der Brett-Linie
       return rig({ hip, shoulder, ankle, hand, toe, kneeBend: 1, elbowBend: 1, headAng: 98 });
+    },
+  },
+
+  // Ausfallschritt: vorderer Fuß flach am Boden, hinterer auf dem Ballen (Ferse
+  // hoch). Die Hüfte senkt sich gerade nach unten -> vorderes Knie beugt über dem
+  // Knöchel nach vorne, hinteres Knie sinkt zum Boden; Oberkörper bleibt aufrecht.
+  // Beide Füße bleiben fix am Boden (Kontaktpunkte), Knie per IK nachgezogen.
+  lunges: {
+    duration: 1900,
+    solve(t) {
+      const ankleN = [60, GROUND_Y - 1];               // vorderer Fuß flach, fix
+      const ankleF = [34, GROUND_Y - 7];               // hinterer Fuß auf dem Ballen, fix
+      const hip = [lerp(49, 48, t), lerp(GROUND_Y - 36, GROUND_Y - 27, t)]; // senkt sich
+      const lean = lerp(3, 7, t);                       // Oberkörper fast aufrecht
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      return rig({
+        hip, shoulder, headAng: lean,
+        ankleN, kneeBendN: -1, footAngN: 90,            // vorderes Knie nach vorne über den Knöchel
+        ankleF, kneeBendF: -1, footAngF: 148,           // hinteres Bein, Ballen/Ferse hoch
+        armUp: 205, armFore: 120,                        // Hände locker in die Hüften
+      });
     },
   },
 
