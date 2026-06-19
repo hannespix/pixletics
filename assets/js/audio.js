@@ -285,7 +285,7 @@ const SPEAK_FIXES = [
   [/\bunbeeindruck/gi, 'unbe-eindruck'],
   [/\bbeeindruck/gi, 'be-eindruck'],
   // Anglizismen lautnah (deutsche Schreibung, die die TTS richtig liest):
-  [/\bSkater\b/gi, 'Skäiter'],            // engl. „skay-ter“
+  [/\bSkater\b/gi, 'Skeeter'],            // engl. „skay-ter“ (langes ee wie in „See“)
   [/\bMountain Climbers?\b/gi, 'Mauntn Klaimbers'],
   [/\bBurpees?\b/gi, 'Börpies'],
   [/\bCrunches\b/gi, 'Krantsches'],
