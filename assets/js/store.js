@@ -15,19 +15,47 @@ const SESSION_KEY = 'freeletics.session.v1';
 // ROCK ANTENNE steht bewusst zuerst = Standard-Internetradio.
 // Schwerpunkt: Rock, 70er/80er-Rock, Workout. Viele werbefreie SomaFM-Streams
 // (np = SomaFM-Kanal-ID für die „Now Playing“-Anzeige).
+// `cat` = grobe Kategorie für den Genre-Filter (electro/pop/hiphop/rock/metal/retro).
+// `genre` = feinere Überschrift in der Liste. `np` = SomaFM-Kanal-ID für „Now Playing“.
+// Auswahl nach: werbefrei/werbearm, nur Musik, workout-tauglich (nicht zu langsam).
+// SomaFM = werbefrei (hörerfinanziert); bigFM/ROCK ANTENNE/RADIO BOB = werbearme
+// Genre-Streams. Alle URLs auf Audio-Antwort geprüft.
 export const DEFAULT_STATIONS = [
-  { id: 'st-bob-80s',      name: 'RADIO BOB! 80er Rock',     genre: '80er Rock',    url: 'https://streams.radiobob.de/bob-80srock/mp3-192/streams.radiobob.de/' },
-  { id: 'st-bob-90s',      name: 'RADIO BOB! 90er Rock',     genre: '90er Rock',    url: 'https://streams.radiobob.de/bob-90srock/mp3-192/streams.radiobob.de/' },
-  { id: 'st-rockantenne',  name: 'ROCK ANTENNE',             genre: 'Rock',         url: 'https://stream.rockantenne.de/rockantenne/stream/mp3' },
-  { id: 'st-ra-classic',   name: 'ROCK ANTENNE Classic Perlen', genre: 'Rock-Klassiker', url: 'https://stream.rockantenne.de/classic-perlen/stream/mp3' },
-  { id: 'st-ra-metal',     name: 'ROCK ANTENNE Heavy Metal', genre: 'Metal',        url: 'https://stream.rockantenne.de/heavy-metal/stream/mp3' },
-  { id: 'st-soma-u80s',    name: 'SomaFM Underground 80s',   genre: '80er',         url: 'https://ice1.somafm.com/u80s-128-mp3',        np: 'u80s' },
-  { id: 'st-soma-70s',     name: 'SomaFM Left Coast 70s',    genre: '70er Rock',    url: 'https://ice1.somafm.com/seventies-128-mp3',   np: 'seventies' },
-  { id: 'st-soma-bagel',   name: 'SomaFM BAGeL Radio',       genre: 'Alternative Rock', url: 'https://ice1.somafm.com/bagel-128-mp3',   np: 'bagel' },
-  { id: 'st-soma-metal',   name: 'SomaFM Metal Detector',    genre: 'Metal',        url: 'https://ice1.somafm.com/metal-128-mp3',       np: 'metal' },
-  { id: 'st-soma-indie',   name: 'SomaFM Indie Pop Rocks',   genre: 'Indie',        url: 'https://ice1.somafm.com/indiepop-128-mp3',    np: 'indiepop' },
-  { id: 'st-soma-beat',    name: 'SomaFM Beat Blender',      genre: 'Electronic',   url: 'https://ice1.somafm.com/beatblender-128-mp3', np: 'beatblender' },
-  { id: 'st-bigfm-workout', name: 'bigFM Workout',           genre: 'Workout',      url: 'https://streams.bigfm.de/bigfm-workout-128-mp3' },
+  // ---- Electro / EDM (Schwerpunkt) ----
+  { id: 'st-bigfm-workout', name: 'bigFM Workout',          genre: 'Workout',      cat: 'electro', url: 'https://streams.bigfm.de/bigfm-workout-128-mp3' },
+  { id: 'st-bigfm-dance',   name: 'bigFM Dance',            genre: 'Dance',        cat: 'electro', url: 'https://streams.bigfm.de/bigfm-dance-128-mp3' },
+  { id: 'st-bigfm-groove',  name: 'bigFM Groove Night',     genre: 'House / Club', cat: 'electro', url: 'https://streams.bigfm.de/bigfm-groovenight-128-mp3' },
+  { id: 'st-soma-beat',     name: 'SomaFM Beat Blender',    genre: 'Deep House',   cat: 'electro', url: 'https://ice1.somafm.com/beatblender-128-mp3', np: 'beatblender' },
+  { id: 'st-soma-defcon',   name: 'SomaFM DEF CON Radio',   genre: 'EDM',          cat: 'electro', url: 'https://ice1.somafm.com/defcon-128-mp3',      np: 'defcon' },
+  { id: 'st-soma-trip',     name: 'SomaFM The Trip',        genre: 'Prog House',   cat: 'electro', url: 'https://ice1.somafm.com/thetrip-128-mp3',     np: 'thetrip' },
+  { id: 'st-soma-dubstep',  name: 'SomaFM Dub Step Beyond', genre: 'Dubstep',      cat: 'electro', url: 'https://ice1.somafm.com/dubstep-128-mp3',     np: 'dubstep' },
+  { id: 'st-soma-goa',      name: 'SomaFM Suburbs of Goa',  genre: 'Psytrance',    cat: 'electro', url: 'https://ice1.somafm.com/suburbsofgoa-128-mp3', np: 'suburbsofgoa' },
+  { id: 'st-soma-cliqhop',  name: 'SomaFM cliqhop idm',     genre: 'IDM',          cat: 'electro', url: 'https://ice1.somafm.com/cliqhop-128-mp3',     np: 'cliqhop' },
+  { id: 'st-soma-poptron',  name: 'SomaFM PopTron',         genre: 'Electropop',   cat: 'electro', url: 'https://ice1.somafm.com/poptron-128-mp3',     np: 'poptron' },
+  // ---- Pop / Charts ----
+  { id: 'st-bigfm-charts',  name: 'bigFM Charts',           genre: 'Charts',       cat: 'pop',     url: 'https://streams.bigfm.de/bigfm-charts-128-mp3' },
+  { id: 'st-bigfm-latin',   name: 'bigFM Latin',            genre: 'Latin / Reggaeton', cat: 'pop', url: 'https://streams.bigfm.de/bigfm-latin-128-mp3' },
+  { id: 'st-soma-indie',    name: 'SomaFM Indie Pop Rocks', genre: 'Indie Pop',    cat: 'pop',     url: 'https://ice1.somafm.com/indiepop-128-mp3',    np: 'indiepop' },
+  // ---- HipHop / Rap ----
+  { id: 'st-bigfm-deutschrap', name: 'bigFM Deutschrap',    genre: 'Deutschrap',   cat: 'hiphop',  url: 'https://streams.bigfm.de/bigfm-deutschrap-128-mp3' },
+  { id: 'st-bigfm-oldschool', name: 'bigFM Old School',     genre: 'Old School HipHop', cat: 'hiphop', url: 'https://streams.bigfm.de/bigfm-oldschool-128-mp3' },
+  { id: 'st-soma-fluid',    name: 'SomaFM Fluid',           genre: 'Future Beats', cat: 'hiphop',  url: 'https://ice1.somafm.com/fluid-128-mp3',       np: 'fluid' },
+  // ---- Rock ----
+  { id: 'st-rockantenne',   name: 'ROCK ANTENNE',           genre: 'Rock',         cat: 'rock',    url: 'https://stream.rockantenne.de/rockantenne/stream/mp3' },
+  { id: 'st-ra-alt',        name: 'ROCK ANTENNE Alternative', genre: 'Alternative', cat: 'rock',   url: 'https://stream.rockantenne.de/alternative/stream/mp3' },
+  { id: 'st-ra-deutsch',    name: 'ROCK ANTENNE Deutschrock', genre: 'Deutschrock', cat: 'rock',   url: 'https://stream.rockantenne.de/deutschrock/stream/mp3' },
+  { id: 'st-ra-classic',    name: 'ROCK ANTENNE Classic Perlen', genre: 'Rock-Klassiker', cat: 'rock', url: 'https://stream.rockantenne.de/classic-perlen/stream/mp3' },
+  { id: 'st-bob-classic',   name: 'RADIO BOB! Classic Rock', genre: 'Classic Rock', cat: 'rock',   url: 'https://streams.radiobob.de/bob-classicrock/mp3-192/streams.radiobob.de/' },
+  { id: 'st-soma-bagel',    name: 'SomaFM BAGeL Radio',     genre: 'Alternative Rock', cat: 'rock', url: 'https://ice1.somafm.com/bagel-128-mp3',     np: 'bagel' },
+  // ---- Metal ----
+  { id: 'st-ra-metal',      name: 'ROCK ANTENNE Heavy Metal', genre: 'Metal',      cat: 'metal',   url: 'https://stream.rockantenne.de/heavy-metal/stream/mp3' },
+  { id: 'st-bob-harder',    name: 'RADIO BOB! Harder!',     genre: 'Harder Rock',  cat: 'metal',   url: 'https://streams.radiobob.de/bob-harderrock/mp3-192/streams.radiobob.de/' },
+  { id: 'st-soma-metal',    name: 'SomaFM Metal Detector',  genre: 'Metal',        cat: 'metal',   url: 'https://ice1.somafm.com/metal-128-mp3',       np: 'metal' },
+  // ---- 80er / 90er / Retro ----
+  { id: 'st-bob-80s',       name: 'RADIO BOB! 80er Rock',   genre: '80er Rock',    cat: 'retro',   url: 'https://streams.radiobob.de/bob-80srock/mp3-192/streams.radiobob.de/' },
+  { id: 'st-bob-90s',       name: 'RADIO BOB! 90er Rock',   genre: '90er Rock',    cat: 'retro',   url: 'https://streams.radiobob.de/bob-90srock/mp3-192/streams.radiobob.de/' },
+  { id: 'st-soma-u80s',     name: 'SomaFM Underground 80s', genre: '80er Synthpop', cat: 'retro',  url: 'https://ice1.somafm.com/u80s-128-mp3',        np: 'u80s' },
+  { id: 'st-soma-70s',      name: 'SomaFM Left Coast 70s',  genre: '70er Rock',    cat: 'retro',   url: 'https://ice1.somafm.com/seventies-128-mp3',   np: 'seventies' },
 ];
 
 export const DEFAULT_CONFIG = {
@@ -176,6 +204,23 @@ export function ensureDefaultsSeeded() {
     const toAdd = bob.filter((b) => !have.has(b.id));
     if (toAdd.length) saveStations([...toAdd, ...stations]);
     applied.push('stations-bob-v1');
+    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+  }
+
+  // Migration: deutlich mehr Genres (Electro/EDM, Pop, HipHop, …) ergänzen und
+  // bei vorhandenen Standard-Sendern die Filter-Kategorie (cat) nachrüsten.
+  // Eigene Sender und vom Nutzer geänderte Namen/URLs bleiben unangetastet.
+  if (!applied.includes('stations-genres-v1')) {
+    const stations = loadStations();
+    const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
+    let changed = false;
+    DEFAULT_STATIONS.forEach((def) => {
+      const ex = byId[def.id];
+      if (!ex) { stations.push({ ...def }); changed = true; }       // neuer Sender
+      else if (!ex.cat && def.cat) { ex.cat = def.cat; changed = true; } // Kategorie nachrüsten
+    });
+    if (changed) saveStations(stations);
+    applied.push('stations-genres-v1');
     localStorage.setItem(SEED_KEY, JSON.stringify(applied));
   }
 
