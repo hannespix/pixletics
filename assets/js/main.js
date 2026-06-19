@@ -98,14 +98,15 @@ setTrainMode(localStorage.getItem(MODE_KEY) || 'plan');
 
 // Rotierender Hero-Slogan: alle 10 s ein zufälliger Spruch mit weicher
 // Blur-Überblendung (gooey-artig, ohne SVG-Filter).
+// Slogans mit *Akzent-Wort* (wird zweifarbig im Gradient dargestellt).
 const HERO_SLOGANS = [
-  'Bereit für Action? 🔥', 'Ab geht’s – dem Speck an den Kragen!', 'Schwitzen statt sitzen!',
-  'Keine Ausreden – los geht’s!', 'Heute schmilzt das Hüftgold.', 'Vollgas statt Couch!',
-  'Auf geht’s, Champion! 💪', 'Zeit zu glühen!', 'Das Sofa läuft nicht weg – beweg dich!',
-  'Pack’s an, du schaffst das!', 'Aus dem Fass wird ein Fässchen!', 'Der Waschbrettbauch wartet.',
-  'Rein in die Sportklamotten!', 'Heute ist Bestform-Tag.', 'Beiß dich durch – es lohnt sich!',
-  'Jede Wiederholung zählt.', 'Mehr Bewegung, weniger Bierbauch!', 'Einmal richtig auspowern!',
-  'Dein Körper kann mehr, als du denkst.', 'Los, der Schweiß darf fließen!',
+  'Bereit für *Action*? 🔥', 'Dem *Speck* an den Kragen!', 'Schwitzen statt *sitzen*!',
+  'Keine *Ausreden* – los geht’s!', 'Heute schmilzt das *Hüftgold*.', '*Vollgas* statt Couch!',
+  'Auf geht’s, *Champion*! 💪', 'Zeit zu *glühen*!', 'Das Sofa läuft nicht weg – *beweg dich*!',
+  'Pack’s an – *du schaffst das*!', 'Aus dem Fass wird ein *Fässchen*!', 'Der *Waschbrettbauch* wartet.',
+  'Rein in die *Sportklamotten*!', 'Heute ist *Bestform*-Tag.', '*Beiß dich durch* – es lohnt sich!',
+  'Jede *Wiederholung* zählt.', 'Weniger *Bierbauch*, mehr Power!', 'Einmal richtig *auspowern*!',
+  'Dein Körper kann *mehr*, als du denkst.', 'Los, der *Schweiß* darf fließen!',
 ];
 let _sloganTimer = null, _lastSlogan = -1;
 function pickSlogan() {
@@ -114,16 +115,21 @@ function pickSlogan() {
   _lastSlogan = i;
   return HERO_SLOGANS[i];
 }
+// *…* -> Akzent-Span (Gradient), Rest weiß. Eigene, sichere Strings -> escapeHtml.
+function sloganHTML(s) {
+  const inner = s.split('*').map((part, i) => (i % 2 ? `<span class="hero-accent">${escapeHtml(part)}</span>` : escapeHtml(part))).join('');
+  return `<span class="hero-line">${inner}</span>`; // ein Flex-Item -> Leerzeichen bleiben erhalten
+}
 function startSloganRotator() {
   const el = $('#hero-slogan');
   if (!el) return;
-  el.textContent = pickSlogan();
+  el.innerHTML = sloganHTML(pickSlogan());
   if (_sloganTimer) clearInterval(_sloganTimer);
   _sloganTimer = setInterval(() => {
     const next = pickSlogan();
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { el.textContent = next; return; }
-    el.classList.add('swap');                                    // ausblenden + verschwimmen
-    setTimeout(() => { el.textContent = next; el.classList.remove('swap'); }, 320); // einblenden (Blur-Morph)
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { el.innerHTML = sloganHTML(next); return; }
+    el.classList.add('swap');                                          // ausblenden + verschwimmen
+    setTimeout(() => { el.innerHTML = sloganHTML(next); el.classList.remove('swap'); }, 320); // einblenden (Blur-Morph)
   }, 10000);
 }
 startSloganRotator();
