@@ -429,6 +429,62 @@ export const EXERCISES = {
     },
   },
 
+  // Superman: Bauchlage, Bauch/Hüfte bleibt am Boden (fix). Arme nach vorne und
+  // Beine nach hinten heben gleichzeitig ab (Rückenstrecker), Körper macht einen
+  // leichten Bogen. Arme/Beine gestreckt.
+  superman: {
+    duration: 1600,
+    solve(t) {
+      const hip = [42, GROUND_Y - 3];                  // Hüfte/Bauch am Boden
+      const torsoAng = lerp(96, 80, t);                // Brust hebt leicht ab
+      const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      const arm = lerp(100, 64, t);                    // Arme vorn: Boden -> angehoben
+      const leg = lerp(258, 286, t);                   // Beine hinten: Boden -> angehoben
+      return rig({
+        hip, shoulder, headAng: lerp(100, 70, t),      // Blick mit
+        thighAng: leg, shinAng: leg, footAng: leg,     // Beine gestreckt nach hinten
+        armUp: arm, armFore: arm,                       // Arme gestreckt nach vorne
+      });
+    },
+  },
+
+  // Wadenheben: aufrecht stehen, auf die Fußballen hoch (Fersen heben), langsam
+  // senken. Fußballen sind der fixe Kontaktpunkt; der ganze Körper hebt sich.
+  calfraises: {
+    duration: 1100,
+    solve(t) {
+      const lift = lerp(0, 7, t);
+      const toe = [CX + 5, GROUND_Y - 1];              // Fußballen fix am Boden
+      const ankle = [CX, GROUND_Y - 5 - lift];         // Ferse hebt sich, Körper steigt
+      const hip = [CX, GROUND_Y - 42 - lift];
+      const shoulder = addv(hip, dir(4), BONE.torso);
+      return rig({
+        hip, shoulder, headAng: 2,
+        ankle, toe, kneeBend: -1,                       // Beine ~gerade
+        armUp: 188, armFore: 172,                        // Arme locker an der Seite (Ellbogen hinten)
+      });
+    },
+  },
+
+  // Strecksprünge (Jump Squats): tief in die Kniebeuge, dann explosiv nach oben
+  // abspringen (Füße verlassen den Boden, Körper gestreckt, Zehen gespitzt, Arme
+  // nach oben). Ping-Pong: unten Hocke -> oben Sprung.
+  jumpsquats: {
+    duration: 900,
+    solve(t) {
+      const hip = [CX, lerp(GROUND_Y - 22, GROUND_Y - 50, t)];   // Hocke -> hoch in der Luft
+      const ankle = [CX, lerp(GROUND_Y - 1, GROUND_Y - 16, t)];  // am Boden -> abgehoben
+      const lean = lerp(28, 4, t);                                // vorgebeugt -> gestreckt
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      const arm = lerp(206, 12, t);                               // Arme: unten/hinten -> über Kopf
+      return rig({
+        hip, shoulder, headAng: lean * 0.5,
+        ankle, kneeBend: -1, footAng: lerp(92, 150, t),           // Zehen am Boden -> gespitzt
+        armUp: arm, armFore: arm,                                  // gestreckt nach oben schwingen
+      });
+    },
+  },
+
   // ---- Pausen-Idles (Männchen entspannt sich) ----
   // Durchatmen, Hände in die Hüften, Brust hebt/senkt sich.
   rest_breathe: {
