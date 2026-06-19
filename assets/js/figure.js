@@ -311,13 +311,13 @@ export const EXERCISES = {
       const s = Math.sin(2 * Math.PI * t);             // +: nahes Bein vorn, -: fernes Bein vorn
       const amt = Math.abs(s);                          // 0 Stand .. 1 tiefer Ausfallschritt
       const nearBack = Math.max(0, -s), farBack = Math.max(0, s);
-      const hip = [CX, GROUND_Y - 37 + 10 * amt];       // senkt sich beim Ausfallschritt
-      const lean = 4 + 4 * amt;
+      const hip = [CX, GROUND_Y - 37 + 13 * amt];       // senkt sich beim Ausfallschritt (tiefer)
+      const lean = 4 + 5 * amt;
       const shoulder = addv(hip, dir(lean), BONE.torso);
       return rig({
         hip, shoulder, headAng: lean,
-        ankleN: [CX + 15 * s, GROUND_Y - 1 - 6 * nearBack], kneeBendN: -1, footAngN: lerp(90, 150, nearBack),
-        ankleF: [CX - 15 * s, GROUND_Y - 1 - 6 * farBack], kneeBendF: -1, footAngF: lerp(90, 150, farBack),
+        ankleN: [CX + 22 * s, GROUND_Y - 1 - 7 * nearBack], kneeBendN: -1, footAngN: lerp(90, 150, nearBack),
+        ankleF: [CX - 22 * s, GROUND_Y - 1 - 7 * farBack], kneeBendF: -1, footAngF: lerp(90, 150, farBack),
         armUp: 205, armFore: 120,                        // Hände locker in die Hüften
       });
     },
