@@ -11,7 +11,7 @@ import {
 import { PERSONAS, getPersona, line, motivationLine, resetCoachBags } from './coach.js';
 import { buildSchedule, buildIntervalSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { generateSet } from './setgen.js';
-import { getHowto } from './howto.js';
+import { resolveHowto } from './howto.js';
 import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
@@ -669,8 +669,11 @@ function openExEditor(exId) {
   $('#ex-area').value = ex?.area || '';
   $('#ex-cue').value = ex?.cue || '';
   $('#ex-reps').value = ex?.reps || DEFAULT_REPS;
+  // Editierbare Anleitung vorbefüllen: eigene Werte oder kuratierte Vorlage.
+  const h = resolveHowto(ex) || { steps: [], tips: [] };
+  $('#ex-steps').value = (h.steps || []).join('\n');
+  $('#ex-tips').value = (h.tips || []).join('\n');
   $('#btn-delete-ex').style.visibility = ex ? 'visible' : 'hidden';
-  renderExHowto(exId);
   $('#exercise-editor').hidden = false;
 }
 
@@ -686,12 +689,16 @@ function saveExEditor() {
     return;
   }
   const reps = Math.max(1, Math.min(6, Number($('#ex-reps').value) || DEFAULT_REPS));
+  // Anleitung: je eine Anweisung/ein Hinweis pro Zeile.
+  const parseLines = (v) => v.split('\n').map((s) => s.trim()).filter(Boolean);
   const data = {
     name,
     area: $('#ex-area').value.trim(),
     emoji: $('#ex-emoji').value.trim() || '🏋️',
     cue: $('#ex-cue').value.trim(),
     reps,
+    steps: parseLines($('#ex-steps').value),
+    tips: parseLines($('#ex-tips').value),
   };
   if (editorExId) {
     const ex = exerciseMap[editorExId];
@@ -1343,7 +1350,7 @@ function armRunner(steps, startIndex = 0) {
   $('#exercise-cue').textContent = resuming ? 'Weiter, wo du aufgehört hast – auf Start' : 'Wähle ggf. Musik – dann auf Start';
   // Anleitung zur ersten/aktuellen Übung schon im „Bereit“-Screen anbieten.
   runnerCurrentExId = (preview && preview.exId) || null;
-  $('#btn-runner-howto').hidden = !(runnerCurrentExId && getHowto(runnerCurrentExId));
+  $('#btn-runner-howto').hidden = !(runnerCurrentExId && resolveHowto(exerciseMap[runnerCurrentExId]));
   $('#big-timer').textContent = preview ? String(preview.duration).padStart(2, '0') : '00';
   const ring0 = $('#timer-ring');
   if (ring0) { ring0.classList.remove('final'); ring0.style.setProperty('--p', '1'); ring0.style.setProperty('--ring', 'var(--blue)'); }
@@ -1610,7 +1617,7 @@ function setPhaseUI(label, ex, icon) {
   $('#phase-icon').textContent = icon || '';
   // Info-Button nur zeigen, wenn zur aktuellen Übung eine Anleitung existiert.
   runnerCurrentExId = ex?.id || null;
-  $('#btn-runner-howto').hidden = !(ex && getHowto(ex.id));
+  $('#btn-runner-howto').hidden = !(ex && resolveHowto(ex));
 }
 $('#btn-runner-howto').addEventListener('click', () => openHowtoModal(runnerCurrentExId));
 
@@ -1787,24 +1794,15 @@ function escapeHtml(str = '') {
 }
 
 // ---------------- Übungsanleitung ("So geht's" + "Worauf achten") ----------------
-// Liefert formatiertes HTML zur Übungs-ID oder '' (wenn keine Anleitung hinterlegt).
+// Liefert formatiertes HTML zur Übungs-ID oder '' (wenn keine Anleitung vorhanden).
 function howtoHtml(exId) {
-  const h = getHowto(exId);
+  const h = resolveHowto(exerciseMap[exId]);
   if (!h) return '';
   const steps = (h.steps || []).map((s) => `<li>${escapeHtml(s)}</li>`).join('');
   const tips = (h.tips || []).map((t) => `<li>${escapeHtml(t)}</li>`).join('');
   return `
     ${steps ? `<div class="howto-block"><h4>So führst du sie aus</h4><ol class="howto-steps">${steps}</ol></div>` : ''}
     ${tips ? `<div class="howto-block"><h4>⚠️ Worauf besonders achten</h4><ul class="howto-tips">${tips}</ul></div>` : ''}`;
-}
-
-// Anleitung im Übungs-Editor (Übungen-Tab) ein-/ausblenden.
-function renderExHowto(exId) {
-  const host = $('#ex-howto');
-  if (!host) return;
-  const html = howtoHtml(exId);
-  host.innerHTML = html;
-  host.hidden = !html;
 }
 
 // Anleitung als Overlay öffnen (aus dem Runner).

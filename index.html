@@ -369,7 +369,14 @@
         <label>Wiederholungen<input type="number" id="ex-reps" min="1" max="6" step="1" /></label>
         <label class="ex-form-cue">Beschreibung<input id="ex-cue" placeholder="kurzer Bewegungshinweis" /></label>
       </div>
-      <div class="ex-howto" id="ex-howto" hidden></div>
+      <div class="ex-howto-edit">
+        <label class="ex-howto-field">So führst du sie aus <span class="muted small">– Durchführung, eine Anweisung pro Zeile</span>
+          <textarea id="ex-steps" rows="4" placeholder="Eine Anweisung pro Zeile, z. B.&#10;Schulterbreiter Stand, Fußspitzen leicht nach außen.&#10;Hüfte zurückschieben und in die Knie gehen …"></textarea>
+        </label>
+        <label class="ex-howto-field">⚠️ Worauf besonders achten <span class="muted small">– ein Punkt pro Zeile</span>
+          <textarea id="ex-tips" rows="4" placeholder="Ein Hinweis pro Zeile, z. B.&#10;Knie folgen der Richtung der Fußspitzen.&#10;Fersen bleiben am Boden."></textarea>
+        </label>
+      </div>
       <div class="row-between editor-actions">
         <button class="btn btn-danger" id="btn-delete-ex">Löschen</button>
         <button class="btn btn-primary" id="btn-save-ex">Speichern</button>

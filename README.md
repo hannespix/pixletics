@@ -23,8 +23,8 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   individuell einstellbar. Die Übung wird entsprechend oft hintereinander
   ausgeführt, bevor die nächste folgt.
 - **Übungen bearbeiten**: Im Tab **„Übungen“** lassen sich alle Übungen voll
-  anpassen (Name, Beschreibung, Emoji, Bereich, Wiederholungen), neue anlegen
-  und löschen.
+  anpassen (Name, Beschreibung, Emoji, Bereich, Wiederholungen **und die
+  detaillierte Anleitung**), neue anlegen und löschen.
 - **Übungssets**: Mehrere Sets anlegen, Übungen per Checkliste auswählen und
   per **Drag & Drop** (Maus oder Touch) in die gewünschte Reihenfolge bringen.
   Beim Training lassen sich mehrere Sets auswählen, die nacheinander
@@ -38,7 +38,9 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
 - **Übungsanleitungen (ℹ️)**: Zu jeder Standard-Übung gibt es eine verständliche
   Schritt-für-Schritt-**Durchführung** plus **„Worauf besonders achten"**
   (Technik, Sicherheit, häufige Fehler) – sichtbar im Übungs-Editor und während
-  des Trainings über den **ℹ️-Button** im Runner.
+  des Trainings über den **ℹ️-Button** im Runner. Die Anleitungen sind **frei
+  editierbar** (eine Anweisung pro Zeile) – auch für **selbst angelegte Übungen**;
+  die kuratierten Texte dienen als Vorlage.
 - **Pause = Pause + Vorbereitung**: Vor jeder Übung gibt es **einen** Block
   (standardmäßig 30 s), in dem man sich erholt und **gleich zu Beginn die
   nächste Übung angesagt** bekommt – so kann man sich mental vorbereiten.
