@@ -348,10 +348,12 @@ export const EXERCISES = {
       const ankle = [66, GROUND_Y - 1];                // Füße flach am Boden, fix
       const torsoAng = lerp(270, 374, t);              // flach (links) -> aufgerichtet (über oben)
       const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      const headAng = torsoAng - 12;                   // Kopf in Rumpfrichtung, Kinn zur Brust
+      const head = addv(shoulder, dir(headAng), BONE.neck + BONE.head);
       return rig({
-        hip, shoulder, headAng: torsoAng - 12,         // Kopf in Rumpfrichtung, Kinn zur Brust
+        hip, shoulder, headAng,
         ankle, kneeBend: -1, footAng: 95,              // Knie angewinkelt nach oben
-        armUp: torsoAng - 36, armFore: torsoAng + 52,  // Hände an den Schläfen, Ellbogen vor
+        hand: head, elbowBend: 1,                      // Hände am Kopf, Ellbogen nach vorne
       });
     },
   },
@@ -365,10 +367,12 @@ export const EXERCISES = {
       const ankle = [66, GROUND_Y - 1];
       const torsoAng = lerp(268, 308, t);              // nur kleiner Aufrollwinkel
       const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      const headAng = torsoAng - 14;
+      const head = addv(shoulder, dir(headAng), BONE.neck + BONE.head);
       return rig({
-        hip, shoulder, headAng: torsoAng - 14,
+        hip, shoulder, headAng,
         ankle, kneeBend: -1, footAng: 95,
-        armUp: torsoAng - 36, armFore: torsoAng + 52,  // Hände an den Schläfen
+        hand: head, elbowBend: 1,                      // Hände am Kopf, Ellbogen nach vorne
       });
     },
   },
@@ -386,6 +390,24 @@ export const EXERCISES = {
         hip, shoulder, headAng: 274,                     // Kopf liegt am Boden
         thighAng: legAng, shinAng: legAng, footAng: legAng + 20, // Beine gestreckt zusammen
         armUp: 96, armFore: 96,                           // Arme flach am Boden neben dem Körper
+      });
+    },
+  },
+
+  // Beckenheben (Glute Bridge): Schultern und Füße bleiben am Boden (fix). Die
+  // Hüfte drückt nach oben, bis Schulter–Hüfte–Knie eine Linie bilden; Knie über
+  // den Knöcheln. Kopf bleibt am Boden.
+  bridge: {
+    duration: 1700,
+    solve(t) {
+      const shoulder = [32, GROUND_Y - 3];             // Schultern fix am Boden
+      const ankle = [64, GROUND_Y - 1];                // Füße flach fix am Boden
+      const torsoAng = lerp(90, 56, t);                // Rumpf flach -> Hüfte hoch
+      const hip = addv(shoulder, dir(torsoAng), BONE.torso);
+      return rig({
+        hip, shoulder, headAng: 270,                   // Kopf liegt am Boden
+        ankle, kneeBend: -1, footAng: 95,              // Knie über den Knöcheln
+        armUp: 100, armFore: 100,                       // Arme flach am Boden
       });
     },
   },
