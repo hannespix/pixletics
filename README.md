@@ -28,7 +28,13 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
 - **Übungssets**: Mehrere Sets anlegen, Übungen per Checkliste auswählen und
   per **Drag & Drop** (Maus oder Touch) in die gewünschte Reihenfolge bringen.
   Beim Training lassen sich mehrere Sets auswählen, die nacheinander
-  abgespielt werden.
+  abgespielt werden. Sets können eine **Beschreibung** tragen (wofür/wie es wirkt).
+- **Auto-Set (✨)**: Set automatisch erstellen lassen – Assistent fragt
+  **Intensität**, **Schwerpunkt** (Kraft/Ausdauer/Mix), **Körperfokus** und
+  **gewünschte Dauer** ab und stellt daraus ein **ausgewogenes, abwechslungs-
+  reiches** Set zusammen (gleichmäßige Muskelabdeckung, Aufwärmen/Finisher,
+  passende Beschreibung). Per **„Neu würfeln"** gibt es jederzeit eine frische
+  Variante.
 - **Pause = Pause + Vorbereitung**: Vor jeder Übung gibt es **einen** Block
   (standardmäßig 30 s), in dem man sich erholt und **gleich zu Beginn die
   nächste Übung angesagt** bekommt – so kann man sich mental vorbereiten.
