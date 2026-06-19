@@ -1881,18 +1881,18 @@ let figureAnimator = null;
 // Zeigt die animierte Figur nur in der WORK-Phase, wenn die Übung eine Animation
 // hat – sonst ausblenden (und das normale Phasen-Icon zeigen).
 function updateRunnerFigure(exId, phase) {
-  const wrap = $('#exercise-figure');
-  if (!wrap) return;
+  const wrap = $('#exercise-figure'); const ring = $('#timer-ring');
+  if (!wrap || !ring) return;
   const key = (phase === PHASE.WORK && exId && FIGURE_ANIMS[exId]) ? FIGURE_ANIMS[exId] : null;
   if (key) {
     if (!figureAnimator) figureAnimator = new FigureAnimator($('#exercise-figure-svg'));
     figureAnimator.play(key);
     wrap.hidden = false;
-    $('#phase-icon').style.display = 'none';
+    ring.classList.add('has-figure'); // Zahl klein nach oben, Figur mittig
   } else {
     figureAnimator?.stop();
     wrap.hidden = true;
-    $('#phase-icon').style.display = '';
+    ring.classList.remove('has-figure');
   }
 }
 
