@@ -16,7 +16,7 @@
 export const PERSONAS = [
   {
     id: 'standard',
-    name: 'Standard',
+    name: 'Der Klassiker',
     emoji: '🎯',
     desc: 'Neutral & sachlich – mit feinem, trockenem Humor.',
     gender: 'any',
@@ -68,7 +68,7 @@ export const PERSONAS = [
   },
   {
     id: 'drill',
-    name: 'Drill-Sergeant',
+    name: 'Der Schleifer',
     emoji: '🪖',
     desc: 'Laut, tief, befehlend. Keine Ausreden, kein Mitleid!',
     gender: 'male',
@@ -119,7 +119,7 @@ export const PERSONAS = [
   },
   {
     id: 'hype',
-    name: 'Hype-Coach',
+    name: 'Der Antreiber',
     emoji: '🚀',
     desc: 'Pusht dich nach vorn – maximale Motivation mit Augenzwinkern.',
     gender: 'male',
@@ -170,7 +170,7 @@ export const PERSONAS = [
   },
   {
     id: 'cheeky',
-    name: 'Lästermaul',
+    name: 'Das Schlitzohr',
     emoji: '😏',
     desc: 'Foppt dich mit frechen Sprüchen – Sticheleien inklusive.',
     gender: 'male',
@@ -229,7 +229,7 @@ export const PERSONAS = [
   },
   {
     id: 'lena',
-    name: 'Coach Lena',
+    name: 'Die Mutmacherin',
     emoji: '💪',
     desc: 'Weibliche Stimme, motivierend & freundlich – mit Augenzwinkern.',
     gender: 'female',
@@ -282,7 +282,7 @@ export const PERSONAS = [
   },
   {
     id: 'zen',
-    name: 'Zen-Meisterin',
+    name: 'Der Ruhepol',
     emoji: '🧘',
     desc: 'Ruhig & entspannt, gleichmäßiges Tempo – mit leiser Ironie.',
     gender: 'female',

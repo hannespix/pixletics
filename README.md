@@ -56,9 +56,9 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
 - **Sprachansagen** (deutsche Sprachausgabe) und **Signaltöne** – einzeln
   abschaltbar; dazu separate **Lautstärke-Regler für Coach und Musik**.
 - **Stimme & Coach** (im Training-Tab): wählbare **Coach-Charaktere** mit
-  eigenem Tonfall und Spruch-Pool – z. B. *Drill-Sergeant Stahl*, *Hype-Coach
-  Max*, *Frechdachs Freddy*, *Coach Lena* (weiblich) oder *Zen-Meisterin
-  Ruheherz*. Dazu Schieberegler für **Stimmlage**, **Tempo** und **Motivation**
+  eigenem Tonfall und Spruch-Pool – *Der Klassiker*, *Der Schleifer*, *Der
+  Antreiber*, *Das Schlitzohr*, *Die Mutmacherin* (weiblich) oder *Der Ruhepol*
+  (weiblich). Dazu Schieberegler für **Stimmlage**, **Tempo** und **Motivation**
   (wie oft motivierende/freche Zwischenrufe kommen), Auswahl der **Gerätestimme**
   und ein optionales **Namensfeld**, mit dem der Coach dich anspricht
   („Auf geht's, Alex!"). Nutzt die auf dem Gerät installierten Stimmen.
