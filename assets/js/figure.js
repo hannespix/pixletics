@@ -14,6 +14,17 @@ const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 const lerp = (a, b, t) => a + (b - a) * t;
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
+// Dauer des weichen Übergangs zwischen zwei Posen (z. B. Übung -> Pause).
+const TRANS_MS = 650;
+const parseVB = (s) => s.split(' ').map(Number);
+const lerpVB = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t), lerp(a[3], b[3], t)];
+// Zwei Posen (Punkt-Wörterbücher gleicher Schlüssel) Punkt für Punkt mischen.
+function lerpPose(A, B, t) {
+  const o = {};
+  for (const k in B) { const a = A[k], b = B[k]; o[k] = (Array.isArray(a) && Array.isArray(b)) ? mix(a, b, t) : b; }
+  return o;
+}
+
 // 2-Knochen-IK: Gelenk J finden, sodass |R-J|=l1 und |J-T|=l2.
 // bend = +1/-1 wählt die Beugerichtung (Knie/Ellbogen vor oder zurück).
 function ik2(R, T, l1, l2, bend) {
@@ -34,9 +45,10 @@ const CX = 50, GROUND_Y = 104, DEPTH = 2.6;
 export class FigureAnimator {
   constructor(svg) {
     this.svg = svg;
-    this.raf = null; this.anim = null; this.t0 = 0;
+    this.raf = null; this.anim = null; this.t0 = 0; this.trans = null; this._lastP = null;
     this._build();
     this.setPoints(EXERCISES.squats.solve(0));
+    this._lastP = null; // erster play() soll nicht aus dieser Default-Pose morphen
   }
 
   _line(cls, w, opacity = 1) {
@@ -80,13 +92,25 @@ export class FigureAnimator {
     this.jShoulder.setAttribute('cx', P.shoulder[0]); this.jShoulder.setAttribute('cy', P.shoulder[1]);
     this.jHand.setAttribute('cx', P.handN[0].toFixed(2)); this.jHand.setAttribute('cy', P.handN[1].toFixed(2));
     this.cHead.setAttribute('cx', P.head[0].toFixed(2)); this.cHead.setAttribute('cy', P.head[1].toFixed(2));
+    this._lastP = P;
   }
 
   play(anim) {
     const a = typeof anim === 'string' ? EXERCISES[anim] : anim;
     if (!a) { this.stop(); return false; }
-    this.svg.setAttribute('viewBox', viewBoxFor(a));
-    this.anim = a; this.t0 = performance.now();
+    this.anim = a;
+    if (this._lastP) {
+      // Sanfter Übergang: aus der aktuellen Pose in die neue Animation morphen
+      // (z. B. Männchen "steht auf" vom Liegestütz in die Pausen-Idle).
+      this.trans = {
+        fromP: this._lastP, toP: a.solve(0),
+        fromVB: parseVB(this.svg.getAttribute('viewBox')), toVB: parseVB(viewBoxFor(a)),
+        start: performance.now(), dur: TRANS_MS,
+      };
+    } else {
+      this.trans = null; this.t0 = performance.now();
+      this.svg.setAttribute('viewBox', viewBoxFor(a));
+    }
     if (!this.raf) this._loop();
     return true;
   }
@@ -103,6 +127,15 @@ export class FigureAnimator {
 
   _loop() {
     const tick = (now) => {
+      if (this.trans) { // laufender Übergang in die neue Animation
+        const k = Math.min(1, (now - this.trans.start) / this.trans.dur);
+        const e = easeInOut(k);
+        this.setPoints(lerpPose(this.trans.fromP, this.trans.toP, e));
+        this.svg.setAttribute('viewBox', lerpVB(this.trans.fromVB, this.trans.toVB, e).join(' '));
+        if (k >= 1) { this.trans = null; this.t0 = now; }
+        this.raf = requestAnimationFrame(tick);
+        return;
+      }
       if (!this.anim) { this.raf = null; return; }
       const dur = this.anim.duration || 1500;
       const u = ((now - this.t0) % dur) / dur;
@@ -113,7 +146,7 @@ export class FigureAnimator {
     this.raf = requestAnimationFrame(tick);
   }
 
-  stop() { if (this.raf) cancelAnimationFrame(this.raf); this.raf = null; this.anim = null; }
+  stop() { if (this.raf) cancelAnimationFrame(this.raf); this.raf = null; this.anim = null; this.trans = null; this._lastP = null; }
 }
 
 // Hilfen für die Solver
@@ -211,14 +244,14 @@ export const EXERCISES = {
     duration: 2600, pingpong: true,
     solve(t) { const arm = lerp(150, 8, t); return stand({ hipBob: lerp(0, 2, t), lean: lerp(4, -3, t), headAng: lerp(3, -4, t), armUp: arm, armFore: arm }); },
   },
-  // Seitneigung (lockern), Arme hängen locker.
+  // Seitneigung (lockern), Arme hängen locker (Ellbogen leicht nach hinten gebeugt).
   rest_sidebend: {
     duration: 2800, pingpong: true,
-    solve(t) { const lean = lerp(-11, 11, t); return stand({ lean, headAng: lean, armUp: lerp(188, 202, t), armFore: lerp(190, 206, t) }); },
+    solve(t) { const lean = lerp(-11, 11, t); const up = lerp(181, 187, t); return stand({ lean, headAng: lean, armUp: up, armFore: up - 16 }); },
   },
-  // Arme locker vor/zurück schwingen + leichtes Wippen.
+  // Arme locker vor/zurück schwingen + leichtes Wippen (Ellbogen zeigt nach hinten).
   rest_swing: {
     duration: 1500, pingpong: true,
-    solve(t) { const sw = lerp(150, 232, t); return stand({ hipBob: lerp(0, 2.5, t), lean: 3, headAng: 2, armUp: sw, armFore: sw + 6 }); },
+    solve(t) { const up = lerp(150, 205, t); return stand({ hipBob: lerp(0, 2.5, t), lean: 3, headAng: 2, armUp: up, armFore: up - 14 }); },
   },
 };
