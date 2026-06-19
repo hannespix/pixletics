@@ -274,11 +274,38 @@ export function setSpeechHooks({ start, end }) {
   onSpeakEnd = end;
 }
 
+// Aussprache-Korrekturen für die deutsche Sprachausgabe. Bestimmte Wörter
+// (Anglizismen, knifflige Vokalfolgen) werden lautschriftnah umgeschrieben,
+// damit die deutsche KI-Stimme sie korrekt betont. Betrifft NUR die
+// Sprachausgabe – die Anzeige (Übungsname etc.) bleibt unverändert.
+// Reihenfolge beachten: speziellere Einträge zuerst.
+const SPEAK_FIXES = [
+  // „unbeeindruckt“/„beeindruckt“: das „ei“ nach „be“ wird sonst als „bee-i“
+  // verschluckt. Trennung erzwingt die korrekte Aussprache „be-ein-druckt“.
+  [/\bunbeeindruck/gi, 'unbe-eindruck'],
+  [/\bbeeindruck/gi, 'be-eindruck'],
+  // Anglizismen lautnah (deutsche Schreibung, die die TTS richtig liest):
+  [/\bSkater\b/gi, 'Skäiter'],            // engl. „skay-ter“
+  [/\bMountain Climbers?\b/gi, 'Mauntn Klaimbers'],
+  [/\bBurpees?\b/gi, 'Börpies'],
+  [/\bCrunches\b/gi, 'Krantsches'],
+  [/\bPlank Jacks\b/gi, 'Plänk Dschäcks'],
+  [/\bPlank\b/gi, 'Plänk'],
+  [/\bJumping Jacks\b/gi, 'Dschamping Dschäcks'],
+];
+
+// Wendet die Aussprache-Korrekturen an (nur für die Sprachausgabe).
+export function fixPronunciation(text = '') {
+  let t = text;
+  for (const [re, rep] of SPEAK_FIXES) t = t.replace(re, rep);
+  return t;
+}
+
 export function speak(text, { interrupt = false, pitch, rate } = {}) {
   if (!('speechSynthesis' in window)) return;
   const synth = window.speechSynthesis;
   if (interrupt) synth.cancel();
-  const u = new SpeechSynthesisUtterance(text);
+  const u = new SpeechSynthesisUtterance(fixPronunciation(text));
   u.lang = 'de-DE';
   // Gewählte Stimme, sonst die erste deutsche als Rückfall.
   const v = currentVoice || (germanVoices.length ? allVoices.find((x) => x.voiceURI === germanVoices[0].voiceURI) : null);
