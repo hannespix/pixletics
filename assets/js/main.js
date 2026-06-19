@@ -55,11 +55,31 @@ function switchView(view) {
 }
 
 // ================ TRAINING VIEW ================
-function renderPicker() {
+// Label-Maps für die Auto-Set-Metadaten (vgl. setgen.js).
+const INTENSITY_LABEL = { locker: 'Locker', mittel: 'Mittel', intensiv: 'Intensiv' };
+const FOCUS_LABEL = {
+  ganzkoerper: 'Ganzkörper', oberkoerper: 'Oberkörper',
+  unterkoerper: 'Unterkörper', core: 'Core', cardio: 'Cardio',
+};
+// Geschätzte Dauer eines Sets in Minuten (Übungszahl × Zyklus aus Übung+Pause).
+function setEstMinutes(set) {
+  const cycle = (config.workSeconds || 30) + (config.pauseSeconds || 30);
+  return Math.max(1, Math.round((set.exercises.length * cycle) / 60));
+}
+// Emoji-Badge: erstes vorhandenes Übungs-Emoji des Sets, sonst Default.
+function setEmoji(set) {
+  for (const id of set.exercises) { const ex = exerciseMap[id]; if (ex && ex.emoji) return ex.emoji; }
+  return '🏋️';
+}
+
+let pickerIntroDone = false; // gestaffelter Einzug nur beim ersten Render
+
+function renderPicker(highlightId) {
   const host = $('#set-picker');
   host.innerHTML = '';
   if (!sets.length) {
     host.innerHTML = '<p class="muted">Noch keine Sets. Lege im Tab „Übungssets“ welche an.</p>';
+    host.classList.remove('intro');
     return;
   }
   sets.forEach((set) => {
@@ -67,22 +87,37 @@ function renderPicker() {
     const selected = order !== -1;
     const item = document.createElement('div');
     item.className = 'picker-item' + (selected ? ' selected' : '');
+    if (highlightId && set.id === highlightId && selected) item.classList.add('just-picked');
+    const est = setEstMinutes(set);
+    const focusTags = ((set.gen && set.gen.focus) || []).map((f) => FOCUS_LABEL[f]).filter(Boolean);
+    const intensity = set.gen ? INTENSITY_LABEL[set.gen.intensity] : '';
+    const chips = [
+      intensity ? `<span class="pi-chip">${escapeHtml(intensity)}</span>` : '',
+      ...focusTags.map((t) => `<span class="pi-chip">${escapeHtml(t)}</span>`),
+    ].join('');
     item.innerHTML = `
-      <div class="pi-check">${selected ? '✓' : ''}</div>
+      <div class="pi-icon">${escapeHtml(setEmoji(set))}</div>
       <div class="pi-body">
         <div class="pi-name">${escapeHtml(set.name)}</div>
-        <div class="pi-sub">${set.exercises.length} Übungen</div>
+        <div class="pi-sub">${set.exercises.length} Übungen · ≈ ${est} Min</div>
+        ${chips ? `<div class="pi-chips">${chips}</div>` : ''}
       </div>
-      ${selected ? `<div class="order-badge">#${order + 1}</div>` : ''}`;
+      <div class="pi-state">
+        ${selected ? `<div class="order-badge">#${order + 1}</div>` : ''}
+        <div class="pi-check">${selected ? '✓' : ''}</div>
+      </div>`;
     item.addEventListener('click', () => {
       const idx = selectedSetIds.indexOf(set.id);
       if (idx === -1) selectedSetIds.push(set.id);
       else selectedSetIds.splice(idx, 1);
-      renderPicker();
+      renderPicker(set.id);
       updatePlanSummary();
     });
     host.appendChild(item);
   });
+  // Einzugs-Animation nur einmalig (sonst flackert sie bei jedem Toggle).
+  if (!pickerIntroDone) { host.classList.add('intro'); pickerIntroDone = true; }
+  else host.classList.remove('intro');
 }
 
 function bindConfig() {
@@ -322,10 +357,6 @@ function testVoice() {
   speak(sample.trim(), { interrupt: true });
 }
 
-function selectedExerciseIds() {
-  return selectedSetIds.flatMap((id) => sets.find((s) => s.id === id)?.exercises || []);
-}
-
 // Wiederholungen einer Übung IN EINEM SET: set-spezifischer Wert, sonst der
 // Standardwert der Übung. So kann dieselbe Übung je Set unterschiedlich oft laufen.
 function setReps(set, exId) {
@@ -349,11 +380,23 @@ function selectedExercises() {
   return out;
 }
 
+// Kennzahlen im Hero-Block (Anzahl Sets/Übungen, geplante Minuten).
+function updateHeroStats() {
+  const setsEl = $('#hero-sets');
+  if (!setsEl) return;
+  setsEl.textContent = sets.length;
+  $('#hero-ex').textContent = exercises.length;
+  $('#hero-min').textContent = config.totalMinutes;
+}
+
 function updatePlanSummary() {
+  updateHeroStats();
   const el = $('#plan-summary');
+  const startBtn = $('#btn-start');
+  const has = selectedExercises().length > 0;
+  if (startBtn) startBtn.disabled = !has; // Leerzustand: kein Set gewählt
   if (!el) return;
-  const pool = selectedExerciseIds();
-  if (!pool.length) { el.hidden = true; el.textContent = ''; return; }
+  if (!has) { el.hidden = true; el.textContent = ''; return; }
   const cycle = config.pauseSeconds + config.workSeconds;
   const rounds = Math.max(1, Math.floor((config.totalMinutes * 60) / cycle));
   el.hidden = false;
@@ -1419,10 +1462,13 @@ function saveCurrentSession() {
   });
 }
 
-// „Fortsetzen“-Knopf je nach gespeichertem Workout ein-/ausblenden.
+// „Fortsetzen“-Knopf + Hero-Hinweis je nach gespeichertem Workout ein-/ausblenden.
 function updateResumeButton() {
+  const has = !!loadSession();
   const btn = $('#btn-resume');
-  if (btn) btn.hidden = !loadSession();
+  if (btn) btn.hidden = !has;
+  const hero = $('#hero-resume');
+  if (hero) hero.hidden = !has;
 }
 
 function resumeWorkout() {
