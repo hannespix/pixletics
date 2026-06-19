@@ -658,6 +658,69 @@ export const EXERCISES = {
     },
   },
 
+  // Russian Twists: zurückgelehnter V-Sitz (Gesäß am Boden, Knie angewinkelt,
+  // Füße leicht angehoben), Hände vor der Brust zusammen und im Wechsel zur Seite
+  // geführt (Rotation in der Seitenansicht als Auf/Ab-Schwung angedeutet).
+  twists: {
+    duration: 1500,
+    solve(t) {
+      const sway = (t - 0.5) * 2;                       // -1 .. 1
+      const hip = [50, GROUND_Y - 9];                   // Gesäß am Boden
+      const shoulder = addv(hip, dir(332), BONE.torso); // zurückgelehnter Oberkörper
+      const arm = 74 + sway * 18;                        // Hände vor der Brust, schwingen
+      return rig({
+        hip, shoulder, headAng: 332,
+        thighAng: 72, shinAng: 126, footAng: 126,        // V-Sitz: Knie hoch, Füße vorn angehoben
+        armUp: arm, armFore: arm + 8,                     // beide Arme nach vorne (Hände zusammen)
+      });
+    },
+  },
+
+  // Seitstütz (Side Plank): Körper als gerade Diagonale, unterer Arm stützt am
+  // Boden, Füße am Boden, Hüfte angehoben; oberer Arm gerade nach oben gestreckt.
+  // Statischer Halt mit leichtem Wippen.
+  sideplank: {
+    duration: 2800, pingpong: true,
+    solve(t) {
+      const bob = lerp(0, 2, t);
+      const toe = [78, GROUND_Y - 1], ankle = [75, GROUND_Y - 5];
+      const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
+      const bodyAng = 287;                              // von den Füßen (rechts) nach links-oben
+      const shoulder = addv(ankle, dir(bodyAng), bodyLen - bob);
+      const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
+      return rig({
+        hip, shoulder, ankle, toe, kneeBend: 1, headAng: 333,
+        handF: [shoulder[0], GROUND_Y - 1], elbowBend: -1, // unterer (ferner) Arm stützt am Boden
+        armUpN: 4, armForeN: 4,                            // oberer (naher) Arm gerade nach oben
+      });
+    },
+  },
+
+  // Skater-Sprünge: tiefe Landung auf einem Bein (unter dem Körper, gebeugt), das
+  // andere schwingt nach hinten-oben (Ausgleich), Oberkörper vorgebeugt, Arme
+  // gegengleich. Im Wechsel (cycle).
+  skater: {
+    duration: 1300, loop: 'cycle',
+    solve(t) {
+      const s = Math.sin(2 * Math.PI * t);
+      const nSt = (s + 1) / 2, fSt = 1 - nSt;            // Stand-Anteil je Bein
+      const hip = [CX, GROUND_Y - 30];
+      const lean = 24;
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      // Fuß-Ziel: Schwung hinten-oben <-> Stand am Boden unter der Hüfte.
+      const ank = (st) => [lerp(CX - 20, CX + 2, st), lerp(GROUND_Y - 16, GROUND_Y - 1, st)];
+      const foot = (st) => lerp(210, 95, st);            // hinten gespitzt -> flach am Boden
+      const arm = (fwd) => lerp(150, 214, fwd);          // vor <-> zurück
+      return rig({
+        hip, shoulder, headAng: lean,
+        ankleN: ank(nSt), kneeBendN: -1, footAngN: foot(nSt),
+        ankleF: ank(fSt), kneeBendF: -1, footAngF: foot(fSt),
+        armUpN: arm(fSt), armForeN: arm(fSt) - 42,        // gegengleich zum nahen Bein
+        armUpF: arm(nSt), armForeF: arm(nSt) - 42,
+      });
+    },
+  },
+
   // Kurzer neutraler Stand (Arme locker an der Seite, leichtes Atmen) – wird als
   // 1-Sekunden-Übergang zwischen den Übungen gezeigt (Männchen "steht kurz").
   idle: {
