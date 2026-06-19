@@ -485,6 +485,61 @@ export const EXERCISES = {
     },
   },
 
+  // Unterarmstütz (Plank): Unterarme + Zehen sind die fixen Kontaktpunkte, der
+  // Körper bleibt ein gerades Brett. Statischer Halt mit minimaler Atembewegung.
+  plank: {
+    duration: 2600, pingpong: true,
+    solve(t) {
+      const bob = lerp(0, 1.2, t);                     // dezentes Atmen
+      const toe = [12, GROUND_Y - 1];                  // Zehen fix
+      const ankle = [14, GROUND_Y - 6];
+      const bodyAng = 98;
+      const shoulder = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin + BONE.torso - bob);
+      const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
+      return rig({
+        hip, shoulder, headAng: 110,
+        ankle, toe, kneeBend: 1,
+        armUpN: 180, armForeN: 90, armUpF: 180, armForeF: 90, // Unterarme flach am Boden
+      });
+    },
+  },
+
+  // Pike-Liegestütze: umgekehrtes V (Hüfte hoch), Hände + Füße am Boden fix; der
+  // Kopf senkt sich zwischen den Händen Richtung Boden (Ellbogen beugen) und drückt
+  // wieder hoch – Schulterfokus.
+  pikepushups: {
+    duration: 1600,
+    solve(t) {
+      const hand = [72, GROUND_Y - 1];                 // Hände fix
+      const toe = [26, GROUND_Y - 1];                  // Zehen fix
+      const ankle = [29, GROUND_Y - 6];
+      const hip = [50, GROUND_Y - 48];                 // Hüfte hoch gepiked (fix)
+      const torsoAng = lerp(150, 171, t);              // Schulter/Kopf senkt sich nach unten-vorn
+      const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      return rig({
+        hip, shoulder, headAng: torsoAng + 6,          // Kopf Richtung Boden
+        ankleN: ankle, ankleF: ankle, toeN: toe, toeF: toe, kneeBend: 1, footAng: 250,
+        hand, elbowBend: 1,
+      });
+    },
+  },
+
+  // Enge Liegestütze (Diamant): wie Liegestütz, Hände aber eng unter der Brust,
+  // Ellbogen dicht am Körper nach hinten.
+  diamond: {
+    duration: 1500,
+    solve(t) {
+      const toe = [16, GROUND_Y - 1];
+      const ankle = [16, GROUND_Y - 7];
+      const hand = [66, GROUND_Y - 1];                 // Hände enger/weiter hinten unter der Brust
+      const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
+      const bodyAng = lerp(70, 80, t);
+      const shoulder = addv(ankle, dir(bodyAng), bodyLen);
+      const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
+      return rig({ hip, shoulder, ankle, hand, toe, kneeBend: 1, elbowBend: 1, headAng: 98 });
+    },
+  },
+
   // ---- Pausen-Idles (Männchen entspannt sich) ----
   // Durchatmen, Hände in die Hüften, Brust hebt/senkt sich.
   rest_breathe: {
