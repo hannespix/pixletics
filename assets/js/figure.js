@@ -316,6 +316,27 @@ export const EXERCISES = {
     },
   },
 
+  // Mountain Climbers: hoher Stütz (Hände fix am Boden), Körper als Brett. Die
+  // Beine wechseln im Laufschritt: ein Knie zieht nach vorne zur Brust (Fuß
+  // angehoben/getuckt), das andere streckt sich nach hinten zum Boden. Beide
+  // Beine gegenphasig (cycle) – die Hände bleiben der fixe Kontaktpunkt.
+  climbers: {
+    duration: 720, loop: 'cycle',
+    solve(t) {
+      const hand = [76, GROUND_Y - 1];                 // Hände fix am Boden
+      const shoulder = [70, GROUND_Y - 29];            // Schultern über den Händen
+      const hip = addv(shoulder, dir(252), BONE.torso); // Brett-Linie nach hinten
+      const thigh = (p) => 158 - 86 * Math.cos(2 * Math.PI * p); // vorn ~72 <-> hinten ~244
+      const shin = (p) => 200 - 50 * Math.cos(2 * Math.PI * p);  // getuckt vorn, gestreckt hinten
+      const pN = t, pF = t + 0.5;                       // gegenphasig
+      return rig({
+        hip, shoulder, hand, elbowBend: 1, headAng: 112,
+        thighAngN: thigh(pN), shinAngN: shin(pN), footAngN: shin(pN),
+        thighAngF: thigh(pF), shinAngF: shin(pF), footAngF: shin(pF),
+      });
+    },
+  },
+
   // ---- Pausen-Idles (Männchen entspannt sich) ----
   // Durchatmen, Hände in die Hüften, Brust hebt/senkt sich.
   rest_breathe: {
