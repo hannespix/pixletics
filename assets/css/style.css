@@ -176,7 +176,15 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.hero-tagline { margin: 0 0 16px; color: var(--muted); font-size: 14px; font-weight: 600; }
+.hero-tagline {
+  margin: 0 0 16px; color: var(--muted); font-size: 14px; font-weight: 600; min-height: 1.4em;
+  transition: opacity 0.32s ease, filter 0.32s ease, transform 0.32s ease; will-change: opacity, filter;
+}
+.hero-tagline.swap { opacity: 0; filter: blur(8px); transform: translateY(6px); }
+@media (prefers-reduced-motion: reduce) {
+  .hero-tagline { transition: none; }
+  .hero-tagline.swap { opacity: 1; filter: none; transform: none; }
+}
 .hero-stats { display: flex; gap: 10px; }
 .hero-stat {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;

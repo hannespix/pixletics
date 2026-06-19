@@ -96,6 +96,38 @@ $$('#mode-switch .mode-btn').forEach((btn) => {
 });
 setTrainMode(localStorage.getItem(MODE_KEY) || 'plan');
 
+// Rotierender Hero-Slogan: alle 10 s ein zufälliger Spruch mit weicher
+// Blur-Überblendung (gooey-artig, ohne SVG-Filter).
+const HERO_SLOGANS = [
+  'Bereit für Action? 🔥', 'Ab geht’s – dem Speck an den Kragen!', 'Schwitzen statt sitzen!',
+  'Keine Ausreden – los geht’s!', 'Heute schmilzt das Hüftgold.', 'Vollgas statt Couch!',
+  'Auf geht’s, Champion! 💪', 'Zeit zu glühen!', 'Das Sofa läuft nicht weg – beweg dich!',
+  'Pack’s an, du schaffst das!', 'Aus dem Fass wird ein Fässchen!', 'Der Waschbrettbauch wartet.',
+  'Rein in die Sportklamotten!', 'Heute ist Bestform-Tag.', 'Beiß dich durch – es lohnt sich!',
+  'Jede Wiederholung zählt.', 'Mehr Bewegung, weniger Bierbauch!', 'Einmal richtig auspowern!',
+  'Dein Körper kann mehr, als du denkst.', 'Los, der Schweiß darf fließen!',
+];
+let _sloganTimer = null, _lastSlogan = -1;
+function pickSlogan() {
+  let i;
+  do { i = Math.floor(Math.random() * HERO_SLOGANS.length); } while (i === _lastSlogan && HERO_SLOGANS.length > 1);
+  _lastSlogan = i;
+  return HERO_SLOGANS[i];
+}
+function startSloganRotator() {
+  const el = $('#hero-slogan');
+  if (!el) return;
+  el.textContent = pickSlogan();
+  if (_sloganTimer) clearInterval(_sloganTimer);
+  _sloganTimer = setInterval(() => {
+    const next = pickSlogan();
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { el.textContent = next; return; }
+    el.classList.add('swap');                                    // ausblenden + verschwimmen
+    setTimeout(() => { el.textContent = next; el.classList.remove('swap'); }, 320); // einblenden (Blur-Morph)
+  }, 10000);
+}
+startSloganRotator();
+
 // ================ TRAINING VIEW ================
 // Label-Maps für die Auto-Set-Metadaten (vgl. setgen.js).
 const INTENSITY_LABEL = { locker: 'Locker', mittel: 'Mittel', intensiv: 'Intensiv' };
