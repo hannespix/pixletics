@@ -577,6 +577,46 @@ export const EXERCISES = {
     },
   },
 
+  // Hampelmänner: Seitenansicht-Umsetzung – Arme schwingen seitlich unten bis
+  // über den Kopf, Beine öffnen/schließen (vor/zurück angedeutet), kleiner Hops.
+  // Arme über Schulterhöhe -> gestreckt nach oben (Kopf dank Zeichenreihenfolge
+  // dazwischen). Ping-Pong: zu/unten <-> offen/oben.
+  jacks: {
+    duration: 640,
+    solve(t) {
+      const hip = [CX, GROUND_Y - 35];                 // etwas tiefer, damit gespreizte Beine reichen
+      const shoulder = addv(hip, dir(2), BONE.torso);
+      const arm = lerp(193, 8, t);                      // Arme seitlich unten -> über den Kopf
+      const spread = lerp(2, 12, t);                    // Füße zusammen -> auseinander
+      return rig({
+        hip, shoulder, headAng: 1,
+        ankleN: [CX + spread, GROUND_Y - 1], kneeBendN: -1, footAngN: 96,
+        ankleF: [CX - spread, GROUND_Y - 1], kneeBendF: -1, footAngF: 96,
+        armUp: arm, armFore: arm,                        // gestreckte Arme
+      });
+    },
+  },
+
+  // Schwimmer: Bauchlage wie Superman, aber Arme und Beine flattern gegengleich
+  // (rechter Arm + linkes Bein heben, dann Wechsel). Bauch bleibt am Boden.
+  swimmers: {
+    duration: 1500, loop: 'cycle',
+    solve(t) {
+      const hip = [46, GROUND_Y - 4];
+      const shoulder = addv(hip, dir(82), BONE.torso);
+      const s = Math.sin(2 * Math.PI * t);
+      const naUp = (s + 1) / 2, faUp = 1 - naUp;        // Arm-Hub nah/fern gegengleich
+      const arm = (u) => lerp(99, 54, u);               // am Boden vorn -> deutlich angehoben
+      const leg = (u) => lerp(262, 294, u);             // am Boden hinten -> deutlich angehoben
+      return rig({
+        hip, shoulder, headAng: 86,
+        armUpN: arm(naUp), armForeN: arm(naUp), armUpF: arm(faUp), armForeF: arm(faUp),
+        thighAngN: leg(faUp), shinAngN: leg(faUp), footAngN: leg(faUp), // Bein gegengleich zum Arm
+        thighAngF: leg(naUp), shinAngF: leg(naUp), footAngF: leg(naUp),
+      });
+    },
+  },
+
   // Kurzer neutraler Stand (Arme locker an der Seite, leichtes Atmen) – wird als
   // 1-Sekunden-Übergang zwischen den Übungen gezeigt (Männchen "steht kurz").
   idle: {
