@@ -14,16 +14,16 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
 // Knochenlängen in viewBox-Einheiten (viewBox 0 0 100 120).
-const BONE = { torso: 26, neck: 5, head: 8, upArm: 15, foreArm: 14, thigh: 18, shin: 18 };
-const CX = 50, BASE_Y = 58; // Hüftpunkt in Ruhe
+const BONE = { torso: 27, neck: 5, head: 8.5, upArm: 15, foreArm: 14, thigh: 19, shin: 18, foot: 7 };
+const CX = 50, BASE_Y = 60, GROUND_Y = 104; // Hüftpunkt in Ruhe + Bodenlinie
 
 // Grund-/Standpose (Seitenansicht, Blick nach rechts). Alle Winkel absolut.
 export const DEFAULT_POSE = {
-  y: 0, torso: 2, head: 0,
-  aun: 192, afn: 192,   // Arm nah: Oberarm / Unterarm (hängend, leicht hinten)
-  auf: 188, aff: 188,   // Arm fern
-  ltn: 182, lsn: 182,   // Bein nah: Oberschenkel / Schienbein
-  ltf: 178, lsf: 178,   // Bein fern
+  y: 0, torso: 3, head: 1, foot: 92,
+  aun: 190, afn: 192,   // Arm nah: Oberarm / Unterarm (hängend)
+  auf: 186, aff: 188,   // Arm fern
+  ltn: 183, lsn: 181,   // Bein nah: Oberschenkel / Schienbein
+  ltf: 177, lsf: 179,   // Bein fern
 };
 
 const merge = (p) => ({ ...DEFAULT_POSE, ...p });
@@ -41,14 +41,14 @@ function points(pose) {
   const shoulder = add(hip, tv, BONE.torso);
   const neck = add(shoulder, tv, BONE.neck);
   const head = add(neck, dir(pose.head), BONE.head);
-  // leichte Schulter-/Hüftbreite für Tiefe (entlang Blickachse = x)
   const sN = [shoulder[0] + 2.5, shoulder[1]], sF = [shoulder[0] - 2.5, shoulder[1]];
   const hN = [hip[0] + 2.5, hip[1]], hF = [hip[0] - 2.5, hip[1]];
   const elbowN = add(sN, dir(pose.aun), BONE.upArm), handN = add(elbowN, dir(pose.afn), BONE.foreArm);
   const elbowF = add(sF, dir(pose.auf), BONE.upArm), handF = add(elbowF, dir(pose.aff), BONE.foreArm);
-  const kneeN = add(hN, dir(pose.ltn), BONE.thigh), footN = add(kneeN, dir(pose.lsn), BONE.shin);
-  const kneeF = add(hF, dir(pose.ltf), BONE.thigh), footF = add(kneeF, dir(pose.lsf), BONE.shin);
-  return { hip, shoulder, neck, head, sN, sF, hN, hF, elbowN, handN, elbowF, handF, kneeN, footN, kneeF, footF };
+  const kneeN = add(hN, dir(pose.ltn), BONE.thigh), ankN = add(kneeN, dir(pose.lsn), BONE.shin);
+  const kneeF = add(hF, dir(pose.ltf), BONE.thigh), ankF = add(kneeF, dir(pose.lsf), BONE.shin);
+  const toeN = add(ankN, dir(pose.foot), BONE.foot), toeF = add(ankF, dir(pose.foot), BONE.foot);
+  return { hip, shoulder, head, sN, sF, hN, hF, elbowN, handN, elbowF, handF, kneeN, ankN, kneeF, ankF, toeN, toeF };
 }
 
 export class FigureAnimator {
@@ -79,18 +79,25 @@ export class FigureAnimator {
 
   _build() {
     this.svg.setAttribute('viewBox', '0 0 100 120');
-    // ferne Gliedmaßen zuerst (hinten), dann Rumpf, dann nahe (vorne), Kopf oben
-    this.lThighF = this._line('fig-limb fig-far', 7, 0.5);
-    this.lShinF = this._line('fig-limb fig-far', 7, 0.5);
-    this.lUpArmF = this._line('fig-limb fig-far', 6, 0.5);
-    this.lForeArmF = this._line('fig-limb fig-far', 6, 0.5);
-    this.lTorso = this._line('fig-torso', 11);
+    // Bodenlinie ganz hinten.
+    this.ground = this._line('fig-ground', 2.5, 0.5);
+    this.ground.setAttribute('x1', 16); this.ground.setAttribute('y1', GROUND_Y);
+    this.ground.setAttribute('x2', 84); this.ground.setAttribute('y2', GROUND_Y);
+    // ferne Gliedmaßen (hinten), dann Rumpf, dann nahe (vorne), Kopf oben
+    this.lThighF = this._line('fig-limb fig-far', 7, 0.45);
+    this.lShinF = this._line('fig-limb fig-far', 7, 0.45);
+    this.lFootF = this._line('fig-limb fig-far', 6, 0.45);
+    this.lUpArmF = this._line('fig-limb fig-far', 6, 0.45);
+    this.lForeArmF = this._line('fig-limb fig-far', 6, 0.45);
+    this.lTorso = this._line('fig-torso', 12);
     this.lThighN = this._line('fig-limb', 7.5);
     this.lShinN = this._line('fig-limb', 7.5);
+    this.lFootN = this._line('fig-limb', 6.5);
     this.lUpArmN = this._line('fig-limb', 6.5);
     this.lForeArmN = this._line('fig-limb', 6.5);
-    this.jHip = this._dot(3, 'fig-joint');
-    this.jShoulder = this._dot(3, 'fig-joint');
+    this.jHip = this._dot(3.2, 'fig-joint');
+    this.jShoulder = this._dot(3.2, 'fig-joint');
+    this.handN = this._dot(3.4, 'fig-joint');
     this.cHead = this._dot(BONE.head, 'fig-head');
   }
 
@@ -98,12 +105,13 @@ export class FigureAnimator {
     const p = points(pose);
     const set = (l, a, b) => { l.setAttribute('x1', a[0].toFixed(2)); l.setAttribute('y1', a[1].toFixed(2)); l.setAttribute('x2', b[0].toFixed(2)); l.setAttribute('y2', b[1].toFixed(2)); };
     set(this.lTorso, p.hip, p.shoulder);
-    set(this.lThighF, p.hF, p.kneeF); set(this.lShinF, p.kneeF, p.footF);
+    set(this.lThighF, p.hF, p.kneeF); set(this.lShinF, p.kneeF, p.ankF); set(this.lFootF, p.ankF, p.toeF);
     set(this.lUpArmF, p.sF, p.elbowF); set(this.lForeArmF, p.elbowF, p.handF);
-    set(this.lThighN, p.hN, p.kneeN); set(this.lShinN, p.kneeN, p.footN);
+    set(this.lThighN, p.hN, p.kneeN); set(this.lShinN, p.kneeN, p.ankN); set(this.lFootN, p.ankN, p.toeN);
     set(this.lUpArmN, p.sN, p.elbowN); set(this.lForeArmN, p.elbowN, p.handN);
     this.jHip.setAttribute('cx', p.hip[0]); this.jHip.setAttribute('cy', p.hip[1]);
     this.jShoulder.setAttribute('cx', p.shoulder[0]); this.jShoulder.setAttribute('cy', p.shoulder[1]);
+    this.handN.setAttribute('cx', p.handN[0].toFixed(2)); this.handN.setAttribute('cy', p.handN[1].toFixed(2));
     this.cHead.setAttribute('cx', p.head[0].toFixed(2)); this.cHead.setAttribute('cy', p.head[1].toFixed(2));
   }
 
@@ -143,23 +151,23 @@ export class FigureAnimator {
   }
 }
 
-// ---- Übungs-Animationen (POC) ----
+// ---- Übungs-Animationen ----
 // Jede Übung = wenige Keyframe-Posen, im Ping-Pong (oder Loop) abgespielt.
 export const ANIMATIONS = {
   // Kniebeuge: Hüfte runter, Oberkörper leicht vor, Knie nach vorne; Arme vor.
   squats: {
     duration: 1700, pingpong: true,
     poses: [
-      merge({ y: 0, torso: 6, aun: 96, afn: 96, auf: 96, aff: 96, ltn: 182, lsn: 182, ltf: 178, lsf: 178 }),
-      merge({ y: 17, torso: 34, aun: 92, afn: 92, auf: 92, aff: 92, ltn: 128, lsn: 205, ltf: 124, lsf: 201 }),
+      merge({ y: 0, torso: 6, foot: 92, aun: 96, afn: 96, auf: 96, aff: 96, ltn: 183, lsn: 181, ltf: 177, lsf: 179 }),
+      merge({ y: 19, torso: 32, foot: 86, aun: 92, afn: 92, auf: 92, aff: 92, ltn: 132, lsn: 188, ltf: 128, lsf: 184 }),
     ],
   },
   // Liegestütz: Körper waagerecht, Arme stützen zum Boden; im "Down" Ellbogen beugen + Körper senken.
   pushups: {
     duration: 1500, pingpong: true,
     poses: [
-      merge({ y: -6, torso: 88, head: 78, aun: 178, afn: 178, auf: 172, aff: 172, ltn: 270, lsn: 270, ltf: 266, lsf: 266 }),
-      merge({ y: 4, torso: 88, head: 78, aun: 150, afn: 120, auf: 146, aff: 116, ltn: 270, lsn: 270, ltf: 266, lsf: 266 }),
+      merge({ y: 18, torso: 90, head: 80, foot: 150, aun: 178, afn: 178, auf: 174, aff: 174, ltn: 256, lsn: 256, ltf: 252, lsf: 252 }),
+      merge({ y: 27, torso: 90, head: 80, foot: 150, aun: 152, afn: 116, auf: 148, aff: 112, ltn: 256, lsn: 256, ltf: 252, lsf: 252 }),
     ],
   },
 };
