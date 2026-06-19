@@ -16,8 +16,9 @@ const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 
 // Dauer des weichen Übergangs zwischen zwei Posen (z. B. Übung -> Pause).
 const TRANS_MS = 650;
-const parseVB = (s) => s.split(' ').map(Number);
-const lerpVB = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t), lerp(a[3], b[3], t)];
+// Feste "Bühne" (viewBox) für ALLE Lauf-Animationen: deckt jede Pose ab, sodass
+// die Figur immer denselben Maßstab hat und bei Übergängen nicht wächst/schrumpft.
+const STAGE = '6 6 92 102';
 // Zwei Posen (Punkt-Wörterbücher gleicher Schlüssel) Punkt für Punkt mischen.
 function lerpPose(A, B, t) {
   const o = {};
@@ -63,7 +64,7 @@ export class FigureAnimator {
   }
 
   _build() {
-    this.svg.setAttribute('viewBox', '0 0 100 120');
+    this.svg.setAttribute('viewBox', STAGE);
     this.thighF = this._line('fig-limb fig-far', 7, 0.45);
     this.shinF = this._line('fig-limb fig-far', 7, 0.45);
     this.footF = this._line('fig-limb fig-far', 6, 0.45);
@@ -99,17 +100,13 @@ export class FigureAnimator {
     const a = typeof anim === 'string' ? EXERCISES[anim] : anim;
     if (!a) { this.stop(); return false; }
     this.anim = a;
+    this.svg.setAttribute('viewBox', STAGE); // feste Bühne -> kein Skalensprung
     if (this._lastP) {
       // Sanfter Übergang: aus der aktuellen Pose in die neue Animation morphen
       // (z. B. Männchen "steht auf" vom Liegestütz in die Pausen-Idle).
-      this.trans = {
-        fromP: this._lastP, toP: a.solve(0),
-        fromVB: parseVB(this.svg.getAttribute('viewBox')), toVB: parseVB(viewBoxFor(a)),
-        start: performance.now(), dur: TRANS_MS,
-      };
+      this.trans = { fromP: this._lastP, toP: a.solve(0), start: performance.now(), dur: TRANS_MS };
     } else {
       this.trans = null; this.t0 = performance.now();
-      this.svg.setAttribute('viewBox', viewBoxFor(a));
     }
     if (!this.raf) this._loop();
     return true;
@@ -127,11 +124,9 @@ export class FigureAnimator {
 
   _loop() {
     const tick = (now) => {
-      if (this.trans) { // laufender Übergang in die neue Animation
+      if (this.trans) { // laufender Übergang in die neue Animation (Bühne bleibt fix)
         const k = Math.min(1, (now - this.trans.start) / this.trans.dur);
-        const e = easeInOut(k);
-        this.setPoints(lerpPose(this.trans.fromP, this.trans.toP, e));
-        this.svg.setAttribute('viewBox', lerpVB(this.trans.fromVB, this.trans.toVB, e).join(' '));
+        this.setPoints(lerpPose(this.trans.fromP, this.trans.toP, easeInOut(k)));
         if (k >= 1) { this.trans = null; this.t0 = now; }
         this.raf = requestAnimationFrame(tick);
         return;
