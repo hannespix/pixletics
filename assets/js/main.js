@@ -1915,6 +1915,18 @@ function stopRunner() {
 // Runner-Steuerung
 $('#btn-start').addEventListener('click', startWorkout);
 $('#btn-resume').addEventListener('click', resumeWorkout);
+// Hero-Hinweis „Workout pausiert“: sanft zum Fortsetzen-Button springen + Fokus.
+$('#hero-resume').addEventListener('click', () => {
+  setTrainMode('plan');                 // Fortsetzen-Button liegt im Plan-Modus
+  const btn = $('#btn-resume');
+  if (!btn) return;
+  btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  btn.classList.remove('flash');
+  void btn.offsetWidth;                 // Reflow -> Animation kann erneut starten
+  btn.classList.add('flash');
+  setTimeout(() => { btn.classList.remove('flash'); }, 800);
+  setTimeout(() => btn.focus({ preventScroll: true }), 320);
+});
 $('#btn-runner-start').addEventListener('click', beginRunner);
 $('#btn-close-runner').addEventListener('click', stopRunner);
 $('#btn-prev').addEventListener('click', () => engine.prev());
