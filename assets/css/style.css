@@ -521,3 +521,14 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .mm-vol input[type="range"] { width: 100%; accent-color: var(--accent); height: 24px; }
 /* Transport-Reihe (Radio/Spotify) im Musik-Modal etwas Abstand geben */
 .music-modal-card .rm-row { margin-top: 14px; }
+
+/* ---------------- Übungsanleitung (So geht's / Worauf achten) ---------------- */
+#howto-modal { z-index: 70; } /* über dem Runner (z-index 60) */
+.howto-modal-card { width: min(440px, 100%); }
+#ex-howto { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 6px; }
+.howto-block { margin: 12px 0; }
+.howto-block h4 { font-size: 14px; margin: 0 0 6px; color: var(--accent-2); font-weight: 800; }
+.howto-steps, .howto-tips { margin: 0; padding-left: 22px; }
+.howto-steps li, .howto-tips li { color: var(--text); line-height: 1.5; margin: 5px 0; font-size: 14px; }
+.howto-steps li::marker { color: var(--accent); font-weight: 700; }
+.howto-tips li::marker { color: var(--accent); }

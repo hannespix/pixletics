@@ -236,6 +236,7 @@
         <span id="runner-session"></span>
       </div>
       <div class="runner-top-btns">
+        <button class="icon-btn" id="btn-runner-howto" title="So führst du die Übung aus" aria-label="Übungsanleitung" hidden>ℹ︎</button>
         <button class="icon-btn" id="btn-fs-runner" title="Vollbild umschalten" aria-label="Vollbild umschalten">⛶</button>
         <button class="icon-btn" id="btn-close-runner" title="Beenden">✕</button>
       </div>
@@ -368,10 +369,22 @@
         <label>Wiederholungen<input type="number" id="ex-reps" min="1" max="6" step="1" /></label>
         <label class="ex-form-cue">Beschreibung<input id="ex-cue" placeholder="kurzer Bewegungshinweis" /></label>
       </div>
+      <div class="ex-howto" id="ex-howto" hidden></div>
       <div class="row-between editor-actions">
         <button class="btn btn-danger" id="btn-delete-ex">Löschen</button>
         <button class="btn btn-primary" id="btn-save-ex">Speichern</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ ÜBUNGSANLEITUNG (Modal) ============ -->
+  <div class="modal" id="howto-modal" hidden>
+    <div class="modal-card howto-modal-card">
+      <div class="row-between">
+        <h3 id="howto-title" style="margin:0"></h3>
+        <button class="icon-btn" id="btn-close-howto">✕</button>
+      </div>
+      <div class="ex-howto" id="howto-body"></div>
     </div>
   </div>
 
