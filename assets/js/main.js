@@ -73,6 +73,23 @@ document.addEventListener('click', (e) => {
   if (!tabsNav.contains(e.target) && e.target !== navToggleBtn) closeNavMenu();
 });
 
+// Trainings-Modus: Plan (set-basiert) <-> Intervall-Timer (reiner Timer).
+const MODE_KEY = 'pixletics.trainmode';
+function setTrainMode(mode) {
+  const m = mode === 'interval' ? 'interval' : 'plan';
+  const plan = $('#mode-plan'), iv = $('#mode-interval'), settings = $('#settings-menu');
+  if (plan) plan.hidden = m !== 'plan';
+  if (iv) iv.hidden = m !== 'interval';
+  if (settings) settings.hidden = m === 'interval'; // Plan-Einstellungen nur im Plan-Modus
+  $$('#mode-switch button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+  try { localStorage.setItem(MODE_KEY, m); } catch {}
+}
+$('#mode-switch')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-mode]');
+  if (btn) setTrainMode(btn.dataset.mode);
+});
+setTrainMode(localStorage.getItem(MODE_KEY) || 'plan');
+
 // ================ TRAINING VIEW ================
 // Label-Maps für die Auto-Set-Metadaten (vgl. setgen.js).
 const INTENSITY_LABEL = { locker: 'Locker', mittel: 'Mittel', intensiv: 'Intensiv' };

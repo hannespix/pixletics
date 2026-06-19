@@ -114,6 +114,9 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .btn-big { width: 100%; padding: 18px; font-size: 20px; border-radius: 16px; margin-bottom: 18px; }
 .collapsible .btn-big { margin-bottom: 0; }
 
+/* ---------- Training: Modus-Umschalter (Plan / Intervall) ---------- */
+.mode-switch { margin: 2px 2px 16px; }
+
 /* ---------- Training: Hero + Aurora ---------- */
 #view-train { position: relative; overflow: clip; }
 #view-train > :not(.train-aurora) { position: relative; z-index: 1; }
