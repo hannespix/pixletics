@@ -356,6 +356,23 @@ export const EXERCISES = {
     },
   },
 
+  // Crunches: wie Sit-ups, aber nur die Schulterblätter heben kurz ab – der
+  // Oberkörper rollt nur leicht auf (kleiner Winkel), unterer Rücken bleibt unten.
+  crunches: {
+    duration: 1300,
+    solve(t) {
+      const hip = [50, GROUND_Y - 5];
+      const ankle = [66, GROUND_Y - 1];
+      const torsoAng = lerp(268, 308, t);              // nur kleiner Aufrollwinkel
+      const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      return rig({
+        hip, shoulder, headAng: torsoAng - 14,
+        ankle, kneeBend: -1, footAng: 95,
+        armUp: torsoAng - 36, armFore: torsoAng + 52,  // Hände an den Schläfen
+      });
+    },
+  },
+
   // ---- Pausen-Idles (Männchen entspannt sich) ----
   // Durchatmen, Hände in die Hüften, Brust hebt/senkt sich.
   rest_breathe: {
