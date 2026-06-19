@@ -434,6 +434,12 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 .ex-item.dragging .handle { cursor: grabbing; }
 body.dragging-active { user-select: none; -webkit-user-select: none; cursor: grabbing; }
 .ex-item.drag-over { border-color: var(--accent); }
+.app-share {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  text-align: center; max-width: 420px; margin: 16px auto 4px; padding: 16px;
+}
+.app-share-text { color: var(--muted); font-size: 14px; font-weight: 600; }
+.app-share .btn { min-width: 210px; }
 .app-footer { text-align: center; padding: 18px 0 8px; }
 .app-footer a { color: var(--muted); font-size: 13px; text-decoration: none; }
 .app-footer a:hover { color: var(--text); }
