@@ -106,7 +106,8 @@ export class FigureAnimator {
       const add = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); g.appendChild(e); return e; };
       const fill = pr.fill || '#8a929e', stroke = pr.stroke || fill, sw = pr.sw || 4;
       if (pr.type === 'rect') add('rect', { x: pr.x, y: pr.y, width: pr.w, height: pr.h, rx: pr.rx || 1.5, fill });
-      else if (pr.type === 'circle') add('circle', { cx: pr.x, cy: pr.y, r: pr.r, fill });
+      else if (pr.type === 'circle') add('circle', { cx: pr.x, cy: pr.y, r: pr.r, fill: pr.stroke ? (pr.fill || 'none') : fill, ...(pr.stroke ? { stroke, 'stroke-width': sw } : {}) });
+      else if (pr.type === 'ellipse') add('ellipse', { cx: pr.x, cy: pr.y, rx: pr.rx, ry: pr.ry, fill: 'none', stroke, 'stroke-width': pr.sw || 1.5 });
       else if (pr.type === 'line') add('line', { x1: pr.x1, y1: pr.y1, x2: pr.x2, y2: pr.y2, stroke, 'stroke-width': sw, 'stroke-linecap': 'round', fill: 'none' });
       else if (pr.type === 'kb') { // Kettlebell: Kugel + Bügel
         add('path', { d: `M ${pr.x - pr.r * 0.7} ${pr.y - pr.r * 0.4} q ${pr.r * 0.7} ${-pr.r} ${pr.r * 1.4} 0`, fill: 'none', stroke: pr.stroke || '#3a3f47', 'stroke-width': 2.4 });
@@ -295,6 +296,7 @@ function stageViewBox(a) {
     for (const pr of (P.props || [])) { // Geräte mit einrahmen
       if (pr.type === 'rect') { ext(pr.x, pr.y); ext(pr.x + pr.w, pr.y + pr.h); }
       else if (pr.type === 'circle' || pr.type === 'kb') ext(pr.x, pr.y, pr.r + 2);
+      else if (pr.type === 'ellipse') { ext(pr.x - pr.rx, pr.y - pr.ry); ext(pr.x + pr.rx, pr.y + pr.ry); }
       else if (pr.type === 'line') { ext(pr.x1, pr.y1, 2); ext(pr.x2, pr.y2, 2); }
     }
   }
@@ -901,6 +903,165 @@ export const EXERCISES = {
       const arm = lerp(72, 112, (Math.sin(2 * Math.PI * t) + 1) / 2); // vor -> zurückziehen
       const P = rig({ hip, shoulder, headAng: 88, thighAng: 266, shinAng: 266, footAng: 266, armUp: arm, armFore: arm });
       P.props = [{ type: 'rect', x: 36, y: GROUND_Y - 3, w: 36, h: 4, rx: 1, fill: '#555' }];
+      return P;
+    },
+  },
+
+  // Seilspringen: kleine Hopser auf den Fußballen, Seil dreht ums Männchen.
+  'circ-rope': {
+    duration: 520,
+    solve(t) {
+      const hop = 3 * Math.sin(Math.PI * t);
+      const hip = [CX, GROUND_Y - 37 - hop];
+      const ankle = [CX, GROUND_Y - 2 - hop];
+      const shoulder = addv(hip, dir(3), BONE.torso);
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 150, headAng: 2, armUp: 150, armFore: 196 });
+      P.props = [{ type: 'ellipse', x: CX, y: GROUND_Y - 26, rx: lerp(20, 24, t), ry: 30, stroke: '#cbb88f', sw: 1.4 }];
+      return P;
+    },
+  },
+
+  // Ringe-Klimmzüge: an den Ringen hängen und hochziehen (Knie angewinkelt).
+  'circ-rings': {
+    duration: 1500,
+    solve(t) {
+      const hand = [CX, GROUND_Y - 80];
+      const shoulder = [CX, lerp(GROUND_Y - 60, GROUND_Y - 71, t)]; // hochziehen
+      const hip = [CX, shoulder[1] + BONE.torso];
+      const P = rig({ hip, shoulder, handN: hand, handF: hand, elbowBend: 1, headAng: 2, thighAng: 202, shinAng: 118, footAng: 118 });
+      P.props = [{ type: 'line', x1: CX - 9, y1: 8, x2: hand[0] - 9, y2: hand[1], sw: 1.4, stroke: '#cbb88f' },
+        { type: 'line', x1: CX + 9, y1: 8, x2: hand[0] + 9, y2: hand[1], sw: 1.4, stroke: '#cbb88f' },
+        { type: 'circle', x: hand[0] - 9, y: hand[1], r: 4, stroke: '#2c2f35', sw: 2 },
+        { type: 'circle', x: hand[0] + 9, y: hand[1], r: 4, stroke: '#2c2f35', sw: 2 }];
+      return P;
+    },
+  },
+
+  // Sprossenwand-Beinheben: an der Sprossenwand hängen, gestreckte Beine heben.
+  'circ-wallbars': {
+    duration: 1800,
+    solve(t) {
+      const hand = [46, GROUND_Y - 80];
+      const shoulder = [48, GROUND_Y - 64];
+      const hip = [50, GROUND_Y - 46];
+      const leg = lerp(178, 96, t);                     // unten -> waagerecht heben
+      const P = rig({ hip, shoulder, handN: hand, handF: hand, elbowBend: 1, headAng: 4, thighAng: leg, shinAng: leg + 3, footAng: leg });
+      const bars = [{ type: 'line', x1: 40, y1: 8, x2: 40, y2: 104, sw: 2.2, stroke: '#9c6b3f' }, { type: 'line', x1: 30, y1: 8, x2: 30, y2: 104, sw: 2.2, stroke: '#9c6b3f' }];
+      for (let y = 16; y < 104; y += 11) bars.push({ type: 'line', x1: 30, y1: y, x2: 40, y2: y, sw: 1.6, stroke: '#9c6b3f' });
+      P.props = bars;
+      return P;
+    },
+  },
+
+  // Battle Ropes: leichte Hocke, Arme schlagen die Taue gegengleich auf/ab.
+  'circ-battlerope': {
+    duration: 460, loop: 'cycle',
+    solve(t) {
+      const hip = [CX - 6, GROUND_Y - 32], ankle = [CX - 6, GROUND_Y - 1];
+      const shoulder = addv(hip, dir(10), BONE.torso);
+      const s = (Math.sin(2 * Math.PI * t) + 1) / 2;
+      const P = rig({
+        hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 8,
+        armUpN: lerp(118, 152, s), armForeN: lerp(118, 152, s),
+        armUpF: lerp(152, 118, s), armForeF: lerp(152, 118, s),
+      });
+      const anchor = [92, GROUND_Y - 1];
+      P.props = [{ type: 'line', x1: P.handF[0], y1: P.handF[1], x2: anchor[0], y2: anchor[1], sw: 2, stroke: '#b9925f', front: true },
+        { type: 'line', x1: P.handN[0], y1: P.handN[1], x2: anchor[0], y2: anchor[1], sw: 2, stroke: '#cbb88f', front: true }];
+      return P;
+    },
+  },
+
+  // Medizinball an die Decke: aus leichter Hocke explosiv hoch, Ball über Kopf.
+  'circ-ballwall': {
+    duration: 1000,
+    solve(t) {
+      const hip = [CX, lerp(GROUND_Y - 30, GROUND_Y - 39, t)], ankle = [CX, GROUND_Y - 1];
+      const shoulder = addv(hip, dir(4), BONE.torso);
+      const arm = lerp(40, 6, t);
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 2, armUp: arm, armFore: arm });
+      const h = P.handN; P.props = [{ type: 'circle', x: h[0], y: h[1] - 6, r: 6, fill: '#7a4a2a', front: true }];
+      return P;
+    },
+  },
+
+  // Medizinball-Slams: Ball über Kopf und kraftvoll auf den Boden schmettern.
+  'circ-medball': {
+    duration: 850,
+    solve(t) {
+      const hip = [CX, lerp(GROUND_Y - 38, GROUND_Y - 24, t)], ankle = [CX, GROUND_Y - 1];
+      const lean = lerp(4, 38, t);
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      const arm = lerp(6, 120, t);
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: lean * 0.4, armUp: arm, armFore: arm });
+      const h = P.handN; P.props = [{ type: 'circle', x: h[0], y: h[1] + (t < 0.5 ? -6 : 6), r: 6, fill: '#7a4a2a', front: true }];
+      return P;
+    },
+  },
+
+  // Medizinball-Wurf aus Rückenlage: aufrichten und den Ball nach vorn (Wand) werfen.
+  'circ-wallthrow': {
+    duration: 1400,
+    solve(t) {
+      const hip = [44, GROUND_Y - 5], ankle = [62, GROUND_Y - 1];
+      const torsoAng = lerp(280, 352, t);               // liegen -> aufrichten/werfen
+      const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      const arm = lerp(312, 56, t);                      // hinter dem Kopf -> nach vorn werfen
+      const P = rig({ hip, shoulder, headAng: torsoAng - 8, ankle, kneeBend: -1, footAng: 95, armUp: arm, armFore: arm });
+      const h = P.handN;
+      P.props = [{ type: 'rect', x: 90, y: 28, w: 6, h: 76, fill: '#5b6472' }, { type: 'circle', x: h[0], y: h[1], r: 5.5, fill: '#7a4a2a', front: true }];
+      return P;
+    },
+  },
+
+  // Rutschpad-Sprint: Hände auf der Bank, Beine sprinten im Wechsel (wie Climbers).
+  'circ-sliders': {
+    duration: 560, loop: 'cycle',
+    solve(t) {
+      const hand = [72, GROUND_Y - 22];
+      const shoulder = [64, GROUND_Y - 46];
+      const hip = [46, GROUND_Y - 44];                  // angehoben, damit Füße über dem Boden bleiben
+      const s = Math.sin(2 * Math.PI * t);
+      const nD = Math.max(0, s), fD = Math.max(0, -s);
+      const thigh = (d) => lerp(206, 116, d), shin = (d) => lerp(206, 186, d), foot = (d) => lerp(204, 165, d);
+      const P = rig({
+        hip, shoulder, handN: hand, handF: hand, elbowBend: 1, headAng: 118,
+        thighAngN: thigh(nD), shinAngN: shin(nD), footAngN: foot(nD),
+        thighAngF: thigh(fD), shinAngF: shin(fD), footAngF: foot(fD),
+      });
+      P.props = [{ type: 'rect', x: 60, y: GROUND_Y - 22, w: 28, h: 22, fill: '#7a5a3c' }];
+      return P;
+    },
+  },
+
+  // Kettlebell-Russian-Twist: V-Sitz, Kettlebell von Seite zu Seite.
+  'circ-kbtwist': {
+    duration: 1500,
+    solve(t) {
+      const sway = (t - 0.5) * 2;
+      const hip = [50, GROUND_Y - 9];
+      const shoulder = addv(hip, dir(332), BONE.torso);
+      const arm = 76 + sway * 16;
+      const P = rig({ hip, shoulder, headAng: 332, thighAng: 72, shinAng: 126, footAng: 126, armUp: arm, armFore: arm + 8 });
+      const h = P.handN; P.props = [{ type: 'kb', x: h[0], y: h[1] + 4, r: 4.5, front: true }];
+      return P;
+    },
+  },
+
+  // Liegestütz mit Drehung: Liegestütz, oben den Oberkörper öffnen, ein Arm hoch.
+  'circ-rotpushup': {
+    duration: 1600,
+    solve(t) {
+      const toe = [21, GROUND_Y - 1], ankle = [15, GROUND_Y - 7];
+      const hand = [72, GROUND_Y - 1];
+      const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
+      const shoulder = addv(ankle, dir(73), bodyLen);
+      const hip = addv(ankle, dir(73), BONE.thigh + BONE.shin);
+      const P = rig({
+        hip, shoulder, ankle, toe, kneeBend: 1, headAng: 100,
+        handF: hand, elbowBend: 1,                       // ferner Arm stützt
+        armUpN: lerp(176, 348, t), armForeN: lerp(176, 348, t), // naher Arm: unten -> nach oben öffnen
+      });
       return P;
     },
   },
