@@ -631,10 +631,10 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .exercise-figure[hidden] { display: none; }
 .exercise-figure svg { width: 100%; height: 100%; display: block;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); }
-.fig-limb { stroke: #d7a76b; }
-.fig-torso { stroke: #c98f54; stroke-linecap: round; }
-.fig-joint { fill: #a9743f; }
-.fig-head { fill: #d7a76b; stroke: #a9743f; stroke-width: 1; }
+.fig-limb { stroke: url(#woodGrad); }
+.fig-torso { stroke: url(#woodGrad); stroke-linecap: round; }
+.fig-joint { fill: url(#woodBall); }
+.fig-head { fill: url(#woodBall); stroke: #8a5e34; stroke-width: 0.8; }
 /* Mit Figur: Figur allein groß im Ring, Countdown UNTER dem Ring (mit Abstand). */
 .timer-ring.has-figure { margin-bottom: 52px; }
 .timer-ring.has-figure .big-timer {
