@@ -52,9 +52,6 @@ export class FigureAnimator {
 
   _build() {
     this.svg.setAttribute('viewBox', '0 0 100 120');
-    this.ground = this._line('fig-ground', 2.5, 0.5);
-    this.ground.setAttribute('x1', 14); this.ground.setAttribute('y1', GROUND_Y);
-    this.ground.setAttribute('x2', 86); this.ground.setAttribute('y2', GROUND_Y);
     this.thighF = this._line('fig-limb fig-far', 7, 0.45);
     this.shinF = this._line('fig-limb fig-far', 7, 0.45);
     this.footF = this._line('fig-limb fig-far', 6, 0.45);
@@ -88,8 +85,19 @@ export class FigureAnimator {
   play(anim) {
     const a = typeof anim === 'string' ? EXERCISES[anim] : anim;
     if (!a) { this.stop(); return false; }
+    this.svg.setAttribute('viewBox', a.viewBox || '0 0 100 120');
     this.anim = a; this.t0 = performance.now();
     if (!this.raf) this._loop();
+    return true;
+  }
+
+  // Einzelbild ohne Animation (z. B. als Icon in der Übungs-Übersicht).
+  still(key, t = 0.42) {
+    const a = EXERCISES[key];
+    if (!a) return false;
+    this.stop();
+    this.svg.setAttribute('viewBox', a.viewBox || '0 0 100 120');
+    this.setPoints(a.solve(t));
     return true;
   }
 
@@ -137,7 +145,7 @@ export const EXERCISES = {
   // Kniebeuge: Füße fix am Boden. Hüfte senkt sich + leicht zurück; Knie per IK
   // nach vorne gebeugt; Oberkörper lehnt vor; Arme zum Ausgleich nach vorne.
   squats: {
-    duration: 1700,
+    duration: 1700, viewBox: '20 14 60 96',
     solve(t) {
       const ankle = [CX + 1, GROUND_Y - 1];           // Knöchel fix am Boden
       const hip = [lerp(CX + 1, CX - 3, t), lerp(GROUND_Y - 36, GROUND_Y - 18, t)];
@@ -150,7 +158,7 @@ export const EXERCISES = {
   // Liegestütz: Hände + Zehen fix am Boden. Schulter senkt sich; Ellbogen per IK
   // gebeugt; Körper bleibt als Brett gestreckt (Hüfte auf der Linie Schulter–Knöchel).
   pushups: {
-    duration: 1500,
+    duration: 1500, viewBox: '8 60 86 50',
     solve(t) {
       const toe = [16, GROUND_Y - 1];                  // Zehen fix am Boden
       const ankle = [16, GROUND_Y - 7];                // Knöchel direkt über den Zehen
@@ -159,7 +167,7 @@ export const EXERCISES = {
       const bodyAng = lerp(69, 79, t);                 // pivotiert auf den Zehen: oben -> unten
       const shoulder = addv(ankle, dir(bodyAng), bodyLen);
       const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin); // Hüfte auf der Brett-Linie
-      return rig({ hip, shoulder, ankle, hand, toe, kneeBend: 1, elbowBend: -1, headAng: 98 });
+      return rig({ hip, shoulder, ankle, hand, toe, kneeBend: 1, elbowBend: 1, headAng: 98 });
     },
   },
 };
