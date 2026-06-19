@@ -38,6 +38,17 @@ input, textarea, [contenteditable="true"], [contenteditable=""] {
   -webkit-touch-callout: default;
 }
 
+/* ---------- Moderne, schlanke Overflow-/Scrollbars ---------- */
+* { scrollbar-width: thin; scrollbar-color: rgba(255, 90, 54, 0.55) transparent; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border-radius: 999px; border: 2px solid transparent; background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+::-webkit-scrollbar-corner { background: transparent; }
+
 /* ---------- Topbar ---------- */
 .topbar {
   position: sticky; top: 0; z-index: 20;
@@ -455,12 +466,11 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .status-dot.on { background: var(--green); }
 
 /* ---------- Radio ---------- */
-/* Genre-Filter: horizontal scrollbare Chip-Leiste */
+/* Genre-Filter: horizontal scrollbare Chip-Leiste (mit moderner Overflow-Bar) */
 .radio-filter {
-  display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 10px;
-  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 8px;
+  -webkit-overflow-scrolling: touch;
 }
-.radio-filter::-webkit-scrollbar { display: none; }
 .radio-filter-chip {
   flex: none; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border);
   background: var(--bg-2); color: var(--muted); font: inherit; font-weight: 700; font-size: 13px;
