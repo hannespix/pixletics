@@ -37,6 +37,14 @@
         <feGaussianBlur in="d-head" stdDeviation="0" result="b-head"/>
         <feColorMatrix in="b-head" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4"/>
       </filter>
+      <filter id="goo-slogan" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="t-slo">
+          <animate attributeName="baseFrequency" dur="9s" values="0.014;0.03;0.014" repeatCount="indefinite"/>
+        </feTurbulence>
+        <feDisplacementMap in="SourceGraphic" in2="t-slo" scale="0" xChannelSelector="R" yChannelSelector="G" result="d-slo"/>
+        <feGaussianBlur in="d-slo" stdDeviation="0" result="b-slo"/>
+        <feColorMatrix in="b-slo" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"/>
+      </filter>
     </defs>
   </svg>
 
@@ -69,7 +77,10 @@
     <section class="view active" id="view-train">
 
       <header class="train-hero">
-        <h1 class="hero-title" id="hero-slogan"><span class="hero-line">Bereit für <span class="hero-accent">Action</span>? 🔥</span></h1>
+        <h1 class="hero-title" id="hero-slogan">
+          <span class="slogan-layer" id="slogan-a"><span class="hero-line">Bereit für <span class="hero-accent">Action</span>? 🔥</span></span>
+          <span class="slogan-layer" id="slogan-b" aria-hidden="true"></span>
+        </h1>
         <div class="hero-stats">
           <span class="hero-stat"><b id="hero-sets">0</b><span>Sets</span></span>
           <span class="hero-stat"><b id="hero-ex">0</b><span>Übungen</span></span>
