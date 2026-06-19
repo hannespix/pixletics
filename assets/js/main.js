@@ -1883,7 +1883,7 @@ function runnerHandlers(steps) {
 
 // ---- Übungs-Vorführung (Holzpuppe) ----
 // Welche Übung welche Animation bekommt (wird nach und nach erweitert).
-const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups', lunges: 'lunges', highknees: 'highknees', climbers: 'climbers', situps: 'situps', crunches: 'crunches', legraises: 'legraises', bridge: 'bridge', superman: 'superman', calfraises: 'calfraises', jumpsquats: 'jumpsquats', plank: 'plank', pikepushups: 'pikepushups', diamond: 'diamond', jacks: 'jacks', swimmers: 'swimmers', shouldertaps: 'shouldertaps', plankjacks: 'plankjacks', twists: 'twists', sideplank: 'sideplank', skater: 'skater' };
+const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups', lunges: 'lunges', highknees: 'highknees', climbers: 'climbers', situps: 'situps', crunches: 'crunches', legraises: 'legraises', bridge: 'bridge', superman: 'superman', calfraises: 'calfraises', jumpsquats: 'jumpsquats', plank: 'plank', pikepushups: 'pikepushups', diamond: 'diamond', jacks: 'jacks', swimmers: 'swimmers', shouldertaps: 'shouldertaps', plankjacks: 'plankjacks', twists: 'twists', sideplank: 'sideplank', skater: 'skater', burpees: 'burpees', wallsit: 'wallsit', tricepdips: 'tricepdips', 'circ-lunge': 'lunges', 'circ-shuttle': 'highknees' };
 const PREVIEW_SPEED = 0.55; // In der Pause die Übung in ~halbem Tempo vorführen
 let figureAnimator = null, _figLead = null;
 // Holzpuppe führt in BEIDEN Phasen dieselbe Übung vor: in der WORK-Phase im
