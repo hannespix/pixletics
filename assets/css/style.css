@@ -392,7 +392,7 @@ main { max-width: 860px; margin: 0 auto; padding: 16px; }
 /* Übungs-Editor-Formular */
 .ex-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
 .ex-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
-.ex-form input {
+.ex-form input, .ex-form select {
   background: var(--bg-2); border: 1px solid var(--border); color: var(--text);
   font-size: 15px; padding: 10px 12px; border-radius: 10px;
 }

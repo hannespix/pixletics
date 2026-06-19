@@ -745,12 +745,23 @@ function renderExercisesList() {
   });
 }
 
+// Vorschlagswerte für Kategorisierungs-Dropdowns (Datalist) – die immer wieder
+// vorkommenden Werte (Bereiche/Genres) als Dropdown, ohne freie Eingabe zu sperren.
+const AREA_SUGGESTIONS = ['Ganzkörper', 'Brust', 'Rücken', 'Schultern', 'Arme', 'Trizeps', 'Bauch', 'Core', 'Po', 'Beine', 'Waden', 'Cardio'];
+function fillDatalist(id, values) {
+  const dl = document.getElementById(id);
+  if (!dl) return;
+  dl.innerHTML = [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'de'))
+    .map((v) => `<option value="${escapeHtml(v)}"></option>`).join('');
+}
+
 function openExEditor(exId) {
   editorExId = exId;
   const ex = exId ? exerciseMap[exId] : null;
   $('#ex-editor-title').textContent = ex ? 'Übung bearbeiten' : 'Neue Übung';
   $('#ex-emoji').value = ex?.emoji || '';
   $('#ex-name').value = ex?.name || '';
+  fillDatalist('ex-area-options', [...AREA_SUGGESTIONS, ...exercises.map((e) => e.area)]);
   $('#ex-area').value = ex?.area || '';
   $('#ex-cue').value = ex?.cue || '';
   $('#ex-reps').value = ex?.reps || DEFAULT_REPS;
@@ -1310,7 +1321,15 @@ function openStationEditor(stId) {
   const st = stId ? stations.find((s) => s.id === stId) : null;
   $('#station-editor-title').textContent = st ? 'Sender bearbeiten' : 'Neuer Sender';
   $('#station-name').value = st?.name || '';
+  fillDatalist('station-genre-options', stations.map((s) => s.genre));
   $('#station-genre').value = st?.genre || '';
+  // Musikrichtung (Filter-Kategorie) als Dropdown – aus den festen Kategorien.
+  const catSel = $('#station-cat');
+  if (catSel) {
+    const opts = [...RADIO_CATS, ['sonstige', 'Sonstige']];
+    catSel.innerHTML = opts.map(([k, l]) => `<option value="${k}">${escapeHtml(l)}</option>`).join('');
+    catSel.value = opts.some(([k]) => k === st?.cat) ? st.cat : 'sonstige';
+  }
   $('#station-url').value = st?.url || '';
   $('#btn-delete-station').style.visibility = st ? 'visible' : 'hidden';
   $('#station-editor').hidden = false;
@@ -1332,7 +1351,7 @@ function saveStationEditor() {
     alert('Die Stream-URL muss mit https:// beginnen (HTTP wird vom Browser blockiert).');
     return;
   }
-  const data = { name, genre: $('#station-genre').value.trim() || 'Sonstige', url };
+  const data = { name, genre: $('#station-genre').value.trim() || 'Sonstige', cat: $('#station-cat')?.value || 'sonstige', url };
   if (editorStationId) {
     const st = stations.find((s) => s.id === editorStationId);
     if (st) Object.assign(st, data);

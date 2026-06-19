@@ -394,7 +394,8 @@
       <div class="ex-form">
         <label class="ex-form-emoji">Emoji<input id="ex-emoji" maxlength="4" placeholder="🏋️" /></label>
         <label class="ex-form-name">Name<input id="ex-name" placeholder="z. B. Kniebeugen" /></label>
-        <label>Bereich<input id="ex-area" placeholder="z. B. Beine" /></label>
+        <label>Bereich<input id="ex-area" list="ex-area-options" placeholder="wählen oder eintippen" /></label>
+        <datalist id="ex-area-options"></datalist>
         <label>Wiederholungen<input type="number" id="ex-reps" min="1" max="6" step="1" /></label>
         <label class="ex-form-cue">Beschreibung<input id="ex-cue" placeholder="kurzer Bewegungshinweis" /></label>
       </div>
@@ -437,7 +438,9 @@
       </div>
       <div class="ex-form">
         <label class="ex-form-name">Name<input id="station-name" placeholder="z. B. ROCK ANTENNE" /></label>
-        <label>Genre<input id="station-genre" placeholder="z. B. Rock" /></label>
+        <label>Genre<input id="station-genre" list="station-genre-options" placeholder="wählen oder eintippen" /></label>
+        <datalist id="station-genre-options"></datalist>
+        <label>Musikrichtung (Filter)<select id="station-cat"></select></label>
         <label class="ex-form-cue">Stream-URL (HTTPS)<input id="station-url" placeholder="https://…/stream.mp3" /></label>
       </div>
       <p class="muted small">Tipp: Es muss ein direkter HTTPS-Stream (MP3/AAC) sein – keine Webseite und kein HLS/.m3u8.</p>
