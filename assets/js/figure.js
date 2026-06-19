@@ -337,6 +337,25 @@ export const EXERCISES = {
     },
   },
 
+  // Sit-ups: Rückenlage, Füße flach am Boden (fix), Knie angewinkelt nach oben.
+  // Der Oberkörper rollt um die fixe Hüfte vom Liegen bis fast zum Sitz nach oben
+  // (Drehung über „oben", nicht durch den Boden). Hände an den Schläfen, Ellbogen
+  // nach vorne; Kinn leicht zur Brust.
+  situps: {
+    duration: 1700,
+    solve(t) {
+      const hip = [50, GROUND_Y - 5];                  // Gesäß bleibt am Boden (Drehpunkt)
+      const ankle = [66, GROUND_Y - 1];                // Füße flach am Boden, fix
+      const torsoAng = lerp(270, 374, t);              // flach (links) -> aufgerichtet (über oben)
+      const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      return rig({
+        hip, shoulder, headAng: torsoAng - 12,         // Kopf in Rumpfrichtung, Kinn zur Brust
+        ankle, kneeBend: -1, footAng: 95,              // Knie angewinkelt nach oben
+        armUp: torsoAng - 36, armFore: torsoAng + 52,  // Hände an den Schläfen, Ellbogen vor
+      });
+    },
+  },
+
   // ---- Pausen-Idles (Männchen entspannt sich) ----
   // Durchatmen, Hände in die Hüften, Brust hebt/senkt sich.
   rest_breathe: {
