@@ -1884,13 +1884,22 @@ function runnerHandlers(steps) {
 // ---- Übungs-Vorführung (Holzpuppe) ----
 // Welche Übung welche Animation bekommt (POC: zwei Übungen, sonst keine).
 const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups' };
-let figureAnimator = null;
-// Zeigt die animierte Figur nur in der WORK-Phase, wenn die Übung eine Animation
-// hat – sonst ausblenden (und das normale Phasen-Icon zeigen).
+const REST_ANIMS = ['rest_breathe', 'rest_stretch', 'rest_sidebend', 'rest_swing'];
+let figureAnimator = null, _lastRest = -1;
+// Zufälliges Pausen-Idle wählen – nie zweimal dasselbe hintereinander.
+function pickRest() {
+  let i;
+  do { i = Math.floor(Math.random() * REST_ANIMS.length); } while (i === _lastRest && REST_ANIMS.length > 1);
+  _lastRest = i;
+  return REST_ANIMS[i];
+}
+// WORK: Übungs-Animation (falls vorhanden). PAUSE (PREPARE): entspanntes Idle.
 function updateRunnerFigure(exId, phase) {
   const wrap = $('#exercise-figure'); const ring = $('#timer-ring');
   if (!wrap || !ring) return;
-  const key = (phase === PHASE.WORK && exId && FIGURE_ANIMS[exId]) ? FIGURE_ANIMS[exId] : null;
+  let key = null;
+  if (phase === PHASE.WORK) key = (exId && FIGURE_ANIMS[exId]) ? FIGURE_ANIMS[exId] : null;
+  else if (phase === PHASE.PREPARE) key = pickRest();
   if (key) {
     if (!figureAnimator) figureAnimator = new FigureAnimator($('#exercise-figure-svg'));
     figureAnimator.play(key);
