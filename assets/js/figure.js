@@ -85,7 +85,7 @@ export class FigureAnimator {
   play(anim) {
     const a = typeof anim === 'string' ? EXERCISES[anim] : anim;
     if (!a) { this.stop(); return false; }
-    this.svg.setAttribute('viewBox', a.viewBox || '0 0 100 120');
+    this.svg.setAttribute('viewBox', viewBoxFor(a));
     this.anim = a; this.t0 = performance.now();
     if (!this.raf) this._loop();
     return true;
@@ -96,7 +96,7 @@ export class FigureAnimator {
     const a = EXERCISES[key];
     if (!a) return false;
     this.stop();
-    this.svg.setAttribute('viewBox', a.viewBox || '0 0 100 120');
+    this.svg.setAttribute('viewBox', viewBoxFor(a));
     this.setPoints(a.solve(t));
     return true;
   }
@@ -140,6 +140,25 @@ function rig({ hip, shoulder, ankle, hand, toe, kneeBend, elbowBend, headAng, fo
   const head = addv(neck, dir(headAng), BONE.head);
   return { hip, shoulder, head, hipN, hipF, sN, sF, kneeN, ankN, toeN, kneeF, ankF, toeF, elbowN, handN, elbowF, handF };
 }
+
+// viewBox je Übung aus der echten Bounding-Box über die ganze Animation
+// berechnen (mit Rand) -> Figur immer zentriert, nie abgeschnitten. Wird gecacht.
+function computeViewBox(a) {
+  let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+  for (let i = 0; i <= 12; i++) {
+    const P = a.solve(i / 12);
+    for (const k in P) {
+      const p = P[k];
+      if (Array.isArray(p) && p.length === 2) {
+        if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];
+        if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];
+      }
+    }
+  }
+  const pad = BONE.head + 4; // Kopfradius + Strichbreite abdecken
+  return `${(minx - pad).toFixed(1)} ${(miny - pad).toFixed(1)} ${(maxx - minx + 2 * pad).toFixed(1)} ${(maxy - miny + 2 * pad).toFixed(1)}`;
+}
+function viewBoxFor(a) { return a._vb || (a._vb = computeViewBox(a)); }
 
 export const EXERCISES = {
   // Kniebeuge: Füße fix am Boden. Hüfte senkt sich + leicht zurück; Knie per IK
