@@ -14,11 +14,14 @@ const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 const lerp = (a, b, t) => a + (b - a) * t;
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
-// Dauer des weichen Übergangs zwischen zwei Posen (z. B. Übung -> Pause).
+// Dauer des weichen Übergangs zwischen zwei Posen.
 const TRANS_MS = 650;
-// Feste "Bühne" (viewBox) für ALLE Lauf-Animationen: deckt jede Pose ab, sodass
-// die Figur immer denselben Maßstab hat und bei Übergängen nicht wächst/schrumpft.
-const STAGE = '6 6 92 102';
+// Konstante Bühnen-Größe: jede Übung wird in einem quadratischen Fenster fester
+// Kantenlänge zentriert -> gleicher Figur-Maßstab überall (kein Wachsen/Schrumpfen),
+// aber jede Übung sitzt mittig in der Bubble (das "Kamera"-Fenster wandert mit).
+const STAGE_S = 92;
+const parseVB = (s) => s.split(' ').map(Number);
+const lerpVB = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t), lerp(a[3], b[3], t)];
 // Zwei Posen (Punkt-Wörterbücher gleicher Schlüssel) Punkt für Punkt mischen.
 function lerpPose(A, B, t) {
   const o = {};
@@ -64,7 +67,7 @@ export class FigureAnimator {
   }
 
   _build() {
-    this.svg.setAttribute('viewBox', STAGE);
+    this.svg.setAttribute('viewBox', `${CX - STAGE_S / 2} 6 ${STAGE_S} ${STAGE_S}`);
     this.thighF = this._line('fig-limb fig-far', 7, 0.45);
     this.shinF = this._line('fig-limb fig-far', 7, 0.45);
     this.footF = this._line('fig-limb fig-far', 6, 0.45);
@@ -100,7 +103,7 @@ export class FigureAnimator {
     const a = typeof anim === 'string' ? EXERCISES[anim] : anim;
     if (!a) { this.stop(); return false; }
     const speed = opts.speed ?? 1;
-    this.svg.setAttribute('viewBox', STAGE); // feste Bühne -> kein Skalensprung
+    const toVB = stageViewBox(a); // pro Übung zentriert, konstante Größe
     // Gleiche Animation, läuft schon -> nur das Tempo ändern (Phase beibehalten),
     // damit die langsame Pausen-Vorschau nahtlos ins volle Übungstempo übergeht.
     if (a === this.anim && this.raf && !this.trans) {
@@ -113,11 +116,16 @@ export class FigureAnimator {
     }
     this.anim = a; this.speedFactor = speed;
     if (this._lastP) {
-      // Sanfter Übergang: aus der aktuellen Pose in die neue Animation morphen
-      // (z. B. Männchen "steht auf" vom Liegestütz in die Pausen-Idle).
-      this.trans = { fromP: this._lastP, toP: a.solve(0), start: performance.now(), dur: TRANS_MS };
+      // Sanfter Übergang: aus der aktuellen Pose in die neue morphen; die Bühne
+      // wandert dabei mit (nur Verschiebung, gleiche Größe -> kein Skalensprung).
+      this.trans = {
+        fromP: this._lastP, toP: a.solve(0),
+        fromVB: parseVB(this.svg.getAttribute('viewBox')), toVB: parseVB(toVB),
+        start: performance.now(), dur: TRANS_MS,
+      };
     } else {
       this.trans = null; this.t0 = performance.now();
+      this.svg.setAttribute('viewBox', toVB);
     }
     if (!this.raf) this._loop();
     return true;
@@ -135,9 +143,11 @@ export class FigureAnimator {
 
   _loop() {
     const tick = (now) => {
-      if (this.trans) { // laufender Übergang in die neue Animation (Bühne bleibt fix)
+      if (this.trans) { // laufender Übergang: Pose morphen + Bühne mitführen
         const k = Math.min(1, (now - this.trans.start) / this.trans.dur);
-        this.setPoints(lerpPose(this.trans.fromP, this.trans.toP, easeInOut(k)));
+        const e = easeInOut(k);
+        this.setPoints(lerpPose(this.trans.fromP, this.trans.toP, e));
+        this.svg.setAttribute('viewBox', lerpVB(this.trans.fromVB, this.trans.toVB, e).join(' '));
         if (k >= 1) { this.trans = null; this.t0 = now; }
         this.raf = requestAnimationFrame(tick);
         return;
@@ -237,6 +247,27 @@ function computeViewBox(a) {
 }
 function viewBoxFor(a) { return a._vb || (a._vb = computeViewBox(a)); }
 
+// Quadratisches, um die Übung zentriertes Bühnen-Fenster. Kantenlänge = mindestens
+// STAGE_S (gleicher Maßstab für die meisten Übungen) und nur größer, wenn die
+// Übung mehr Platz braucht (inkl. Kopf-/Strichrand) -> nie abgeschnitten, immer
+// mittig. Übergänge führen das Fenster weich mit (siehe play/_loop).
+function stageViewBox(a) {
+  if (a._svb) return a._svb;
+  let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+  for (let i = 0; i <= 16; i++) {
+    const P = a.solve(i / 16);
+    for (const k in P) {
+      const p = P[k]; if (!Array.isArray(p)) continue;
+      const r = k === 'head' ? BONE.head + 1 : 4; // Kopfradius bzw. Strich/Gelenk abdecken
+      minx = Math.min(minx, p[0] - r); maxx = Math.max(maxx, p[0] + r);
+      miny = Math.min(miny, p[1] - r); maxy = Math.max(maxy, p[1] + r);
+    }
+  }
+  const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
+  const S = Math.max(STAGE_S, maxx - minx, maxy - miny);
+  return (a._svb = `${(cx - S / 2).toFixed(1)} ${(cy - S / 2).toFixed(1)} ${S} ${S}`);
+}
+
 export const EXERCISES = {
   // Kniebeuge: Füße fix am Boden. Hüfte senkt sich + leicht zurück; Knie per IK
   // nach vorne gebeugt; Oberkörper lehnt vor; Arme zum Ausgleich nach vorne.
@@ -324,15 +355,17 @@ export const EXERCISES = {
     duration: 720, loop: 'cycle',
     solve(t) {
       const hand = [76, GROUND_Y - 1];                 // Hände fix am Boden
-      const shoulder = [70, GROUND_Y - 29];            // Schultern über den Händen
-      const hip = addv(shoulder, dir(252), BONE.torso); // Brett-Linie nach hinten
-      const thigh = (p) => 158 - 86 * Math.cos(2 * Math.PI * p); // vorn ~72 <-> hinten ~244
-      const shin = (p) => 200 - 50 * Math.cos(2 * Math.PI * p);  // getuckt vorn, gestreckt hinten
-      const pN = t, pF = t + 0.5;                       // gegenphasig
+      const shoulder = [70, GROUND_Y - 30];            // Schultern über den Händen
+      const hip = addv(shoulder, dir(250), BONE.torso); // Brett-Linie nach hinten
+      // Fuß-Ziel je Bein: hinten am Boden (gestreckt) <-> vorn unter die Brust
+      // angehoben (Knie zur Brust). Über IK -> Füße bleiben immer über dem Boden.
+      const dN = (1 - Math.cos(2 * Math.PI * t)) / 2;
+      const dF = (1 + Math.cos(2 * Math.PI * t)) / 2;  // gegenphasig
+      const ank = (d) => [lerp(22, 56, d), lerp(GROUND_Y - 4, GROUND_Y - 18, d)];
       return rig({
-        hip, shoulder, hand, elbowBend: 1, headAng: 112,
-        thighAngN: thigh(pN), shinAngN: shin(pN), footAngN: shin(pN),
-        thighAngF: thigh(pF), shinAngF: shin(pF), footAngF: shin(pF),
+        hip, shoulder, hand, elbowBend: 1, headAng: 116,
+        ankleN: ank(dN), kneeBendN: -1, footAngN: lerp(250, 300, dN),
+        ankleF: ank(dF), kneeBendF: -1, footAngF: lerp(250, 300, dF),
       });
     },
   },
@@ -435,15 +468,15 @@ export const EXERCISES = {
   superman: {
     duration: 1600,
     solve(t) {
-      const hip = [42, GROUND_Y - 3];                  // Hüfte/Bauch am Boden
-      const torsoAng = lerp(96, 80, t);                // Brust hebt leicht ab
+      const hip = [46, GROUND_Y - 4];                  // Hüfte/Bauch am Boden
+      const torsoAng = lerp(80, 72, t);                // Brust hebt ab
       const shoulder = addv(hip, dir(torsoAng), BONE.torso);
-      const arm = lerp(100, 64, t);                    // Arme vorn: Boden -> angehoben
-      const leg = lerp(258, 286, t);                   // Beine hinten: Boden -> angehoben
+      const arm = lerp(66, 50, t);                     // Arme vorn-oben: tiefer -> höher
+      const leg = lerp(294, 306, t);                   // Beine hinten-oben: tiefer -> höher
       return rig({
-        hip, shoulder, headAng: lerp(100, 70, t),      // Blick mit
-        thighAng: leg, shinAng: leg, footAng: leg,     // Beine gestreckt nach hinten
-        armUp: arm, armFore: arm,                       // Arme gestreckt nach vorne
+        hip, shoulder, headAng: lerp(74, 58, t),       // Blick mit nach vorne-oben
+        thighAng: leg, shinAng: leg, footAng: leg,     // Beine gestreckt nach hinten-oben
+        armUp: arm, armFore: arm,                       // Arme gestreckt nach vorne-oben
       });
     },
   },
@@ -472,13 +505,13 @@ export const EXERCISES = {
   jumpsquats: {
     duration: 900,
     solve(t) {
-      const hip = [CX, lerp(GROUND_Y - 22, GROUND_Y - 50, t)];   // Hocke -> hoch in der Luft
-      const ankle = [CX, lerp(GROUND_Y - 1, GROUND_Y - 16, t)];  // am Boden -> abgehoben
-      const lean = lerp(28, 4, t);                                // vorgebeugt -> gestreckt
+      const hip = [CX, lerp(GROUND_Y - 22, GROUND_Y - 44, t)];   // Hocke -> hoch in der Luft
+      const ankle = [CX, lerp(GROUND_Y - 1, GROUND_Y - 12, t)];  // am Boden -> abgehoben
+      const lean = lerp(28, 3, t);                                // vorgebeugt -> gestreckt
       const shoulder = addv(hip, dir(lean), BONE.torso);
-      const arm = lerp(206, 12, t);                               // Arme: unten/hinten -> über Kopf
+      const arm = lerp(206, 14, t);                               // Arme: unten/hinten -> über Kopf
       return rig({
-        hip, shoulder, headAng: lean * 0.5,
+        hip, shoulder, headAng: lerp(14, 2, t),                   // Kopf zwischen den Armen (senkrecht)
         ankle, kneeBend: -1, footAng: lerp(92, 150, t),           // Zehen am Boden -> gespitzt
         armUp: arm, armFore: arm,                                  // gestreckt nach oben schwingen
       });
@@ -493,7 +526,7 @@ export const EXERCISES = {
       const bob = lerp(0, 1.2, t);                     // dezentes Atmen
       const toe = [12, GROUND_Y - 1];                  // Zehen fix
       const ankle = [14, GROUND_Y - 6];
-      const bodyAng = 98;
+      const bodyAng = 81;                              // Brett leicht ansteigend zu den Schultern
       const shoulder = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin + BONE.torso - bob);
       const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
       return rig({
