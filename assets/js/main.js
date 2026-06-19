@@ -1086,6 +1086,7 @@ const RADIO_CATS = [
   ['pop', 'Pop & Charts'],
   ['hiphop', 'HipHop & Rap'],
   ['rock', 'Rock'],
+  ['punk', 'Punk'],
   ['metal', 'Metal'],
   ['retro', '80er/90er'],
 ];

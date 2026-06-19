@@ -47,6 +47,9 @@ export const DEFAULT_STATIONS = [
   { id: 'st-ra-classic',    name: 'ROCK ANTENNE Classic Perlen', genre: 'Rock-Klassiker', cat: 'rock', url: 'https://stream.rockantenne.de/classic-perlen/stream/mp3' },
   { id: 'st-bob-classic',   name: 'RADIO BOB! Classic Rock', genre: 'Classic Rock', cat: 'rock',   url: 'https://streams.radiobob.de/bob-classicrock/mp3-192/streams.radiobob.de/' },
   { id: 'st-soma-bagel',    name: 'SomaFM BAGeL Radio',     genre: 'Alternative Rock', cat: 'rock', url: 'https://ice1.somafm.com/bagel-128-mp3',     np: 'bagel' },
+  // ---- Punk ----
+  { id: 'st-bob-punk',      name: 'RADIO BOB! Punk Rock',   genre: 'Punk Rock',    cat: 'punk',    url: 'https://streams.radiobob.de/bob-punkrock/mp3-192/streams.radiobob.de/' },
+  { id: 'st-laut-punk',     name: 'laut.fm Punk',           genre: 'Punk',         cat: 'punk',    url: 'https://stream.laut.fm/punk' },
   // ---- Metal ----
   { id: 'st-ra-metal',      name: 'ROCK ANTENNE Heavy Metal', genre: 'Metal',      cat: 'metal',   url: 'https://stream.rockantenne.de/heavy-metal/stream/mp3' },
   { id: 'st-bob-harder',    name: 'RADIO BOB! Harder!',     genre: 'Harder Rock',  cat: 'metal',   url: 'https://streams.radiobob.de/bob-harderrock/mp3-192/streams.radiobob.de/' },
@@ -221,6 +224,17 @@ export function ensureDefaultsSeeded() {
     });
     if (changed) saveStations(stations);
     applied.push('stations-genres-v1');
+    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+  }
+
+  // Migration: fehlende Standard-Sender ergänzen (u. a. neue Kategorie „Punk“).
+  // Generisch – fügt alles aus DEFAULT_STATIONS hinzu, was per ID noch fehlt.
+  if (!applied.includes('stations-punk-v1')) {
+    const stations = loadStations();
+    const have = new Set(stations.map((s) => s.id));
+    const toAdd = DEFAULT_STATIONS.filter((s) => !have.has(s.id));
+    if (toAdd.length) saveStations([...stations, ...toAdd]);
+    applied.push('stations-punk-v1');
     localStorage.setItem(SEED_KEY, JSON.stringify(applied));
   }
 

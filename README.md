@@ -96,7 +96,8 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
     mit Schwerpunkt **Electro/EDM** (SomaFM Beat Blender, DEF CON, The Trip,
     Dub Step Beyond, Suburbs of Goa, cliqhop, PopTron + bigFM Dance/Groove Night/
     Workout) sowie **Pop & Charts**, **HipHop & Rap** (bigFM Deutschrap/Old School,
-    SomaFM Fluid), **Rock**, **Metal** und **80er/90er**. Ein **Genre-Filter**
+    SomaFM Fluid), **Rock**, **Punk** (RADIO BOB! Punk Rock, laut.fm Punk),
+    **Metal** und **80er/90er**. Ein **Genre-Filter**
     (Chip-Leiste) hält die Liste übersichtlich. Alles **ohne Login/Key/Premium**;
     eigene Sender (HTTPS-Stream-URL) lassen sich hinzufügen. Für SomaFM wird der
     **aktuell laufende Song** angezeigt (andere Sender liefern im Browser keine
