@@ -52,7 +52,26 @@ $$('#tabs .tab').forEach((tab) => {
 function switchView(view) {
   $$('#tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.view === view));
   $$('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${view}`));
+  closeNavMenu();
 }
+
+// Hamburger-Navigation (kleine Screens): Tabs als ausklappbares Menü.
+const navToggleBtn = $('#btn-nav');
+const tabsNav = $('#tabs');
+function closeNavMenu() {
+  if (!tabsNav) return;
+  tabsNav.classList.remove('open');
+  navToggleBtn?.setAttribute('aria-expanded', 'false');
+}
+navToggleBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const open = tabsNav.classList.toggle('open');
+  navToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+document.addEventListener('click', (e) => {
+  if (!tabsNav?.classList.contains('open')) return;
+  if (!tabsNav.contains(e.target) && e.target !== navToggleBtn) closeNavMenu();
+});
 
 // ================ TRAINING VIEW ================
 // Label-Maps für die Auto-Set-Metadaten (vgl. setgen.js).
