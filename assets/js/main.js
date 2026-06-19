@@ -1885,18 +1885,27 @@ function runnerHandlers(steps) {
 // Welche Übung welche Animation bekommt (wird nach und nach erweitert).
 const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups', lunges: 'lunges', highknees: 'highknees', climbers: 'climbers', situps: 'situps', crunches: 'crunches', legraises: 'legraises', bridge: 'bridge', superman: 'superman', calfraises: 'calfraises', jumpsquats: 'jumpsquats', plank: 'plank', pikepushups: 'pikepushups', diamond: 'diamond' };
 const PREVIEW_SPEED = 0.55; // In der Pause die Übung in ~halbem Tempo vorführen
-let figureAnimator = null;
-// Holzpuppe führt in BEIDEN Phasen dieselbe Übung vor: in der Pause (PREPARE)
-// langsam als Vorschau ("Danach: …"), in der WORK-Phase im vollen Tempo. Kein
-// separates Idle mehr. Übergänge (Übung A -> B) morphen weich + Kamera wandert mit.
+let figureAnimator = null, _figLead = null;
+// Holzpuppe führt in BEIDEN Phasen dieselbe Übung vor: in der WORK-Phase im
+// vollen Tempo; in der Pause (PREPARE) steht das Männchen erst ~1 s neutral und
+// macht dann die kommende Übung langsam vor ("Danach: …") – sanfter Fluss.
 function updateRunnerFigure(exId, phase) {
   const wrap = $('#exercise-figure'); const ring = $('#timer-ring');
   if (!wrap || !ring) return;
+  if (_figLead) { clearTimeout(_figLead); _figLead = null; }
   const key = (exId && FIGURE_ANIMS[exId]) ? FIGURE_ANIMS[exId] : null;
   const active = key && (phase === PHASE.WORK || phase === PHASE.PREPARE);
   if (active) {
     if (!figureAnimator) figureAnimator = new FigureAnimator($('#exercise-figure-svg'));
-    figureAnimator.play(key, { speed: phase === PHASE.WORK ? 1 : PREVIEW_SPEED });
+    if (phase === PHASE.WORK) {
+      figureAnimator.play(key, { speed: 1 });
+    } else {
+      figureAnimator.play('idle');                 // kurz neutral stehen
+      _figLead = setTimeout(() => {                 // dann in die kommende Übung übergehen
+        _figLead = null;
+        figureAnimator && figureAnimator.play(key, { speed: PREVIEW_SPEED });
+      }, 1100);
+    }
     wrap.hidden = false;
     ring.classList.add('has-figure'); // Zahl klein nach oben, Figur mittig
   } else {
