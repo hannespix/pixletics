@@ -626,6 +626,15 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .timer-ring.final .big-timer { color: var(--accent); text-shadow: 0 0 34px rgba(255, 90, 54, 0.7); }
 .timer-ring.final::before { filter: drop-shadow(0 0 18px var(--accent)); }
 .phase-icon { font-size: 44px; min-height: 48px; }
+/* Übungs-Vorführung: schematische Holzpuppe */
+.exercise-figure { margin: 2px 0; }
+.exercise-figure[hidden] { display: none; }
+.exercise-figure svg { width: 132px; height: 116px; display: block; margin: 0 auto;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45)); }
+.fig-limb { stroke: #d7a76b; }
+.fig-torso { stroke: #c98f54; stroke-linecap: round; }
+.fig-joint { fill: #a9743f; }
+.fig-head { fill: #d7a76b; stroke: #a9743f; stroke-width: 1; }
 .runner-start { width: auto; min-width: 220px; margin: 18px 0 0; padding: 16px 40px; }
 .runner-start[hidden] { display: none; }
 .next-up { color: var(--muted); font-size: 15px; min-height: 20px; }
