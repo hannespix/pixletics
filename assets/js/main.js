@@ -11,6 +11,7 @@ import {
 import { PERSONAS, getPersona, line, motivationLine, resetCoachBags } from './coach.js';
 import { buildSchedule, buildIntervalSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { generateSet } from './setgen.js';
+import { FigureAnimator } from './figure.js';
 import { resolveHowto } from './howto.js';
 import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
@@ -1612,6 +1613,7 @@ function armRunner(steps, startIndex = 0) {
   const ring0 = $('#timer-ring');
   if (ring0) { ring0.classList.remove('final'); ring0.style.setProperty('--p', '1'); ring0.style.setProperty('--ring', 'var(--blue)'); }
   $('#phase-icon').textContent = '';
+  updateRunnerFigure(null, null); // im „Bereit“-Screen keine Figur
   $('#next-up').textContent = '';
   $('#runner-round').textContent = '';
   $('#runner-session').textContent = '';
@@ -1714,6 +1716,7 @@ function runnerHandlers(steps) {
         ring.style.setProperty('--p', '1');
         ring.style.setProperty('--ring', step.phase === PHASE.WORK ? 'var(--accent)' : 'var(--blue)');
       }
+      updateRunnerFigure(step.exId, step.phase); // Holzpuppe nur in der WORK-Phase
       const lapLen = steps.lapLength || steps.length;
       const repInfo = step.repsTotal > 1 ? ` · Satz ${step.rep}/${step.repsTotal}` : '';
       let roundLabel;
@@ -1854,6 +1857,7 @@ function runnerHandlers(steps) {
     },
     onFinish() {
       setPhaseUI('Geschafft! 🎉', null, '🏁');
+      updateRunnerFigure(null, null); // Figur stoppen/ausblenden
       const ring = $('#timer-ring');
       if (ring) { ring.classList.remove('final'); ring.style.setProperty('--p', '1'); ring.style.setProperty('--ring', 'var(--green)'); }
       $('#exercise-name').textContent = 'Sehr gut!';
@@ -1868,6 +1872,28 @@ function runnerHandlers(steps) {
       clearSession(); updateResumeButton(); // beendetes Workout nicht zum Fortsetzen anbieten
     },
   };
+}
+
+// ---- Übungs-Vorführung (Holzpuppe) ----
+// Welche Übung welche Animation bekommt (POC: zwei Übungen, sonst keine).
+const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups' };
+let figureAnimator = null;
+// Zeigt die animierte Figur nur in der WORK-Phase, wenn die Übung eine Animation
+// hat – sonst ausblenden (und das normale Phasen-Icon zeigen).
+function updateRunnerFigure(exId, phase) {
+  const wrap = $('#exercise-figure');
+  if (!wrap) return;
+  const key = (phase === PHASE.WORK && exId && FIGURE_ANIMS[exId]) ? FIGURE_ANIMS[exId] : null;
+  if (key) {
+    if (!figureAnimator) figureAnimator = new FigureAnimator($('#exercise-figure-svg'));
+    figureAnimator.play(key);
+    wrap.hidden = false;
+    $('#phase-icon').style.display = 'none';
+  } else {
+    figureAnimator?.stop();
+    wrap.hidden = true;
+    $('#phase-icon').style.display = '';
+  }
 }
 
 function setPhaseUI(label, ex, icon) {
@@ -1902,6 +1928,7 @@ function stopRunner() {
   // Laufendes (noch nicht beendetes) Workout sichern, damit man fortsetzen kann.
   if (engine.running) saveCurrentSession();
   engine.stop();
+  figureAnimator?.stop(); // Holzpuppen-Animation anhalten (Performance)
   cancelSpeech();
   spotify.unduck();
   radio.unduck();
