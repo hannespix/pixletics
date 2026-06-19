@@ -804,9 +804,11 @@ function renderExercisesList() {
   list.forEach((ex) => {
     const row = document.createElement('div');
     row.className = 'set-row';
+    const figKey = FIGURE_ANIMS[ex.id];
+    const icon = figKey ? '<span class="emoji ex-fig"></span>' : `<span class="emoji">${escapeHtml(ex.emoji || '🏋️')}</span>`;
     row.innerHTML = `
       <div class="ex-row-main">
-        <span class="emoji">${escapeHtml(ex.emoji || '🏋️')}</span>
+        ${icon}
         <div>
           <div class="sr-name">${escapeHtml(ex.name)}</div>
           <div class="sr-sub">${escapeHtml(ex.area || '')}${ex.cue ? ' · ' + escapeHtml(ex.cue) : ''}</div>
@@ -818,6 +820,11 @@ function renderExercisesList() {
       </div>`;
     row.addEventListener('click', () => openExEditor(ex.id));
     host.appendChild(row);
+    if (figKey) { // statt Emoji ein Standbild der Figur
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      row.querySelector('.ex-fig').appendChild(svg);
+      new FigureAnimator(svg).still(figKey);
+    }
   });
 }
 

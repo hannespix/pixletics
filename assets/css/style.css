@@ -626,8 +626,8 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .timer-ring.final .big-timer { color: var(--accent); text-shadow: 0 0 34px rgba(255, 90, 54, 0.7); }
 .timer-ring.final::before { filter: drop-shadow(0 0 18px var(--accent)); }
 .phase-icon { font-size: 44px; min-height: 48px; }
-/* Übungs-Vorführung: schematische Holzpuppe – mittig im Timer-Ring */
-.exercise-figure { position: absolute; left: 13%; right: 13%; top: 35%; bottom: 9%; z-index: 1; }
+/* Übungs-Vorführung: schematische Holzpuppe – groß & zentriert im Timer-Ring */
+.exercise-figure { position: absolute; left: 7%; right: 7%; top: 7%; bottom: 7%; z-index: 1; }
 .exercise-figure[hidden] { display: none; }
 .exercise-figure svg { width: 100%; height: 100%; display: block;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); }
@@ -635,12 +635,15 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .fig-torso { stroke: #c98f54; stroke-linecap: round; }
 .fig-joint { fill: #a9743f; }
 .fig-head { fill: #d7a76b; stroke: #a9743f; stroke-width: 1; }
-.fig-ground { stroke: #5a6172; }
-/* Bei aktiver Figur die Countdown-Zahl kleiner an den oberen Ring-Rand rücken. */
+/* Mit Figur: Figur allein groß im Ring, Countdown ÜBER dem Ring. */
+.timer-ring.has-figure { margin-top: 54px; }
 .timer-ring.has-figure .big-timer {
-  position: absolute; top: 12%; left: 0; right: 0; text-align: center;
-  font-size: clamp(26px, 8vw, 40px); letter-spacing: -1px;
+  position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); text-align: center;
+  font-size: clamp(34px, 11vw, 56px); letter-spacing: -1px;
 }
+/* Figur als Icon in der Übungs-Übersicht (statt Emoji) */
+.ex-fig { width: 38px; height: 38px; display: inline-grid; place-items: center; flex: none; }
+.ex-fig svg { width: 100%; height: 100%; display: block; }
 .runner-start { width: auto; min-width: 220px; margin: 18px 0 0; padding: 16px 40px; }
 .runner-start[hidden] { display: none; }
 .next-up { color: var(--muted); font-size: 15px; min-height: 20px; }
