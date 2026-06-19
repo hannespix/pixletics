@@ -717,15 +717,40 @@ function renderEditor() {
 }
 
 // ================ ÜBUNGEN (Bibliothek bearbeiten) ================
+// Filter „Was wird trainiert?“ (nach Bereich) im Übungen-Tab.
+let exFilter = 'all';
+function renderExercisesFilter() {
+  const host = $('#exercises-filter');
+  if (!host) return;
+  const areas = [...new Set(exercises.map((e) => e.area).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'de'));
+  const cats = [['all', 'Alle'], ...areas.map((a) => [a, a])];
+  if (!cats.some(([k]) => k === exFilter)) exFilter = 'all';
+  host.innerHTML = '';
+  cats.forEach(([key, label]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'radio-filter-chip' + (exFilter === key ? ' on' : '');
+    b.textContent = label;
+    b.addEventListener('click', () => { exFilter = key; renderExercisesList(); });
+    host.appendChild(b);
+  });
+}
+
 function renderExercisesList() {
   const host = $('#exercises-list');
   if (!host) return;
+  renderExercisesFilter();
   host.innerHTML = '';
   if (!exercises.length) {
     host.innerHTML = '<p class="muted">Noch keine Übungen. Lege mit „+ Neue Übung“ welche an.</p>';
     return;
   }
-  exercises.forEach((ex) => {
+  const list = exFilter === 'all' ? exercises : exercises.filter((e) => e.area === exFilter);
+  if (!list.length) {
+    host.innerHTML = '<p class="muted small">Keine Übungen in diesem Bereich.</p>';
+    return;
+  }
+  list.forEach((ex) => {
     const row = document.createElement('div');
     row.className = 'set-row';
     row.innerHTML = `
