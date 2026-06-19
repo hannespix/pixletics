@@ -11,6 +11,7 @@ import {
 import { PERSONAS, getPersona, line, motivationLine, resetCoachBags } from './coach.js';
 import { buildSchedule, buildIntervalSchedule, WorkoutEngine, PHASE } from './engine.js';
 import { generateSet } from './setgen.js';
+import { getHowto } from './howto.js';
 import { Spotify } from './spotify.js';
 import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
@@ -33,6 +34,7 @@ let editorExId = null;   // gerade bearbeitete Übung (null = neue)
 let editorStationId = null; // gerade bearbeiteter Sender (null = neuer)
 let lastStationId = null;   // zuletzt gestarteter Sender (für Runner-Toggle)
 let workoutActiveRest = false; // aktuelles Workout nutzt Aktivpause (ab 2. Runde)
+let runnerCurrentExId = null;  // aktuell im Runner angezeigte Übung (für die Anleitung)
 const spotify = new Spotify();
 const radio = new Radio();
 const engine = new WorkoutEngine();
@@ -668,6 +670,7 @@ function openExEditor(exId) {
   $('#ex-cue').value = ex?.cue || '';
   $('#ex-reps').value = ex?.reps || DEFAULT_REPS;
   $('#btn-delete-ex').style.visibility = ex ? 'visible' : 'hidden';
+  renderExHowto(exId);
   $('#exercise-editor').hidden = false;
 }
 
@@ -1338,6 +1341,9 @@ function armRunner(steps, startIndex = 0) {
   $('#phase-label').textContent = resuming ? 'Fortsetzen' : 'Bereit';
   $('#exercise-name').textContent = ex ? `${ex.emoji} ${ex.name}` : '';
   $('#exercise-cue').textContent = resuming ? 'Weiter, wo du aufgehört hast – auf Start' : 'Wähle ggf. Musik – dann auf Start';
+  // Anleitung zur ersten/aktuellen Übung schon im „Bereit“-Screen anbieten.
+  runnerCurrentExId = (preview && preview.exId) || null;
+  $('#btn-runner-howto').hidden = !(runnerCurrentExId && getHowto(runnerCurrentExId));
   $('#big-timer').textContent = preview ? String(preview.duration).padStart(2, '0') : '00';
   const ring0 = $('#timer-ring');
   if (ring0) { ring0.classList.remove('final'); ring0.style.setProperty('--p', '1'); ring0.style.setProperty('--ring', 'var(--blue)'); }
@@ -1602,7 +1608,11 @@ function setPhaseUI(label, ex, icon) {
   $('#exercise-name').textContent = ex ? `${ex.emoji} ${ex.name}` : '';
   $('#exercise-cue').textContent = ex ? ex.cue : '';
   $('#phase-icon').textContent = icon || '';
+  // Info-Button nur zeigen, wenn zur aktuellen Übung eine Anleitung existiert.
+  runnerCurrentExId = ex?.id || null;
+  $('#btn-runner-howto').hidden = !(ex && getHowto(ex.id));
 }
+$('#btn-runner-howto').addEventListener('click', () => openHowtoModal(runnerCurrentExId));
 
 // Während der Pause zeigt die große Anzeige bereits die kommende Übung; als
 // „Danach“ blenden wir die übernächste ein (die erste WORK nach der kommenden).
@@ -1775,6 +1785,39 @@ document.addEventListener('visibilitychange', () => {
 function escapeHtml(str = '') {
   return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+
+// ---------------- Übungsanleitung ("So geht's" + "Worauf achten") ----------------
+// Liefert formatiertes HTML zur Übungs-ID oder '' (wenn keine Anleitung hinterlegt).
+function howtoHtml(exId) {
+  const h = getHowto(exId);
+  if (!h) return '';
+  const steps = (h.steps || []).map((s) => `<li>${escapeHtml(s)}</li>`).join('');
+  const tips = (h.tips || []).map((t) => `<li>${escapeHtml(t)}</li>`).join('');
+  return `
+    ${steps ? `<div class="howto-block"><h4>So führst du sie aus</h4><ol class="howto-steps">${steps}</ol></div>` : ''}
+    ${tips ? `<div class="howto-block"><h4>⚠️ Worauf besonders achten</h4><ul class="howto-tips">${tips}</ul></div>` : ''}`;
+}
+
+// Anleitung im Übungs-Editor (Übungen-Tab) ein-/ausblenden.
+function renderExHowto(exId) {
+  const host = $('#ex-howto');
+  if (!host) return;
+  const html = howtoHtml(exId);
+  host.innerHTML = html;
+  host.hidden = !html;
+}
+
+// Anleitung als Overlay öffnen (aus dem Runner).
+function openHowtoModal(exId) {
+  const ex = exerciseMap[exId];
+  const html = howtoHtml(exId);
+  if (!ex || !html) return;
+  $('#howto-title').textContent = `${ex.emoji || ''} ${ex.name}`.trim();
+  $('#howto-body').innerHTML = html;
+  $('#howto-modal').hidden = false;
+}
+$('#btn-close-howto').addEventListener('click', () => { $('#howto-modal').hidden = true; });
+$('#howto-modal').addEventListener('click', (e) => { if (e.target.id === 'howto-modal') $('#howto-modal').hidden = true; });
 
 // ---------------- Logo-Animation (Gooey-Morph) ----------------
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;

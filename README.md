@@ -35,6 +35,10 @@ Läuft komplett im Browser (statische Seite, keine Installation nötig) unter
   reiches** Set zusammen (gleichmäßige Muskelabdeckung, Aufwärmen/Finisher,
   passende Beschreibung). Per **„Neu würfeln"** gibt es jederzeit eine frische
   Variante.
+- **Übungsanleitungen (ℹ️)**: Zu jeder Standard-Übung gibt es eine verständliche
+  Schritt-für-Schritt-**Durchführung** plus **„Worauf besonders achten"**
+  (Technik, Sicherheit, häufige Fehler) – sichtbar im Übungs-Editor und während
+  des Trainings über den **ℹ️-Button** im Runner.
 - **Pause = Pause + Vorbereitung**: Vor jeder Übung gibt es **einen** Block
   (standardmäßig 30 s), in dem man sich erholt und **gleich zu Beginn die
   nächste Übung angesagt** bekommt – so kann man sich mental vorbereiten.
