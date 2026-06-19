@@ -1884,7 +1884,7 @@ function runnerHandlers(steps) {
 
 // ---- Übungs-Vorführung (Holzpuppe) ----
 // Welche Übung welche Animation bekommt (wird nach und nach erweitert).
-const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups', lunges: 'lunges', highknees: 'highknees', climbers: 'climbers', situps: 'situps', crunches: 'crunches', legraises: 'legraises' };
+const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups', lunges: 'lunges', highknees: 'highknees', climbers: 'climbers', situps: 'situps', crunches: 'crunches', legraises: 'legraises', bridge: 'bridge' };
 const REST_ANIMS = ['rest_breathe', 'rest_stretch', 'rest_sidebend', 'rest_swing'];
 const PREVIEW_SPEED = 0.55; // Pausen-Vorschau der nächsten Übung ~halbes Tempo
 let figureAnimator = null, _lastRest = -1;
