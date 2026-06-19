@@ -1430,6 +1430,27 @@ async function createShareLink() {
   }
 }
 
+// App weiterempfehlen: native Teilen-Funktion (WhatsApp/Social/…), sonst Link kopieren.
+async function shareApp() {
+  const url = `${location.origin}${location.pathname}`; // ohne #share-Hash
+  const data = {
+    title: 'pixletics',
+    text: 'pixletics – kostenloser Workout- & Intervall-Timer mit Coach-Ansagen, Musik und eigenen Sets. Probier ihn aus:',
+    url,
+  };
+  if (navigator.share) {
+    try { await navigator.share(data); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; } // Nutzer hat abgebrochen
+  }
+  const btn = $('#btn-share-app');
+  try {
+    await navigator.clipboard.writeText(url);
+    if (btn) { const t = btn.textContent; btn.textContent = '✓ Link kopiert'; setTimeout(() => { btn.textContent = t; }, 1800); }
+  } catch {
+    prompt('App-Link zum Teilen:', url);
+  }
+}
+
 function exportFile() {
   const blob = new Blob([JSON.stringify(gatherShareData(), null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -1911,6 +1932,7 @@ $('#cfg-musicvol')?.addEventListener('input', () => {
 
 // ---------------- Teilen & Sichern: Buttons ----------------
 $('#btn-share-link').addEventListener('click', createShareLink);
+$('#btn-share-app').addEventListener('click', shareApp);
 $('#btn-export').addEventListener('click', exportFile);
 $('#import-file').addEventListener('change', (e) => importFile(e.target.files[0]));
 
