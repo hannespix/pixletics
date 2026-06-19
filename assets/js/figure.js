@@ -800,6 +800,111 @@ export const EXERCISES = {
     },
   },
 
+  // Kettlebell-Swings: Hüfthinge, Kettlebell schwingt zwischen den Beinen (tief)
+  // bis auf Schulterhöhe (vorn-oben). Ping-Pong.
+  'circ-kettlebell': {
+    duration: 1100,
+    solve(t) {
+      const hip = [CX, GROUND_Y - 37 + 5 * t];
+      const ankle = [CX, GROUND_Y - 1];
+      const lean = lerp(6, 40, t);                       // aufrecht (oben) -> Hüfthinge (unten)
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      const arm = lerp(40, 112, t);                      // vorn-oben -> nach unten zwischen die Beine
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: lean * 0.4, armUp: arm, armFore: arm });
+      const h = P.handN; P.props = [{ type: 'kb', x: h[0], y: h[1] + 5, r: 5, front: true }];
+      return P;
+    },
+  },
+
+  // Stange über Kopf stemmen: aus Schulterhöhe gerade nach oben drücken. Stange
+  // mit Scheiben als Requisite in den Händen.
+  'circ-overhead': {
+    duration: 1300,
+    solve(t) {
+      const hip = [CX, GROUND_Y - 37], ankle = [CX, GROUND_Y - 1];
+      const shoulder = addv(hip, dir(3), BONE.torso);
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 2, armUp: lerp(40, 5, t), armFore: lerp(20, 5, t) });
+      const h = P.handN;
+      P.props = [{ type: 'line', x1: h[0] - 13, y1: h[1], x2: h[0] + 13, y2: h[1], sw: 2.4, stroke: '#cfd3d8', front: true },
+        { type: 'circle', x: h[0] - 13, y: h[1], r: 3.4, fill: '#3a3f47', front: true },
+        { type: 'circle', x: h[0] + 13, y: h[1], r: 3.4, fill: '#3a3f47', front: true }];
+      return P;
+    },
+  },
+
+  // Sitzbank stemmen: Bank von der Brust gerade über den Kopf drücken.
+  'circ-bench': {
+    duration: 1400,
+    solve(t) {
+      const hip = [CX, GROUND_Y - 37], ankle = [CX, GROUND_Y - 1];
+      const shoulder = addv(hip, dir(3), BONE.torso);
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 2, armUp: lerp(42, 6, t), armFore: lerp(24, 6, t) });
+      const h = P.handN; P.props = [{ type: 'rect', x: h[0] - 17, y: h[1] - 3, w: 34, h: 6, rx: 2, fill: '#7a5a3c', front: true }];
+      return P;
+    },
+  },
+
+  // Box-Sprünge: aus der Hocke explosiv nach oben (neben der Box). Box rechts.
+  'circ-boxjump': {
+    duration: 900,
+    solve(t) {
+      const ankle = [CX - 8, lerp(GROUND_Y - 1, GROUND_Y - 16, t)];
+      const hip = [CX - 8, lerp(GROUND_Y - 20, GROUND_Y - 44, t)];
+      const lean = lerp(34, 8, t);
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      const arm = lerp(156, 26, t);
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: lerp(92, 150, t), headAng: lean * 0.4, armUp: arm, armFore: arm });
+      P.props = [{ type: 'rect', x: CX + 14, y: GROUND_Y - 24, w: 26, h: 24, fill: '#7a5a3c' }];
+      return P;
+    },
+  },
+
+  // Step-ups: einen Fuß auf die Bank/Box setzen und hochsteigen (im Wechsel).
+  'circ-stepups': {
+    duration: 1600, loop: 'cycle',
+    solve(t) {
+      const boxTop = GROUND_Y - 20;
+      const up = (1 - Math.cos(2 * Math.PI * t)) / 2;     // 0 unten -> 1 oben gestiegen
+      const hip = [CX, lerp(GROUND_Y - 37, GROUND_Y - 45, up)];
+      const shoulder = addv(hip, dir(8), BONE.torso);
+      const P = rig({
+        hip, shoulder, headAng: 6, armFK: 96,
+        ankleN: [CX + 18, lerp(GROUND_Y - 1, boxTop, up)], kneeBendN: -1, footAngN: 92,
+        ankleF: [CX - 8, GROUND_Y - 1], kneeBendF: -1, footAngF: 92,
+      });
+      P.props = [{ type: 'rect', x: CX + 10, y: boxTop, w: 28, h: 24, fill: '#7a5a3c' }];
+      return P;
+    },
+  },
+
+  // Hüftstemmen mit Stange: Schultern auf der Kiste, Füße am Boden, Becken mit
+  // Stange nach oben drücken (wie Beckenheben, Schultern erhöht).
+  'circ-hipthrust': {
+    duration: 1500,
+    solve(t) {
+      const shoulder = [34, GROUND_Y - 24];              // Schultern auf der Kiste (fix)
+      const ankle = [66, GROUND_Y - 1];
+      const hip = [50, lerp(GROUND_Y - 14, GROUND_Y - 26, t)]; // Becken hoch
+      const P = rig({ hip, shoulder, headAng: 300, ankle, kneeBend: -1, footAng: 92, armUp: 250, armFore: 250 });
+      P.props = [{ type: 'rect', x: 22, y: GROUND_Y - 28, w: 22, h: 28, fill: '#7a5a3c' },
+        { type: 'line', x1: hip[0] - 13, y1: hip[1] - 1, x2: hip[0] + 13, y2: hip[1] - 1, sw: 3, stroke: '#cfd3d8', front: true }];
+      return P;
+    },
+  },
+
+  // Rollbrett ziehen: bäuchlings auf dem Brett, mit den Armen nach vorne ziehen.
+  'circ-scooter': {
+    duration: 1500, loop: 'cycle',
+    solve(t) {
+      const hip = [50, GROUND_Y - 5];
+      const shoulder = addv(hip, dir(86), BONE.torso);
+      const arm = lerp(72, 112, (Math.sin(2 * Math.PI * t) + 1) / 2); // vor -> zurückziehen
+      const P = rig({ hip, shoulder, headAng: 88, thighAng: 266, shinAng: 266, footAng: 266, armUp: arm, armFore: arm });
+      P.props = [{ type: 'rect', x: 36, y: GROUND_Y - 3, w: 36, h: 4, rx: 1, fill: '#555' }];
+      return P;
+    },
+  },
+
   // Kurzer neutraler Stand (Arme locker an der Seite, leichtes Atmen) – wird als
   // 1-Sekunden-Übergang zwischen den Übungen gezeigt (Männchen "steht kurz").
   idle: {
