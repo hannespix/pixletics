@@ -63,8 +63,11 @@ export class FigureAnimator {
     this.footN = this._line('fig-limb', 6.5);
     this.upArmN = this._line('fig-limb', 6.5);
     this.foreArmN = this._line('fig-limb', 6.5);
-    this.jHip = this._dot(3.2, 'fig-joint');
-    this.jShoulder = this._dot(3.2, 'fig-joint');
+    this.jKneeN = this._dot(3.7, 'fig-joint');
+    this.jAnkN = this._dot(3.1, 'fig-joint');
+    this.jElbowN = this._dot(3.3, 'fig-joint');
+    this.jHip = this._dot(3.9, 'fig-joint');
+    this.jShoulder = this._dot(3.9, 'fig-joint');
     this.jHand = this._dot(3.4, 'fig-joint');
     this.cHead = this._dot(BONE.head, 'fig-head');
   }
@@ -76,6 +79,8 @@ export class FigureAnimator {
     set(this.upArmF, P.sF, P.elbowF); set(this.foreArmF, P.elbowF, P.handF);
     set(this.thighN, P.hipN, P.kneeN); set(this.shinN, P.kneeN, P.ankN); set(this.footN, P.ankN, P.toeN);
     set(this.upArmN, P.sN, P.elbowN); set(this.foreArmN, P.elbowN, P.handN);
+    const dot = (c, p) => { c.setAttribute('cx', p[0].toFixed(2)); c.setAttribute('cy', p[1].toFixed(2)); };
+    dot(this.jKneeN, P.kneeN); dot(this.jAnkN, P.ankN); dot(this.jElbowN, P.elbowN);
     this.jHip.setAttribute('cx', P.hip[0]); this.jHip.setAttribute('cy', P.hip[1]);
     this.jShoulder.setAttribute('cx', P.shoulder[0]); this.jShoulder.setAttribute('cy', P.shoulder[1]);
     this.jHand.setAttribute('cx', P.handN[0].toFixed(2)); this.jHand.setAttribute('cy', P.handN[1].toFixed(2));
