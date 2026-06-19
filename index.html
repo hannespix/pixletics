@@ -79,9 +79,10 @@
         <div class="hero-resume" id="hero-resume" hidden>⏯︎ Ein Workout ist pausiert – unten fortsetzen</div>
       </header>
 
-      <div class="seg mode-switch" id="mode-switch">
-        <button type="button" class="on" data-mode="plan">🏋️ Plan</button>
-        <button type="button" data-mode="interval">⏱️ Intervall</button>
+      <div class="mode-switch" id="mode-switch" data-active="plan" role="tablist">
+        <span class="mode-thumb" aria-hidden="true"></span>
+        <button type="button" class="mode-btn on" data-mode="plan" role="tab" aria-selected="true">🏋️ Plan</button>
+        <button type="button" class="mode-btn" data-mode="interval" role="tab" aria-selected="false">⏱️ Intervall</button>
       </div>
 
       <div id="mode-plan">

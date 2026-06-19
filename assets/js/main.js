@@ -81,12 +81,18 @@ function setTrainMode(mode) {
   if (plan) plan.hidden = m !== 'plan';
   if (iv) iv.hidden = m !== 'interval';
   if (settings) settings.hidden = m === 'interval'; // Plan-Einstellungen nur im Plan-Modus
-  $$('#mode-switch button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+  const sw = $('#mode-switch');
+  if (sw) sw.dataset.active = m; // schiebt den animierten Indikator
+  $$('#mode-switch .mode-btn').forEach((b) => {
+    const on = b.dataset.mode === m;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
   try { localStorage.setItem(MODE_KEY, m); } catch {}
 }
-$('#mode-switch')?.addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-mode]');
-  if (btn) setTrainMode(btn.dataset.mode);
+// Direkte Listener pro Button (zuverlässig auf Touch).
+$$('#mode-switch .mode-btn').forEach((btn) => {
+  btn.addEventListener('click', () => setTrainMode(btn.dataset.mode));
 });
 setTrainMode(localStorage.getItem(MODE_KEY) || 'plan');
 
