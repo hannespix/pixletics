@@ -14,21 +14,26 @@ export const DEFAULT_REPS = 3;
 // Zirkeltraining-Stationen: jede Station wird pro Runde genau einmal absolviert
 // (reps: 1) – man geht im Kreis von Matte zu Matte.
 export const CIRCUIT_EXERCISES = [
-  { id: 'circ-rope',      name: 'Seilspringen',            area: 'Cardio',     emoji: '🪢', cue: 'Seil schwingen, locker auf den Ballen springen', reps: 1 },
-  { id: 'circ-shuttle',   name: 'Pendellauf',              area: 'Cardio',     emoji: '🏃', cue: 'Zwischen zwei Bänken hin und her sprinten',       reps: 1 },
-  { id: 'circ-scooter',   name: 'Rollbrett ziehen',        area: 'Ganzkörper', emoji: '🛹', cue: 'Bäuchlings auf dem Rollbrett mit den Armen ziehen', reps: 1 },
-  { id: 'circ-ballwall',  name: 'Ball an die Decke',       area: 'Schultern',  emoji: '🏐', cue: 'Ball kraftvoll hochwerfen und wieder fangen',       reps: 1 },
-  { id: 'circ-lunge',     name: 'Ausfallschritte',         area: 'Beine',      emoji: '🚶', cue: 'Im Wechsel pro Seite, Knie über dem Knöchel',       reps: 1 },
-  { id: 'circ-rings',     name: 'Ringe ziehen',            area: 'Rücken',     emoji: '🟠', cue: 'An den Ringen hochziehen und kontrolliert ablassen', reps: 1 },
-  { id: 'circ-bench',     name: 'Bank stemmen',            area: 'Brust',      emoji: '🛏️', cue: 'Gewicht/Stange von der Brust nach oben drücken',    reps: 1 },
-  { id: 'circ-wallbars',  name: 'Sprossenwand-Beinheben',  area: 'Bauch',      emoji: '🧗', cue: 'An der Sprossenwand hängend die Beine anheben',     reps: 1 },
-  { id: 'circ-overhead',  name: 'Stange überkopf stemmen', area: 'Schultern',  emoji: '🏋️', cue: 'Stange hinter dem Nacken nach oben stemmen',        reps: 1 },
-  { id: 'circ-hipthrust', name: 'Hüftstemmen mit Gewicht', area: 'Po',         emoji: '🌉', cue: 'Gewicht auf der Hüfte, Becken kraftvoll hochdrücken', reps: 1 },
-  { id: 'circ-boxjump',   name: 'Box-Sprünge',             area: 'Beine',      emoji: '📦', cue: 'Beidbeinig auf die Box springen, kontrolliert runter', reps: 1 },
-  { id: 'circ-battlerope',name: 'Battle Ropes',            area: 'Arme',       emoji: '🌊', cue: 'Taue im schnellen Wechsel auf und ab schlagen',     reps: 1 },
-  { id: 'circ-kettlebell',name: 'Kettlebell-Swings',       area: 'Ganzkörper', emoji: '🔔', cue: 'Aus der Hüfte schwungvoll auf Schulterhöhe',        reps: 1 },
+  { id: 'circ-rope',      name: 'Seilspringen',            area: 'Cardio',     emoji: '🪢', cue: 'Seil schwingen, locker auf den Fußballen springen', reps: 1 },
+  { id: 'circ-shuttle',   name: 'Pendellauf',              area: 'Cardio',     emoji: '🏃', cue: 'Zwischen zwei Bänken hin und her sprinten, an der Linie kurz abtouchen', reps: 1 },
+  { id: 'circ-scooter',   name: 'Rollbrett ziehen',        area: 'Rücken',     emoji: '🛹', cue: 'Bäuchlings auf dem Rollbrett liegen und dich mit den Armen kräftig nach vorne ziehen', reps: 1 },
+  { id: 'circ-ballwall',  name: 'Medizinball an die Decke', area: 'Schultern', emoji: '🏐', cue: 'Den Medizinball kraftvoll gerade nach oben werfen und wieder fangen', reps: 1 },
+  { id: 'circ-lunge',     name: 'Ausfallschritte',         area: 'Beine',      emoji: '🚶', cue: 'Im Wechsel pro Seite, vorderes Knie über dem Knöchel', reps: 1 },
+  { id: 'circ-rings',     name: 'Ringe-Klimmzüge',         area: 'Rücken',     emoji: '🟠', cue: 'An den Ringen kraftvoll hochziehen und kontrolliert ablassen', reps: 1 },
+  { id: 'circ-bench',     name: 'Sitzbank stemmen',        area: 'Brust',      emoji: '🛏️', cue: 'Ein Ende der Bank in die Sprossenwand einhängen, das freie Ende von der Brust über den Kopf nach oben stemmen', reps: 1 },
+  { id: 'circ-wallbars',  name: 'Sprossenwand-Beinheben',  area: 'Bauch',      emoji: '🧗', cue: 'An der Sprossenwand hängen und die gestreckten Beine nach oben ziehen', reps: 1 },
+  { id: 'circ-overhead',  name: 'Stange über Kopf stemmen', area: 'Schultern', emoji: '🏋️', cue: 'Stange von den Schultern gerade über den Kopf nach oben stemmen', reps: 1 },
+  { id: 'circ-hipthrust', name: 'Hüftstemmen mit Stange',  area: 'Po',         emoji: '🌉', cue: 'Schultern/Nacken auf der Kiste, Stange auf der Hüfte – das Becken kraftvoll nach oben drücken', reps: 1 },
+  { id: 'circ-boxjump',   name: 'Box-Sprünge',             area: 'Beine',      emoji: '📦', cue: 'Beidbeinig auf die Box springen, kontrolliert herunter', reps: 1 },
+  { id: 'circ-battlerope',name: 'Battle Ropes',            area: 'Arme',       emoji: '🌊', cue: 'Taue im schnellen Wechsel auf und ab schlagen', reps: 1 },
+  { id: 'circ-kettlebell',name: 'Kettlebell-Swings',       area: 'Ganzkörper', emoji: '🔔', cue: 'Aus der Hüfte schwungvoll auf Schulterhöhe', reps: 1 },
   { id: 'circ-medball',   name: 'Medizinball-Slams',       area: 'Ganzkörper', emoji: '💥', cue: 'Ball über Kopf und kraftvoll auf den Boden schmettern', reps: 1 },
-  { id: 'circ-stepups',   name: 'Step-ups auf die Bank',   area: 'Beine',      emoji: '🪜', cue: 'Im Wechsel auf die Bank steigen, Knie hoch',         reps: 1 },
+  { id: 'circ-stepups',   name: 'Step-ups auf die Bank',   area: 'Beine',      emoji: '🪜', cue: 'Im Wechsel auf die Bank steigen, Knie hoch', reps: 1 },
+  // Neu für das Standard-Zirkeltraining:
+  { id: 'circ-wallthrow', name: 'Medizinball-Wurf aus Rückenlage', area: 'Ganzkörper', emoji: '🤾', cue: 'Aus der Rückenlage aufrichten und den Medizinball kraftvoll gegen die Wand werfen, fangen und zurück in die Rückenlage', reps: 1 },
+  { id: 'circ-sliders',   name: 'Rutschpad-Sprint',        area: 'Cardio',     emoji: '🧊', cue: 'Vorn auf die Sitzbank stützen, in Sprintposition mit Rutschpads unter den Füßen auf der Stelle rennen', reps: 1 },
+  { id: 'circ-kbtwist',   name: 'Kettlebell-Russian-Twist', area: 'Bauch',     emoji: '🔄', cue: 'Im V-Sitz mit angehobenen Beinen die Kettlebell von Seite zu Seite über die Hüfte führen', reps: 1 },
+  { id: 'circ-rotpushup', name: 'Liegestütz mit Drehung',  area: 'Brust',      emoji: '🙆', cue: 'Liegestütz an Holzgriffen; oben den Oberkörper öffnen und einen Arm zur Decke strecken, Seite im Wechsel', reps: 1 },
 ];
 
 // Ergänzende Übungen, die bisher fehlende Körperregionen abdecken (Schultern,
@@ -75,7 +80,26 @@ export const CIRCUIT_SET = {
   id: 'set-zirkel',
   name: '🎯 Zirkeltraining',
   activeRest: true,
-  exercises: CIRCUIT_EXERCISES.map((e) => e.id),
+  // Standard-Zirkel: 15 Stationen in fester Reihenfolge (je Station 1× pro Runde).
+  exercises: [
+    'tricepdips',     //  1. Trizeps-Dips an der Kiste
+    'circ-rope',      //  2. Seilspringen
+    'circ-scooter',   //  3. Rollbrett ziehen (Oberkörper nach vorne)
+    'circ-rings',     //  4. Ringe-Klimmzüge
+    'circ-wallthrow', //  5. Medizinball-Wurf aus Rückenlage an die Wand
+    'circ-shuttle',   //  6. Pendellauf
+    'circ-wallbars',  //  7. Sprossenwand-Beinheben
+    'circ-bench',     //  8. Sitzbank stemmen
+    'circ-rotpushup', //  9. Liegestütz mit Drehung (Alt. zu Wandsitzen)
+    'circ-hipthrust', // 10. Hüftstemmen mit Stange
+    'circ-overhead',  // 11. Stange über Kopf stemmen
+    'circ-sliders',   // 12. Rutschpad-Sprint
+    'circ-ballwall',  // 13. Medizinball an die Decke
+    'circ-lunge',     // 14. Ausfallschritte
+    'circ-kbtwist',   // 15. Kettlebell-Russian-Twist
+  ],
+  // Trizeps-Dips ist eine Standard-Übung (reps 3) – im Zirkel nur 1× pro Station.
+  reps: { tricepdips: 1 },
 };
 
 // Vordefinierte Sets. Drei Freeletics-Ganzkörper-Workouts mit ~60 Übungs-

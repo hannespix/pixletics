@@ -238,6 +238,27 @@ export function ensureDefaultsSeeded() {
     localStorage.setItem(SEED_KEY, JSON.stringify(applied));
   }
 
+  // Migration: Standard-Zirkeltraining auf die kuratierten 15 Stationen setzen
+  // und neue Zirkel-Übungen in der Bibliothek ergänzen. Eigene Übungen/Sets
+  // (andere als das Standard-Zirkel-Set) bleiben unberührt.
+  if (!applied.includes('zirkel-v2')) {
+    const exercises = loadExercises();
+    const have = new Set(exercises.map((e) => e.id));
+    let exChanged = false;
+    CIRCUIT_EXERCISES.forEach((e) => { if (!have.has(e.id)) { exercises.push({ ...e }); exChanged = true; } });
+    if (exChanged) saveExercises(exercises);
+    const sets = loadSets();
+    const z = sets.find((s) => s.id === CIRCUIT_SET.id);
+    if (z) {
+      z.exercises = [...CIRCUIT_SET.exercises];
+      z.reps = { ...(CIRCUIT_SET.reps || {}) };
+      z.activeRest = CIRCUIT_SET.activeRest;
+      saveSets(sets);
+    }
+    applied.push('zirkel-v2');
+    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+  }
+
   // Migration: Vollkörper-Freeletics-Sets. Ergänzt fehlende Übungen (Schultern,
   // Waden, Rücken) in der Bibliothek und aktualisiert die drei Freeletics-Sets
   // auf die neuen, den ganzen Körper abdeckenden Abläufe (~60 Min. pro Set).

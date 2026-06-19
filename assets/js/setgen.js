@@ -82,6 +82,10 @@ export const EX_META = {
   'circ-kettlebell': { groups: ['ganzkoerper', 'po', 'ruecken', 'cardio'], type: 'beides', intensity: 3, impact: 0, equip: true },
   'circ-medball': { groups: ['ganzkoerper', 'cardio', 'core'], type: 'beides', intensity: 3, impact: 1, equip: true },
   'circ-stepups': { groups: ['beine', 'po', 'cardio'], type: 'beides', intensity: 2, impact: 1, equip: true },
+  'circ-wallthrow': { groups: ['ganzkoerper', 'bauch'], type: 'beides', intensity: 3, impact: 0, equip: true },
+  'circ-sliders': { groups: ['cardio', 'beine'], type: 'ausdauer', intensity: 3, impact: 0, equip: true },
+  'circ-kbtwist': { groups: ['bauch', 'core'], type: 'kraft', intensity: 2, impact: 0, equip: true },
+  'circ-rotpushup': { groups: ['brust', 'core', 'schultern'], type: 'kraft', intensity: 2, impact: 0, equip: true },
 };
 
 // ---- kleine Helfer ----
