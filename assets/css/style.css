@@ -52,6 +52,11 @@ input, textarea, [contenteditable="true"], [contenteditable=""] {
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 ::-webkit-scrollbar-corner { background: transparent; }
 
+/* Touch: Taps sofort auslösen (kein 300ms-Delay / Doppeltipp-Zoom verschluckt sie). */
+button, a, label, summary, .picker-item, .radio-item, .set-row, .persona-item, [role="button"], [role="tab"] {
+  touch-action: manipulation;
+}
+
 /* ---------- Topbar ---------- */
 .topbar {
   position: sticky; top: 0; z-index: 20;
