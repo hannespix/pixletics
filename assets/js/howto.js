@@ -496,7 +496,23 @@ export const EX_HOWTO = {
   },
 };
 
-// Liefert das Anleitungs-Objekt zu einer Übungs-ID (oder null).
+// Liefert das kuratierte Anleitungs-Objekt zu einer Übungs-ID (oder null).
 export function getHowto(exId) {
   return EX_HOWTO[exId] || null;
+}
+
+// Auflösen für eine konkrete Übung: bevorzugt die am Objekt gespeicherte,
+// editierbare Anleitung (ex.steps / ex.tips – auch bei eigenen Übungen),
+// sonst die kuratierte Vorlage aus EX_HOWTO. Hat der Nutzer die Anleitung
+// bewusst geleert (leere Arrays), wird NICHTS angezeigt (kein Rückfall).
+// Gibt { steps, tips } zurück oder null, wenn nichts vorhanden ist.
+export function resolveHowto(ex) {
+  if (!ex) return null;
+  const ownSteps = Array.isArray(ex.steps) ? ex.steps : null;
+  const ownTips = Array.isArray(ex.tips) ? ex.tips : null;
+  if (ownSteps || ownTips) {
+    const out = { steps: ownSteps || [], tips: ownTips || [] };
+    return (out.steps.length || out.tips.length) ? out : null;
+  }
+  return EX_HOWTO[ex.id] || null;
 }
