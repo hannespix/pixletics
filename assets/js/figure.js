@@ -287,8 +287,8 @@ export const EXERCISES = {
   pushups: {
     duration: 1500, viewBox: '8 60 86 50',
     solve(t) {
-      const toe = [16, GROUND_Y - 1];                  // Zehen fix am Boden
-      const ankle = [16, GROUND_Y - 7];                // Knöchel direkt über den Zehen
+      const toe = [21, GROUND_Y - 1];                  // Zehen fix am Boden, nach vorne (auf dem Ballen)
+      const ankle = [15, GROUND_Y - 7];                // Knöchel hinter/über den Zehen -> Fuß zeigt nach vorne
       const hand = [76, GROUND_Y - 1];                 // Hände fix am Boden (unter der Schulter)
       const bodyLen = BONE.thigh + BONE.shin + BONE.torso; // Körper = gestrecktes Brett
       const bodyAng = lerp(69, 79, t);                 // pivotiert auf den Zehen: oben -> unten
@@ -524,8 +524,8 @@ export const EXERCISES = {
     duration: 2600, pingpong: true,
     solve(t) {
       const bob = lerp(0, 1.2, t);                     // dezentes Atmen
-      const toe = [12, GROUND_Y - 1];                  // Zehen fix
-      const ankle = [14, GROUND_Y - 6];
+      const toe = [18, GROUND_Y - 1];                  // Zehen fix, nach vorne (auf dem Ballen)
+      const ankle = [12, GROUND_Y - 6];
       const bodyAng = 81;                              // Brett leicht ansteigend zu den Schultern
       const shoulder = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin + BONE.torso - bob);
       const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
@@ -562,8 +562,8 @@ export const EXERCISES = {
   diamond: {
     duration: 1500,
     solve(t) {
-      const toe = [16, GROUND_Y - 1];
-      const ankle = [16, GROUND_Y - 7];
+      const toe = [21, GROUND_Y - 1];                  // Zehen nach vorne (auf dem Ballen)
+      const ankle = [15, GROUND_Y - 7];
       const hand = [66, GROUND_Y - 1];                 // Hände enger/weiter hinten unter der Brust
       const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
       const bodyAng = lerp(70, 80, t);
