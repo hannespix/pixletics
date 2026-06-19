@@ -238,6 +238,15 @@ export class Spotify {
     await this.activate();
     await this.player.togglePlay();
   }
+  // Spielt gerade etwas? (Aus dem zuletzt gemeldeten Player-State.)
+  isPlaying() {
+    return !!(this.state && !this.state.paused);
+  }
+  // Wiedergabe pausieren (z. B. wenn stattdessen Radio gestartet wird).
+  async pause() {
+    if (!this.player) return;
+    try { await this.player.pause(); } catch {}
+  }
   async next() {
     if (!this.player) return;
     await this.activate();

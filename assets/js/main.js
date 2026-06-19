@@ -1016,7 +1016,11 @@ function renderSpotify() {
   $('#sp-play')?.addEventListener('click', () => spotify.togglePlay());
   $('#sp-next')?.addEventListener('click', () => spotify.next());
 
-  spotify.onState = (s) => renderNowPlaying(s);
+  spotify.onState = (s) => {
+    // Nur eine Musikquelle gleichzeitig: läuft Spotify, stoppt das Radio.
+    if (s && !s.paused && radio.playing) radio.stop();
+    renderNowPlaying(s);
+  };
   spotify.onReady = () => {
     // Sobald das Browser-Gerät bereit ist, beim nächsten Tippen das
     // Audio-Element aktivieren – sonst blockiert v. a. iOS das Übertragen
@@ -1979,6 +1983,8 @@ async function init() {
 
   // Radio-Status & „Now Playing“ -> UI
   radio.onState = (state) => {
+    // Nur eine Musikquelle gleichzeitig: startet Radio, pausiert Spotify.
+    if ((state === 'playing' || state === 'loading') && spotify.isPlaying()) spotify.pause();
     renderRadio();
     renderRadioNow(state);
     renderMusicModal();
