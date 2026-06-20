@@ -2148,6 +2148,7 @@ function howtoHtml(exId) {
 }
 
 // Anleitung als Overlay öffnen (aus dem Runner).
+let howtoFig = null; // Animator des Vorschaubilds im Anleitungs-Modal
 function openHowtoModal(exId) {
   const ex = exerciseMap[exId];
   const html = howtoHtml(exId);
@@ -2155,14 +2156,29 @@ function openHowtoModal(exId) {
   $('#howto-title').textContent = ex.name;
   const body = $('#howto-body');
   body.innerHTML = html;
-  // Vorschaubild der Holzpuppe oben einblenden (statt Emoji im Titel).
-  const fig = document.createElement('div');
-  fig.className = 'howto-fig';
-  if (mountExFigure(fig, exId)) body.prepend(fig);
+  // Animiertes Vorschaubild der Holzpuppe oben einblenden (macht die Übung vor).
+  howtoFig?.stop?.();
+  howtoFig = null;
+  const figKey = FIGURE_ANIMS[exId];
+  if (figKey) {
+    const fig = document.createElement('div');
+    fig.className = 'howto-fig';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    fig.appendChild(svg);
+    body.prepend(fig);
+    howtoFig = new FigureAnimator(svg);
+    if (reducedMotion) howtoFig.still(figKey);          // bei reduzierter Bewegung: Standbild
+    else howtoFig.play(figKey, { speed: 0.8 });          // sonst die Übung vormachen (etwas langsamer)
+  }
   $('#howto-modal').hidden = false;
 }
-$('#btn-close-howto').addEventListener('click', () => { $('#howto-modal').hidden = true; });
-$('#howto-modal').addEventListener('click', (e) => { if (e.target.id === 'howto-modal') $('#howto-modal').hidden = true; });
+function closeHowtoModal() {
+  $('#howto-modal').hidden = true;
+  howtoFig?.stop?.();
+  howtoFig = null;
+}
+$('#btn-close-howto').addEventListener('click', closeHowtoModal);
+$('#howto-modal').addEventListener('click', (e) => { if (e.target.id === 'howto-modal') closeHowtoModal(); });
 
 // ---------------- Logo-Animation (Gooey-Morph) ----------------
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
