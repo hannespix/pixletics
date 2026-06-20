@@ -268,7 +268,7 @@ function computeViewBox(a) {
     const P = a.solve(i / 12);
     for (const k in P) {
       const p = P[k];
-      if (Array.isArray(p) && p.length === 2) {
+      if (Array.isArray(p) && p.length === 2 && typeof p[0] === 'number') {
         if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];
         if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];
       }
@@ -291,7 +291,7 @@ function stageViewBox(a) {
   for (let i = 0; i <= 16; i++) {
     const P = a.solve(i / 16);
     for (const k in P) {
-      const p = P[k]; if (!Array.isArray(p)) continue;
+      const p = P[k]; if (!Array.isArray(p) || typeof p[0] !== 'number') continue; // P.props ist ein Array -> überspringen
       ext(p[0], p[1], k === 'head' ? BONE.head : 3); // Kopfradius bzw. Strich/Gelenk
     }
     for (const pr of (P.props || [])) { // nur kleine, gehaltene Geräte mit einfassen
@@ -774,16 +774,21 @@ export const EXERCISES = {
     },
   },
 
-  // Wandsitzen: Rücken an der Wand, Oberschenkel waagerecht, Schienbeine senkrecht.
-  // Statischer Halt (leichtes Wippen). Wand als Requisite hinter dem Rücken.
+  // Wandsitzen: Rücken senkrecht an der Wand, Oberschenkel waagerecht, Schienbeine
+  // senkrecht (Knie ~90°). Statischer Halt mit leichtem Wippen. Wand direkt hinter
+  // dem Rücken (volle Höhe), Hände auf den Oberschenkeln.
   wallsit: {
     duration: 2800, pingpong: true,
     solve(t) {
-      const hip = [50, GROUND_Y - 23 + lerp(0, 1.4, t)];
-      const ankle = [66, GROUND_Y - 1];
-      const shoulder = addv(hip, dir(352), BONE.torso);          // Rücken fast senkrecht an der Wand
-      const P = rig({ hip, shoulder, headAng: 354, ankle, kneeBend: -1, footAng: 92, armFK: 92 });
-      P.props = [{ type: 'rect', x: 28, y: 40, w: 6, h: 66, fill: '#5b6472' }]; // Wand
+      const bob = lerp(0, 1.4, t);
+      const hip = [42, GROUND_Y - 19 - bob];                     // Gesäß an der Wand, Sitzhöhe
+      const shoulder = addv(hip, dir(358), BONE.torso);          // Rücken senkrecht an der Wand
+      const P = rig({
+        hip, shoulder, headAng: 0,
+        thighAng: 90, shinAng: 179, footAng: 92,                 // Oberschenkel waagerecht, Schienbein senkrecht
+        armUp: 90, armFore: 90,                                   // Hände auf den Oberschenkeln
+      });
+      P.props = [{ type: 'rect', x: 34, y: 36, w: 6, h: GROUND_Y - 36, fill: '#5b6472' }]; // Wand (volle Höhe) direkt hinter dem Rücken
       return P;
     },
   },
@@ -913,7 +918,7 @@ export const EXERCISES = {
   'circ-rope': {
     duration: 480,
     solve(t) {
-      const hop = 6 * Math.sin(Math.PI * t);            // deutlichere Hopser
+      const hop = 8 * Math.sin(Math.PI * t);            // deutliche Hopser
       const hip = [CX, GROUND_Y - 37 - hop];
       const ankle = [CX, GROUND_Y - 4 - hop];
       const shoulder = addv(hip, dir(3), BONE.torso);
@@ -1008,10 +1013,10 @@ export const EXERCISES = {
       const hip = [42, GROUND_Y - 6], ankle = [60, GROUND_Y - 1];
       const torsoAng = lerp(282, 352, t);               // liegen -> aufrichten/werfen
       const shoulder = addv(hip, dir(torsoAng), BONE.torso);
-      const arm = lerp(312, 56, t);                      // hinter dem Kopf -> nach vorn werfen
+      const arm = lerp(312, 416, t);                     // hinter dem Kopf -> über oben nach vorn (Wurfbogen)
       const P = rig({ hip, shoulder, headAng: torsoAng - 8, ankle, kneeBend: -1, footAng: 95, armUp: arm, armFore: arm });
       const h = P.handN;
-      P.props = [{ type: 'rect', x: 80, y: 34, w: 6, h: 70, fill: '#5b6472' }, { type: 'circle', x: h[0], y: h[1], r: 5.5, fill: '#7a4a2a', front: true }];
+      P.props = [{ type: 'rect', x: 72, y: 36, w: 6, h: GROUND_Y - 36, fill: '#5b6472' }, { type: 'circle', x: h[0], y: h[1], r: 5.5, fill: '#7a4a2a', front: true }];
       return P;
     },
   },
@@ -1060,9 +1065,9 @@ export const EXERCISES = {
       const shoulder = addv(ankle, dir(73), bodyLen);
       const hip = addv(ankle, dir(73), BONE.thigh + BONE.shin);
       const P = rig({
-        hip, shoulder, ankle, toe, kneeBend: 1, headAng: 100,
-        handF: hand, elbowBend: 1,                       // ferner Arm stützt
-        armUpN: lerp(176, 348, t), armForeN: lerp(176, 348, t), // naher Arm: unten -> nach oben öffnen
+        hip, shoulder, ankle, toe, kneeBend: 1, headAng: 100, elbowBend: 1,
+        handF: hand,                                      // ferner Arm stützt am Boden
+        handN: [lerp(74, 73, t), lerp(GROUND_Y - 1, GROUND_Y - 54, t)], // naher Arm: Boden -> öffnet nach oben
       });
       return P;
     },
