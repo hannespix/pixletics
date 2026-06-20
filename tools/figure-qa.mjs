@@ -14,31 +14,54 @@
 //
 // Flags: FLOOR (Boden-Durchdringung), SMALL (Figur zu klein), STATIC (kaum
 //        Bewegung), NOJUMP (Sprung-Übung ohne Absprung), PROPOFF (Gerät stark
-//        außerhalb des Rahmens). Statische Halte-Übungen sind ausgenommen.
+//        außerhalb des Rahmens), NOFLY (Wurf-Übung, aber der Ball fliegt kaum /
+//        klebt an der Hand), NOBOX (Box/Step-Übung, aber kein Fuß landet oben auf
+//        der Kiste). Statische Halte-Übungen sind ausgenommen.
 import { EXERCISES } from '../assets/js/figure.js';
 
 const GY = 104, STAGE_S = 82;
 const skipStatic = new Set(['plank', 'wallsit', 'sideplank', 'idle']);
 const isJump = new Set(['jumpsquats', 'burpees', 'circ-boxjump']);
+const isThrow = new Set(['circ-ballwall', 'circ-medball', 'circ-wallthrow']); // Ball muss fliegen
+const isBox = new Set(['circ-boxjump', 'circ-stepups']);                       // Fuß muss auf die Box
 const rows = [];
 for (const name in EXERCISES) {
   if (name.startsWith('rest_') || name === 'idle') continue;
   const a = EXERCISES[name];
   let fmnx = 1e9, fmny = 1e9, fmxx = -1e9, fmxy = -1e9, breach = -1, footMinY = 1e9, propOff = 0;
   const jr = {};
+  // Kiste (erstes Rechteck) für die Box-/Step-Landungsprüfung.
+  let box = null; for (const pr of (a.solve(0).props || [])) if (pr.type === 'rect') { box = pr; break; }
+  let landedOnBox = false;
+  let ballX0 = 1e9, ballX1 = -1e9, ballY0 = 1e9, ballY1 = -1e9; // Ball (großer Kreis) Reichweite
+  let ballSep = 0;                                              // max. Abstand Ball <-> nächste Hand
   const N = 32;
   for (let i = 0; i <= N; i++) {
     const P = a.solve(i / N);
+    const ball = (P.props || []).find((pr) => pr.type === 'circle' && pr.r >= 5);
+    if (ball) {
+      const dN = Math.hypot(ball.x - P.handN[0], ball.y - P.handN[1]);
+      const dF = Math.hypot(ball.x - P.handF[0], ball.y - P.handF[1]);
+      ballSep = Math.max(ballSep, Math.min(dN, dF));
+    }
     for (const k in P) {
       const p = P[k]; if (!Array.isArray(p) || p.length !== 2 || typeof p[0] !== 'number') continue;
       const r = k === 'head' ? 8 : 3;
       fmnx = Math.min(fmnx, p[0] - r); fmxx = Math.max(fmxx, p[0] + r); fmny = Math.min(fmny, p[1] - r); fmxy = Math.max(fmxy, p[1] + r);
       breach = Math.max(breach, p[1] - GY);
-      if (k.startsWith('toe') || k.startsWith('ank')) footMinY = Math.min(footMinY, p[1]);
+      if (k.startsWith('toe') || k.startsWith('ank')) {
+        footMinY = Math.min(footMinY, p[1]);
+        // Fuß oben auf der Kiste? (über der Box-Fläche und ~auf der Oberkante)
+        if (box && p[0] >= box.x - 2 && p[0] <= box.x + box.w + 2 && Math.abs(p[1] - box.y) <= 5) landedOnBox = true;
+      }
       const j = (jr[k] = jr[k] || { a: 1e9, b: -1e9, c: 1e9, d: -1e9 });
       j.a = Math.min(j.a, p[0]); j.b = Math.max(j.b, p[0]); j.c = Math.min(j.c, p[1]); j.d = Math.max(j.d, p[1]);
     }
+    for (const pr of (P.props || [])) if (pr.type === 'circle' && pr.r >= 5) { // der „Ball“
+      ballX0 = Math.min(ballX0, pr.x); ballX1 = Math.max(ballX1, pr.x); ballY0 = Math.min(ballY0, pr.y); ballY1 = Math.max(ballY1, pr.y);
+    }
   }
+  const ballTravel = Math.max(ballX1 - ballX0, ballY1 - ballY0);
   const figW = fmxx - fmnx, figH = fmxy - fmny, figDim = Math.max(figW, figH);
   const cx = (fmnx + fmxx) / 2, cy = (fmny + fmxy) / 2, S = Math.max(STAGE_S, figW, figH);
   for (let i = 0; i <= 8; i++) for (const pr of (a.solve(i / 8).props || [])) {
@@ -61,6 +84,8 @@ for (const name in EXERCISES) {
   if (!skipStatic.has(name) && amp < 7) f.push('STATIC ' + amp.toFixed(0));
   if (isJump.has(name) && footLift < 6) f.push('NOJUMP ' + footLift.toFixed(0));
   if (propOff > 26) f.push('PROPOFF+' + propOff.toFixed(0));
+  if (isThrow.has(name) && (ballTravel < 25 || ballSep < 10)) f.push('NOFLY t' + ballTravel.toFixed(0) + ' s' + ballSep.toFixed(0));
+  if (isBox.has(name) && !landedOnBox) f.push('NOBOX');
   rows.push({ name, figFrac: figFrac.toFixed(2), amp: amp.toFixed(0), breach: breach.toFixed(0), footLift: footLift.toFixed(0), propOff: propOff.toFixed(0), flags: f.join(' ') });
 }
 rows.sort((x, y) => (y.flags ? 1 : 0) - (x.flags ? 1 : 0));

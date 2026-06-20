@@ -889,15 +889,22 @@ export const EXERCISES = {
 
   // Box-Sprünge: aus der Hocke explosiv nach oben (neben der Box). Box rechts.
   'circ-boxjump': {
-    duration: 900,
+    duration: 950, pingpong: true,
     solve(t) {
-      const ankle = [CX - 8, lerp(GROUND_Y - 1, GROUND_Y - 16, t)];
-      const hip = [CX - 8, lerp(GROUND_Y - 20, GROUND_Y - 44, t)];
-      const lean = lerp(34, 8, t);
+      // Sprung VON neben der Box AUF die Box: Absprung am Boden -> Flugbogen ->
+      // Landung oben auf der Kiste (steht am Ende auf der Box).
+      const boxTop = GROUND_Y - 26;
+      const fx = lerp(CX - 16, CX + 12, t);              // vom Boden (links) auf die Box
+      const jump = 15 * Math.sin(Math.PI * t);          // Absprungbogen (in der Luft)
+      const fy = lerp(GROUND_Y - 1, boxTop, t) - jump;  // Boden -> Box-Oberkante
+      const ankle = [fx, fy];
+      const lift = lerp(20, 36, t);                      // tief gehockt -> oben gestreckt
+      const hip = [fx, fy - lift];
+      const lean = lerp(32, 6, t);
       const shoulder = addv(hip, dir(lean), BONE.torso);
-      const arm = lerp(156, 26, t);
-      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: lerp(92, 150, t), headAng: lean * 0.4, armUp: arm, armFore: arm });
-      P.props = [{ type: 'rect', x: CX + 14, y: GROUND_Y - 24, w: 26, h: 24, fill: '#7a5a3c' }];
+      const arm = lerp(150, 18, t);                      // Arme zurück -> über Kopf schwingen
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: lerp(92, 112, t), headAng: lean * 0.4, armUp: arm, armFore: arm });
+      P.props = [{ type: 'rect', x: CX - 2, y: boxTop, w: 30, h: 26, fill: '#7a5a3c' }];
       return P;
     },
   },
@@ -906,16 +913,18 @@ export const EXERCISES = {
   'circ-stepups': {
     duration: 1600, loop: 'cycle',
     solve(t) {
-      const boxTop = GROUND_Y - 20;
-      const up = (1 - Math.cos(2 * Math.PI * t)) / 2;     // 0 unten -> 1 oben gestiegen
-      const hip = [CX, lerp(GROUND_Y - 37, GROUND_Y - 45, up)];
+      // Hochsteigen: führender Fuß steht auf der Box, der Körper steigt darauf
+      // hoch (Hüfte wandert über die Box), das hintere Knie wird oben angehoben.
+      const boxTop = GROUND_Y - 22;
+      const up = (1 - Math.cos(2 * Math.PI * t)) / 2;     // 0 unten -> 1 oben auf der Box
+      const hip = [lerp(CX + 1, CX + 13, up), lerp(GROUND_Y - 37, boxTop - 32, up)];
       const shoulder = addv(hip, dir(8), BONE.torso);
       const P = rig({
         hip, shoulder, headAng: 6, armFK: 96,
-        ankleN: [CX + 18, lerp(GROUND_Y - 1, boxTop, up)], kneeBendN: -1, footAngN: 92,
-        ankleF: [CX - 8, GROUND_Y - 1], kneeBendF: -1, footAngF: 92,
+        ankleN: [CX + 17, boxTop], kneeBendN: -1, footAngN: 92,                                  // führender Fuß auf der Box
+        ankleF: [lerp(CX - 8, CX + 8, up), lerp(GROUND_Y - 1, boxTop - 8, up)], kneeBendF: -1, footAngF: lerp(92, 150, up), // hinteres Bein hebt an
       });
-      P.props = [{ type: 'rect', x: CX + 10, y: boxTop, w: 28, h: 24, fill: '#7a5a3c' }];
+      P.props = [{ type: 'rect', x: CX + 9, y: boxTop, w: 28, h: 22, fill: '#7a5a3c' }];
       return P;
     },
   },
@@ -1071,29 +1080,44 @@ export const EXERCISES = {
     },
   },
 
-  // Medizinball an die Decke: aus leichter Hocke explosiv hoch, Ball über Kopf.
+  // Wall Ball: aus der Hocke explosiv hoch und den Ball an ein hohes Wandziel
+  // werfen; der Ball fliegt frei nach oben und fällt zum Fangen wieder herunter.
   'circ-ballwall': {
-    duration: 1000,
+    duration: 1200, loop: 'cycle',
     solve(t) {
-      const hip = [CX, lerp(GROUND_Y - 30, GROUND_Y - 39, t)], ankle = [CX, GROUND_Y - 1];
-      const shoulder = addv(hip, dir(4), BONE.torso);
-      const arm = lerp(40, 6, t);
-      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 2, armUp: arm, armFore: arm });
-      const h = P.handN; P.props = [{ type: 'circle', x: h[0], y: h[1] - 6, r: 6, fill: '#7a4a2a', front: true }];
+      const push = Math.sin(Math.PI * t);               // Hocke(0) -> Streckung/Wurf(0.5) -> Hocke/Fang(1)
+      const hip = [CX - 2, lerp(GROUND_Y - 27, GROUND_Y - 41, push)], ankle = [CX - 2, GROUND_Y - 1];
+      const shoulder = addv(hip, dir(5), BONE.torso);
+      // Hände (IK): Ball vor der Brust -> Wurf nach oben; die Hand löst sich tiefer,
+      // damit der Ball sichtbar allein zur Wand weiterfliegt.
+      const hand = [lerp(CX + 4, 62, push), lerp(GROUND_Y - 50, GROUND_Y - 73, push)];
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 3, handN: hand, handF: hand, elbowBend: 1 });
+      // Ball: an der Brust gehalten (Hocke), fliegt im Wurf hoch ans Wandziel und
+      // fällt zum Fangen wieder herab (über die Hände hinaus = sichtbar geworfen).
+      const arc = 4 * t * (1 - t);
+      const bx = lerp(CX + 4, 70, arc), by = lerp(GROUND_Y - 50, 7, arc);
+      P.props = [
+        { type: 'rect', x: 80, y: 6, w: 5, h: GROUND_Y - 6, fill: '#5b6472' },   // Wand rechts
+        { type: 'circle', x: bx, y: by, r: 6, fill: '#7a4a2a', front: true, ext: [[bx, by]] },
+      ];
       return P;
     },
   },
 
-  // Medizinball-Slams: Ball über Kopf und kraftvoll auf den Boden schmettern.
+  // Medizinball-Slams: Ball über Kopf und kraftvoll nach unten schmettern; im
+  // letzten Stück löst sich der Ball aus den Händen und prallt vorne auf den Boden.
   'circ-medball': {
-    duration: 850,
+    duration: 850, pingpong: true,
     solve(t) {
-      const hip = [CX, lerp(GROUND_Y - 38, GROUND_Y - 24, t)], ankle = [CX, GROUND_Y - 1];
-      const lean = lerp(4, 38, t);
+      const hip = [CX, lerp(GROUND_Y - 38, GROUND_Y - 26, t)], ankle = [CX, GROUND_Y - 1];
+      const lean = lerp(2, 50, t);
       const shoulder = addv(hip, dir(lean), BONE.torso);
-      const arm = lerp(6, 120, t);
+      const arm = lerp(4, 138, t);                       // über Kopf -> kraftvoll nach unten-vorn
       const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: lean * 0.4, armUp: arm, armFore: arm });
-      const h = P.handN; P.props = [{ type: 'circle', x: h[0], y: h[1] + (t < 0.5 ? -6 : 6), r: 6, fill: '#7a4a2a', front: true }];
+      const h = P.handN;
+      let bx = h[0], by = h[1];
+      if (t > 0.7) { const u = (t - 0.7) / 0.3; bx = lerp(h[0], CX + 12, u); by = lerp(h[1], GROUND_Y - 5, u); } // Ball fliegt zu Boden
+      P.props = [{ type: 'circle', x: bx, y: by, r: 6, fill: '#7a4a2a', front: true, ext: [[bx, by]] }];
       return P;
     },
   },
@@ -1108,7 +1132,10 @@ export const EXERCISES = {
       const arm = lerp(312, 416, t);                     // hinter dem Kopf -> über oben nach vorn (Wurfbogen)
       const P = rig({ hip, shoulder, headAng: torsoAng - 8, ankle, kneeBend: -1, footAng: 95, armUp: arm, armFore: arm });
       const h = P.handN;
-      P.props = [{ type: 'rect', x: 72, y: 36, w: 6, h: GROUND_Y - 36, fill: '#5b6472' }, { type: 'circle', x: h[0], y: h[1], r: 5.5, fill: '#7a4a2a', front: true }];
+      let bx = h[0], by = h[1];
+      if (t > 0.62) { const u = (t - 0.62) / 0.38; bx = lerp(h[0], 71, u); by = lerp(h[1], 42, u); } // Ball löst sich und fliegt frei zur Wand
+      P.props = [{ type: 'rect', x: 73, y: 30, w: 6, h: GROUND_Y - 30, fill: '#5b6472' },
+        { type: 'circle', x: bx, y: by, r: 5.5, fill: '#7a4a2a', front: true, ext: [[bx, by]] }];
       return P;
     },
   },
