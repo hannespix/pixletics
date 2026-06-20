@@ -645,6 +645,16 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 /* Figur als Icon in der Übungs-Übersicht (statt Emoji) */
 .ex-fig { width: 38px; height: 38px; display: inline-grid; place-items: center; flex: none; }
 .ex-fig svg { width: 100%; height: 100%; display: block; }
+/* Im kompakten Set-Editor etwas kleiner */
+.ex-item .ex-fig { width: 32px; height: 32px; }
+/* Set-Vorschaubild im Picker füllt das Icon-Feld */
+.picker-item .pi-icon svg { width: 100%; height: 100%; display: block; }
+/* Vorschaubild oben in der Übungsanleitung */
+.howto-fig {
+  width: 132px; height: 132px; margin: 0 auto 12px; display: block;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px;
+}
+.howto-fig svg { width: 100%; height: 100%; display: block; }
 .runner-start { width: auto; min-width: 220px; margin: 18px 0 0; padding: 16px 40px; }
 .runner-start[hidden] { display: none; }
 .next-up { color: var(--muted); font-size: 15px; min-height: 20px; margin-top: 10px; }
