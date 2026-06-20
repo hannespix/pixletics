@@ -2,7 +2,7 @@
 // Strategie: Network-first für eigene Dateien (immer aktuell, sonst Cache als
 // Offline-Fallback). Fremd-URLs (Radio-Streams, SomaFM, Spotify) gehen direkt
 // ans Netz und werden NICHT gecacht.
-const CACHE = 'pixletics-v79';
+const CACHE = 'pixletics-v80';
 const ASSETS = [
   './',
   './index.html',
@@ -50,9 +50,10 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return; // Radio/Spotify/SomaFM -> direkt ans Netz
 
-  // Network-first: frische Inhalte, Cache als Offline-Fallback.
+  // Network-first mit erzwungener Revalidierung (kein veralteter Browser-Cache):
+  // immer frische Inhalte, Cache nur als Offline-Fallback.
   e.respondWith(
-    fetch(req)
+    fetch(req, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
