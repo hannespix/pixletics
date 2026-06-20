@@ -109,7 +109,7 @@ export class FigureAnimator {
       else if (pr.type === 'circle') add('circle', { cx: pr.x, cy: pr.y, r: pr.r, fill: pr.stroke ? (pr.fill || 'none') : fill, ...(pr.stroke ? { stroke, 'stroke-width': sw } : {}) });
       else if (pr.type === 'ellipse') add('ellipse', { cx: pr.x, cy: pr.y, rx: pr.rx, ry: pr.ry, fill: 'none', stroke, 'stroke-width': pr.sw || 1.5 });
       else if (pr.type === 'line') add('line', { x1: pr.x1, y1: pr.y1, x2: pr.x2, y2: pr.y2, stroke, 'stroke-width': sw, 'stroke-linecap': 'round', fill: 'none' });
-      else if (pr.type === 'path') add('path', { d: pr.d, fill: 'none', stroke: pr.stroke || fill, 'stroke-width': pr.sw || 1.6, 'stroke-linecap': 'round' });
+      else if (pr.type === 'path') add('path', { d: pr.d, fill: 'none', stroke: pr.stroke || fill, 'stroke-width': pr.sw || 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
       else if (pr.type === 'kb') { // Kettlebell: Kugel + Bügel
         add('path', { d: `M ${pr.x - pr.r * 0.7} ${pr.y - pr.r * 0.4} q ${pr.r * 0.7} ${-pr.r} ${pr.r * 1.4} 0`, fill: 'none', stroke: pr.stroke || '#3a3f47', 'stroke-width': 2.4 });
         add('circle', { cx: pr.x, cy: pr.y, r: pr.r, fill: pr.fill || '#3a3f47' });
@@ -202,6 +202,19 @@ export class FigureAnimator {
 
 // Hilfen für die Solver
 function depth(p, sign) { return [p[0] + DEPTH * sign, p[1]]; }
+// Wellige Linie (z. B. Battle Rope) von a nach b: Sinus-Auslenkung quer zur
+// Verbindung; am festen Ende (b, Anker) auf 0 gedämpft, an der Hand (a) voll.
+function wavyPath(a, b, amp, waves, phase) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len, ny = dx / len, N = 16;
+  let d = `M ${a[0].toFixed(1)} ${a[1].toFixed(1)}`;
+  for (let i = 1; i <= N; i++) {
+    const f = i / N;
+    const off = amp * (1 - f) * Math.sin(f * waves * 2 * Math.PI - phase); // Welle läuft zum Anker
+    d += ` L ${(a[0] + dx * f + nx * off).toFixed(1)} ${(a[1] + dy * f + ny * off).toFixed(1)}`;
+  }
+  return d;
+}
 // Komplettes Skelett aus Schlüsselpunkten ableiten (mit Tiefe nah/fern).
 // Schlüsselpunkte -> komplettes Skelett (Tiefe nah/fern). Beine und Arme können
 // pro Seite unabhängig gesetzt werden (Suffix N = nah/vorne, F = fern/hinten),
@@ -1051,8 +1064,9 @@ export const EXERCISES = {
         armUpF: lerp(152, 118, s), armForeF: lerp(152, 118, s),
       });
       const anchor = [92, GROUND_Y - 1];
-      P.props = [{ type: 'line', x1: P.handF[0], y1: P.handF[1], x2: anchor[0], y2: anchor[1], sw: 2, stroke: '#b9925f', front: true },
-        { type: 'line', x1: P.handN[0], y1: P.handN[1], x2: anchor[0], y2: anchor[1], sw: 2, stroke: '#cbb88f', front: true }];
+      const ph = 2 * Math.PI * t * 2;                   // Wellen laufen die Seile entlang
+      P.props = [{ type: 'path', d: wavyPath(P.handF, anchor, 4, 2.5, ph + Math.PI), sw: 2, stroke: '#b9925f', front: true },
+        { type: 'path', d: wavyPath(P.handN, anchor, 4, 2.5, ph), sw: 2, stroke: '#cbb88f', front: true }];
       return P;
     },
   },
