@@ -755,21 +755,22 @@ export const EXERCISES = {
     },
   },
 
-  // Burpees: explosiv aus der Hocke nach oben springen (Arme über Kopf) und
-  // wieder tief runter, Hände Richtung Boden. Ping-Pong (Sprung <-> Hocke).
+  // Burpees: vollständige Sequenz – Hocke (Hände zum Boden) -> Brett zurückspringen
+  // -> Brett halten -> zurück in die Hocke -> explosiv hochspringen (Arme über Kopf).
+  // Posen werden geblendet (cycle, t=0 == t=1 = Hocke).
   burpees: {
-    duration: 1100,
+    duration: 1700, loop: 'cycle',
     solve(t) {
-      const ankle = [CX, lerp(GROUND_Y - 13, GROUND_Y - 1, t)]; // Sprung: Füße ab -> unten am Boden
-      const hip = [CX, lerp(GROUND_Y - 45, GROUND_Y - 18, t)];  // hoch -> tiefe Hocke
-      const lean = lerp(4, 42, t);                               // aufrecht -> stark vorgebeugt
-      const shoulder = addv(hip, dir(lean), BONE.torso);
-      const arm = lerp(8, 122, t);                               // über Kopf -> nach unten-vorne
-      return rig({
-        hip, shoulder, headAng: lerp(4, 30, t),
-        ankle, kneeBend: -1, footAng: lerp(150, 92, t),          // gespitzt im Sprung -> flach unten
-        armUp: arm, armFore: arm,
-      });
+      const squat = () => { const ankle = [CX, GROUND_Y - 1], hip = [CX, GROUND_Y - 18], sh = addv(hip, dir(44), BONE.torso); return rig({ hip, shoulder: sh, ankle, kneeBend: -1, footAng: 92, headAng: 26, armUp: 122, armFore: 122 }); };
+      const plank = () => { const toe = [20, GROUND_Y - 1], ankle = [20, GROUND_Y - 7], hand = [80, GROUND_Y - 1], bl = BONE.thigh + BONE.shin + BONE.torso, sh = addv(ankle, dir(72), bl), hip = addv(ankle, dir(72), BONE.thigh + BONE.shin); return rig({ hip, shoulder: sh, ankle, toe, hand, kneeBend: 1, elbowBend: 1, headAng: 100 }); };
+      const jump = () => { const ankle = [CX, GROUND_Y - 14], hip = [CX, GROUND_Y - 46], sh = addv(hip, dir(3), BONE.torso); return rig({ hip, shoulder: sh, ankle, kneeBend: -1, footAng: 155, headAng: 2, armUp: 8, armFore: 8 }); };
+      let from, to, u;
+      if (t < 0.28) { from = squat(); to = plank(); u = t / 0.28; }
+      else if (t < 0.44) return plank();
+      else if (t < 0.60) { from = plank(); to = squat(); u = (t - 0.44) / 0.16; }
+      else if (t < 0.80) { from = squat(); to = jump(); u = (t - 0.60) / 0.20; }
+      else { from = jump(); to = squat(); u = (t - 0.80) / 0.20; }
+      return lerpPose(from, to, easeInOut(u));
     },
   },
 
