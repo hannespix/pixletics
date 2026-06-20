@@ -956,20 +956,21 @@ export const EXERCISES = {
       const hip = [CX, GROUND_Y - 37 - hop];
       const ankle = [CX, GROUND_Y - 4 - hop];
       const shoulder = addv(hip, dir(2), BONE.torso);
-      const handN = [CX + 11, GROUND_Y - 32 - hop];     // Hände an den Seiten drehen das Seil
-      const handF = [CX - 11, GROUND_Y - 32 - hop];
+      // Hände/Arme parallel an beiden Seiten des Körpers, auf Taillenhöhe – das
+      // ist die Drehachse des Seils.
+      const handY = GROUND_Y - 43 - hop;
+      const handN = [CX + 10, handY], handF = [CX - 10, handY];
       const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 150, headAng: 2, handN, handF, elbowBend: 1 });
-      // Seilschlaufe von den Händen rund um den Körper. Der "ferne Punkt" F des
-      // Seils wandert mit ra einmal herum (oben=über Kopf, unten=unter den Füßen).
-      const cx = CX, cy = GROUND_Y - 46 - hop * 0.5, R = 45;
-      const fx = cx + R * Math.sin(ra), fy = cy - R * Math.cos(ra);
-      const hx = CX, hy = GROUND_Y - 33 - hop;          // Seilansatz mittig zwischen den Händen
-      const mx = (hx + fx) / 2, my = (hy + fy) / 2;
-      const dx = fx - hx, dy = fy - hy, len = Math.hypot(dx, dy) || 1;
-      const px = -dy / len * 16, py = dx / len * 16;    // Breite der Schlaufe
-      const d = `M ${hx.toFixed(1)} ${hy.toFixed(1)} Q ${(mx + px).toFixed(1)} ${(my + py).toFixed(1)} ${fx.toFixed(1)} ${fy.toFixed(1)} Q ${(mx - px).toFixed(1)} ${(my - py).toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)}`;
+      // Seil dreht sich um die Handpunkte (Drehachse = Hände, auf Taillenhöhe
+      // mittig zentriert): der ferne Punkt F kreist um den Hand-Drehpunkt -> über
+      // den Kopf, vorne herunter, unter die Füße (im Sprung), hinten wieder hoch.
+      const R = 45;
+      const fx = CX + R * Math.sin(ra), fy = handY - R * Math.cos(ra);
+      // Ein Bogen von der nahen Hand über den fernen Punkt F zur fernen Hand.
+      const qcx = 2 * fx - CX, qcy = 2 * fy - handY;    // Kontrollpunkt -> Kurve läuft durch F
+      const d = `M ${handN[0].toFixed(1)} ${handN[1].toFixed(1)} Q ${qcx.toFixed(1)} ${qcy.toFixed(1)} ${handF[0].toFixed(1)} ${handF[1].toFixed(1)}`;
       // unten/vorn vor der Figur (unter den Füßen sichtbar), oben/hinten dahinter.
-      P.props = [{ type: 'path', d, stroke: '#cbb88f', sw: 1.7, front: fy > cy, ext: [[fx, fy], [cx + R, cy], [cx - R, cy]] }];
+      P.props = [{ type: 'path', d, stroke: '#cbb88f', sw: 1.7, front: fy > handY, ext: [[fx, fy], [CX + R, handY], [CX - R, handY], [CX, handY - R]] }];
       return P;
     },
   },
