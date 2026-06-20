@@ -842,18 +842,22 @@ export const EXERCISES = {
     },
   },
 
-  // Stange über Kopf stemmen: aus Schulterhöhe gerade nach oben drücken. Stange
-  // mit Scheiben als Requisite in den Händen.
+  // Nackendrücken (behind the neck): die Stange wird hinter den Nacken abgesenkt
+  // und von dort gerade nach oben gedrückt – nicht vor dem Körper herunter.
   'circ-overhead': {
     duration: 1300,
     solve(t) {
       const hip = [CX, GROUND_Y - 37], ankle = [CX, GROUND_Y - 1];
-      const shoulder = addv(hip, dir(3), BONE.torso);
-      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 2, armUp: lerp(40, 5, t), armFore: lerp(20, 5, t) });
+      const shoulder = addv(hip, dir(2), BONE.torso);
+      // Hand-Ziel: unten hinter dem Nacken (Ellbogen flach ausgestellt) -> oben
+      // gerade über dem Kopf durchgedrückt.
+      const hand = [lerp(CX - 2, CX, t), lerp(GROUND_Y - 71, GROUND_Y - 92, t)];
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 2, handN: hand, handF: hand, elbowBend: 1 });
       const h = P.handN;
-      P.props = [{ type: 'line', x1: h[0] - 13, y1: h[1], x2: h[0] + 13, y2: h[1], sw: 2.4, stroke: '#cfd3d8', front: true },
-        { type: 'circle', x: h[0] - 13, y: h[1], r: 3.4, fill: '#3a3f47', front: true },
-        { type: 'circle', x: h[0] + 13, y: h[1], r: 3.4, fill: '#3a3f47', front: true }];
+      const front = h[1] < GROUND_Y - 82;               // erst über dem Kopf vor die Figur, sonst dahinter (Nacken)
+      P.props = [{ type: 'line', x1: h[0] - 13, y1: h[1], x2: h[0] + 13, y2: h[1], sw: 2.4, stroke: '#cfd3d8', front },
+        { type: 'circle', x: h[0] - 13, y: h[1], r: 3.4, fill: '#3a3f47', front },
+        { type: 'circle', x: h[0] + 13, y: h[1], r: 3.4, fill: '#3a3f47', front }];
       return P;
     },
   },
