@@ -541,15 +541,18 @@ export const EXERCISES = {
   jumpsquats: {
     duration: 900,
     solve(t) {
-      const hip = [CX, lerp(GROUND_Y - 22, GROUND_Y - 44, t)];   // Hocke -> hoch in der Luft
-      const ankle = [CX, lerp(GROUND_Y - 1, GROUND_Y - 12, t)];  // am Boden -> abgehoben
-      const lean = lerp(28, 3, t);                                // vorgebeugt -> gestreckt
+      // Hocke (t=0) -> explosiver Strecksprung (t=1): in der Luft komplett
+      // gestreckt – Beine durchgedrückt, Zehen gespitzt, Körper senkrecht,
+      // Arme gerade über den Kopf.
+      const hip = [CX, lerp(GROUND_Y - 22, GROUND_Y - 54, t)];   // tiefe Hocke -> hoch in der Luft
+      const ankle = [CX, lerp(GROUND_Y - 1, GROUND_Y - 18, t)];  // Boden -> abgehoben, Beine voll gestreckt
+      const lean = lerp(28, 0, t);                                // vorgebeugt -> senkrecht gestreckt
       const shoulder = addv(hip, dir(lean), BONE.torso);
-      const arm = lerp(206, 14, t);                               // Arme: unten/hinten -> über Kopf
+      const arm = lerp(208, 0, t);                                // unten/hinten -> gerade über Kopf
       return rig({
-        hip, shoulder, headAng: lerp(14, 2, t),                   // Kopf zwischen den Armen (senkrecht)
-        ankle, kneeBend: -1, footAng: lerp(92, 150, t),           // Zehen am Boden -> gespitzt
-        armUp: arm, armFore: arm,                                  // gestreckt nach oben schwingen
+        hip, shoulder, headAng: lerp(12, 0, t),                   // Kopf zwischen den Armen
+        ankle, kneeBend: -1, footAng: lerp(92, 184, t),           // Zehen am Boden -> voll gespitzt
+        armUp: arm, armFore: arm,                                  // Arme komplett durchgestreckt nach oben
       });
     },
   },
@@ -679,15 +682,19 @@ export const EXERCISES = {
   plankjacks: {
     duration: 600,
     solve(t) {
+      // Im Stütz die Beine auf/zu springen. In Seitenansicht als Vor/Zurück-
+      // Spreizung gezeigt, mit deutlichem Absprung (Füße heben in der Sprung-
+      // phase ab), damit es als echter Sprung lesbar ist.
       const hand = [76, GROUND_Y - 1];
       const shoulder = [70, GROUND_Y - 29];
       const hip = addv(shoulder, dir(250), BONE.torso);
-      const spread = lerp(1, 9, t);                     // Füße zu -> auseinander
-      const baseX = 22;
+      const lift = 7 * Math.sin(Math.PI * t);           // Füße heben beim Sprung kurz ab
+      const nearX = lerp(25, 41, t);                     // nahes Bein springt nach vorn
+      const farX = lerp(20, 12, t);                      // fernes Bein springt nach hinten
       return rig({
         hip, shoulder, hand, elbowBend: 1, headAng: 116,
-        ankleN: [baseX + spread, GROUND_Y - 3], kneeBendN: 1, footAngN: 250,
-        ankleF: [baseX - spread, GROUND_Y - 3], kneeBendF: 1, footAngF: 250,
+        ankleN: [nearX, GROUND_Y - 3 - lift], kneeBendN: 1, footAngN: 250,
+        ankleF: [farX, GROUND_Y - 3 - lift], kneeBendF: 1, footAngF: 250,
       });
     },
   },
@@ -714,18 +721,23 @@ export const EXERCISES = {
   // Boden, Füße am Boden, Hüfte angehoben; oberer Arm gerade nach oben gestreckt.
   // Statischer Halt mit leichtem Wippen.
   sideplank: {
-    duration: 2800, pingpong: true,
+    duration: 2600, pingpong: true,
     solve(t) {
-      const bob = lerp(0, 2, t);
-      const toe = [78, GROUND_Y - 1], ankle = [75, GROUND_Y - 5];
+      // Körper als gerade, gespannte Diagonale (Füße rechts am Boden, Stützarm
+      // links senkrecht zum Boden). Aktive Hüft-Dips: Hüfte hoch/gespannt (t=0)
+      // -> leicht abgesenkt (t=1) und wieder hoch -> klar erkennbar & dynamisch.
+      const dip = lerp(0, 10, t);
+      const toe = [80, GROUND_Y - 1], ankle = [76, GROUND_Y - 5];
       const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
-      const bodyAng = 287;                              // von den Füßen (rechts) nach links-oben
-      const shoulder = addv(ankle, dir(bodyAng), bodyLen - bob);
+      const bodyAng = 293;                              // steiler: Füße (rechts) nach links-oben
+      const shoulder = addv(ankle, dir(bodyAng), bodyLen);
+      shoulder[1] += dip;                               // Oberkörper senkt sich beim Dip
       const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
+      hip[1] += dip * 0.6;                              // Hüfte folgt etwas
       return rig({
         hip, shoulder, ankle, toe, kneeBend: 1, headAng: 333,
         handF: [shoulder[0], GROUND_Y - 1], elbowBend: -1, // unterer (ferner) Arm stützt am Boden
-        armUpN: 4, armForeN: 4,                            // oberer (naher) Arm gerade nach oben
+        armUpN: 2, armForeN: 2,                            // oberer (naher) Arm gerade nach oben
       });
     },
   },
@@ -734,23 +746,27 @@ export const EXERCISES = {
   // andere schwingt nach hinten-oben (Ausgleich), Oberkörper vorgebeugt, Arme
   // gegengleich. Im Wechsel (cycle).
   skater: {
-    duration: 1300, loop: 'cycle',
+    duration: 1200, loop: 'cycle',
     solve(t) {
-      const s = Math.sin(2 * Math.PI * t);
+      // Skater-Bound: tiefe Landung auf einem Bein (Knie stark gebeugt), das
+      // andere schwingt hinten-oben hinter den Körper; dazwischen ein klarer
+      // Absprung (Hüfte hebt ab, beide Füße kurz in der Luft). Im Wechsel.
+      const s = -Math.cos(2 * Math.PI * t);              // -1 .. 1, Start = Landung
       const nSt = (s + 1) / 2, fSt = 1 - nSt;            // Stand-Anteil je Bein
-      const hip = [CX, GROUND_Y - 30];
-      const lean = 24;
+      const air = Math.abs(Math.sin(2 * Math.PI * t));   // 1 = Absprung-/Flugphase
+      const hip = [CX, GROUND_Y - 24 - 16 * air];        // tief gelandet -> hoch im Sprung
+      const lean = 26;                                   // Oberkörper vorgebeugt
       const shoulder = addv(hip, dir(lean), BONE.torso);
-      // Fuß-Ziel: Schwung hinten-oben <-> Stand am Boden unter der Hüfte.
-      const ank = (st) => [lerp(CX - 20, CX + 2, st), lerp(GROUND_Y - 16, GROUND_Y - 1, st)];
-      const foot = (st) => lerp(210, 95, st);            // hinten gespitzt -> flach am Boden
-      const arm = (fwd) => lerp(150, 214, fwd);          // vor <-> zurück
+      // Standbein: Fuß unter der Hüfte am Boden; Schwungbein: hinten-oben hinter dem Körper.
+      const ank = (st) => [lerp(CX - 27, CX + 3, st), lerp(GROUND_Y - 24, GROUND_Y - 1, st) - 8 * air];
+      const foot = (st) => lerp(216, 96, st);            // hinten gespitzt -> flach am Boden
+      const arm = (fwd) => lerp(146, 226, fwd);          // weit vor <-> weit zurück (kräftiger Schwung)
       return rig({
         hip, shoulder, headAng: lean,
         ankleN: ank(nSt), kneeBendN: -1, footAngN: foot(nSt),
         ankleF: ank(fSt), kneeBendF: -1, footAngF: foot(fSt),
-        armUpN: arm(fSt), armForeN: arm(fSt) - 42,        // gegengleich zum nahen Bein
-        armUpF: arm(nSt), armForeF: arm(nSt) - 42,
+        armUpN: arm(fSt), armForeN: arm(fSt) - 44,        // gegengleich zum nahen Bein
+        armUpF: arm(nSt), armForeF: arm(nSt) - 44,
       });
     },
   },
