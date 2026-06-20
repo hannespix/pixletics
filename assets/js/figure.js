@@ -844,12 +844,15 @@ export const EXERCISES = {
   'circ-kettlebell': {
     duration: 1100,
     solve(t) {
-      const hip = [CX, GROUND_Y - 37 + 5 * t];
+      // Kettlebell-Swing als Hüft-Hinge: oben aufrecht, Glocke vorn auf Brust-/
+      // Schulterhöhe; unten Gesäß nach hinten, Oberkörper vorgebeugt, Knie nur
+      // leicht gebeugt, Glocke schwingt nach unten-hinten zwischen die Beine.
+      const hip = [lerp(CX, CX - 6, t), lerp(GROUND_Y - 37, GROUND_Y - 33, t)];
       const ankle = [CX, GROUND_Y - 1];
-      const lean = lerp(6, 40, t);                       // aufrecht (oben) -> Hüfthinge (unten)
+      const lean = lerp(2, 50, t);                       // aufrecht -> Hüfthinge nach vorn
       const shoulder = addv(hip, dir(lean), BONE.torso);
-      const arm = lerp(40, 112, t);                      // vorn-oben -> nach unten zwischen die Beine
-      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: lean * 0.4, armUp: arm, armFore: arm });
+      const arm = lerp(54, 208, t);                      // Glocke vorn-oben -> unten-hinten zwischen die Beine
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: lean * 0.35, armUp: arm, armFore: arm });
       const h = P.handN; P.props = [{ type: 'kb', x: h[0], y: h[1] + 5, r: 5, front: true }];
       return P;
     },
@@ -882,7 +885,10 @@ export const EXERCISES = {
       const hip = [CX, GROUND_Y - 37], ankle = [CX, GROUND_Y - 1];
       const shoulder = addv(hip, dir(3), BONE.torso);
       const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: 2, armUp: lerp(42, 6, t), armFore: lerp(24, 6, t) });
-      const h = P.handN; P.props = [{ type: 'rect', x: h[0] - 17, y: h[1] - 3, w: 34, h: 6, rx: 2, fill: '#7a5a3c', front: true }];
+      const h = P.handN;
+      P.props = [{ type: 'rect', x: h[0] - 16, y: h[1] - 6, w: 32, h: 7, rx: 2, fill: '#7a5a3c', front: true }, // Bank-Sitzfläche
+        { type: 'rect', x: h[0] - 13, y: h[1] + 1, w: 3.5, h: 6, fill: '#5e4630', front: true },               // Bein
+        { type: 'rect', x: h[0] + 9.5, y: h[1] + 1, w: 3.5, h: 6, fill: '#5e4630', front: true }];             // Bein
       return P;
     },
   },
@@ -1031,18 +1037,20 @@ export const EXERCISES = {
     },
   },
 
-  // Ringe-Klimmzüge: an den Ringen hängen und hochziehen (Knie angewinkelt).
+  // Ringe-Klimmzüge: an den Ringen hängen (Arme gestreckt) und den Körper klar
+  // hochziehen (Arme beugen, Kinn zu den Ringen). Beine angewinkelt (Füße frei).
   'circ-rings': {
-    duration: 1500,
+    duration: 1500, pingpong: true,
     solve(t) {
-      const hand = [CX, GROUND_Y - 80];
-      const shoulder = [CX, lerp(GROUND_Y - 60, GROUND_Y - 71, t)]; // hochziehen
+      const ringY = GROUND_Y - 86;                                       // Ringe oben (fix)
+      const shoulder = [CX, lerp(GROUND_Y - 59, GROUND_Y - 77, t)];      // voller Hang -> hochgezogen
       const hip = [CX, shoulder[1] + BONE.torso];
-      const P = rig({ hip, shoulder, handN: hand, handF: hand, elbowBend: 1, headAng: 2, thighAng: 202, shinAng: 118, footAng: 118 });
-      P.props = [{ type: 'line', x1: CX - 9, y1: 8, x2: hand[0] - 9, y2: hand[1], sw: 1.4, stroke: '#cbb88f' },
-        { type: 'line', x1: CX + 9, y1: 8, x2: hand[0] + 9, y2: hand[1], sw: 1.4, stroke: '#cbb88f' },
-        { type: 'circle', x: hand[0] - 9, y: hand[1], r: 4, stroke: '#2c2f35', sw: 2 },
-        { type: 'circle', x: hand[0] + 9, y: hand[1], r: 4, stroke: '#2c2f35', sw: 2 }];
+      const P = rig({ hip, shoulder, handN: [CX + 2, ringY], handF: [CX - 2, ringY], elbowBend: 1, headAng: 2,
+        thighAng: 202, shinAng: 118, footAng: 118 });                    // Knie angewinkelt -> Füße bleiben frei
+      P.props = [{ type: 'line', x1: CX - 8, y1: 6, x2: CX - 8, y2: ringY, sw: 1.4, stroke: '#cbb88f' },
+        { type: 'line', x1: CX + 8, y1: 6, x2: CX + 8, y2: ringY, sw: 1.4, stroke: '#cbb88f' },
+        { type: 'circle', x: CX - 8, y: ringY, r: 4, stroke: '#2c2f35', sw: 2 },
+        { type: 'circle', x: CX + 8, y: ringY, r: 4, stroke: '#2c2f35', sw: 2 }];
       return P;
     },
   },
