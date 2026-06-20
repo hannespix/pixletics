@@ -279,10 +279,11 @@ function computeViewBox(a) {
 }
 function viewBoxFor(a) { return a._vb || (a._vb = computeViewBox(a)); }
 
-// Quadratisches, um die Übung zentriertes Bühnen-Fenster. Kantenlänge = mindestens
-// STAGE_S (gleicher Maßstab für die meisten Übungen) und nur größer, wenn die
-// Übung mehr Platz braucht (inkl. Kopf-/Strichrand) -> nie abgeschnitten, immer
-// mittig. Übergänge führen das Fenster weich mit (siehe play/_loop).
+// Quadratisches Bühnen-Fenster, zentriert auf die FIGUR (nicht auf die Geräte).
+// Größe = mindestens STAGE_S, sonst Figur-Bounding-Box + Rand; gehaltene Geräte
+// nahe der Hände (Ball/Hantel/Stange/Kettlebell) werden mit eingefasst, große
+// Umgebungs-Geräte (Wand, Box, Bank, Sprossenwand, Seil) dürfen an den Rand
+// laufen, damit die Figur immer groß und mittig bleibt.
 function stageViewBox(a) {
   if (a._svb) return a._svb;
   let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
@@ -293,11 +294,8 @@ function stageViewBox(a) {
       const p = P[k]; if (!Array.isArray(p)) continue;
       ext(p[0], p[1], k === 'head' ? BONE.head : 3); // Kopfradius bzw. Strich/Gelenk
     }
-    for (const pr of (P.props || [])) { // Geräte mit einrahmen
-      if (pr.type === 'rect') { ext(pr.x, pr.y); ext(pr.x + pr.w, pr.y + pr.h); }
-      else if (pr.type === 'circle' || pr.type === 'kb') ext(pr.x, pr.y, pr.r + 2);
-      else if (pr.type === 'ellipse') { ext(pr.x - pr.rx, pr.y - pr.ry); ext(pr.x + pr.rx, pr.y + pr.ry); }
-      else if (pr.type === 'line') { ext(pr.x1, pr.y1, 2); ext(pr.x2, pr.y2, 2); }
+    for (const pr of (P.props || [])) { // nur kleine, gehaltene Geräte mit einfassen
+      if (pr.type === 'kb' || (pr.type === 'circle' && pr.r <= 8)) ext(pr.x, pr.y, pr.r + 2);
     }
   }
   const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
@@ -618,14 +616,16 @@ export const EXERCISES = {
   jacks: {
     duration: 640,
     solve(t) {
-      const hip = [CX, GROUND_Y - 35];                 // etwas tiefer, damit gespreizte Beine reichen
+      const hop = 4 * t;                                // Absprung: Hüfte hoch, Füße heben leicht ab
+      const hip = [CX, GROUND_Y - 35 - hop];
       const shoulder = addv(hip, dir(2), BONE.torso);
-      const arm = lerp(193, 8, t);                      // Arme seitlich unten -> über den Kopf
-      const spread = lerp(2, 12, t);                    // Füße zusammen -> auseinander
+      const arm = lerp(196, 4, t);                      // Arme seitlich unten -> gerade über den Kopf
+      const spread = lerp(2, 10, t);                    // Füße zusammen -> auseinander
+      const fy = GROUND_Y - 1 - 3 * t;
       return rig({
         hip, shoulder, headAng: 1,
-        ankleN: [CX + spread, GROUND_Y - 1], kneeBendN: -1, footAngN: 96,
-        ankleF: [CX - spread, GROUND_Y - 1], kneeBendF: -1, footAngF: 96,
+        ankleN: [CX + spread, fy], kneeBendN: -1, footAngN: 96,
+        ankleF: [CX - spread, fy], kneeBendF: -1, footAngF: 96,
         armUp: arm, armFore: arm,                        // gestreckte Arme
       });
     },
@@ -898,25 +898,26 @@ export const EXERCISES = {
   'circ-scooter': {
     duration: 1500, loop: 'cycle',
     solve(t) {
-      const hip = [50, GROUND_Y - 5];
-      const shoulder = addv(hip, dir(86), BONE.torso);
-      const arm = lerp(72, 112, (Math.sin(2 * Math.PI * t) + 1) / 2); // vor -> zurückziehen
-      const P = rig({ hip, shoulder, headAng: 88, thighAng: 266, shinAng: 266, footAng: 266, armUp: arm, armFore: arm });
-      P.props = [{ type: 'rect', x: 36, y: GROUND_Y - 3, w: 36, h: 4, rx: 1, fill: '#555' }];
+      const hip = [48, GROUND_Y - 7];
+      const shoulder = addv(hip, dir(70), BONE.torso);  // Brust deutlich angehoben (Blick nach vorn)
+      const arm = lerp(60, 104, (Math.sin(2 * Math.PI * t) + 1) / 2); // weit vorgreifen -> zurückziehen
+      const P = rig({ hip, shoulder, headAng: 72, thighAng: 261, shinAng: 261, footAng: 261, armUp: arm, armFore: arm });
+      P.props = [{ type: 'rect', x: 36, y: GROUND_Y - 5, w: 42, h: 5, rx: 2, fill: '#6b4a2c' }, // Rollbrett deutlich sichtbar
+        { type: 'circle', x: 45, y: GROUND_Y - 1, r: 2.6, fill: '#1c1c1c' }, { type: 'circle', x: 70, y: GROUND_Y - 1, r: 2.6, fill: '#1c1c1c' }];
       return P;
     },
   },
 
   // Seilspringen: kleine Hopser auf den Fußballen, Seil dreht ums Männchen.
   'circ-rope': {
-    duration: 520,
+    duration: 480,
     solve(t) {
-      const hop = 3 * Math.sin(Math.PI * t);
+      const hop = 6 * Math.sin(Math.PI * t);            // deutlichere Hopser
       const hip = [CX, GROUND_Y - 37 - hop];
-      const ankle = [CX, GROUND_Y - 2 - hop];
+      const ankle = [CX, GROUND_Y - 4 - hop];
       const shoulder = addv(hip, dir(3), BONE.torso);
-      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 150, headAng: 2, armUp: 150, armFore: 196 });
-      P.props = [{ type: 'ellipse', x: CX, y: GROUND_Y - 26, rx: lerp(20, 24, t), ry: 30, stroke: '#cbb88f', sw: 1.4 }];
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 116, headAng: 2, armUp: 150, armFore: 196 });
+      P.props = [{ type: 'ellipse', x: CX, y: GROUND_Y - 28, rx: lerp(19, 23, t), ry: 27, stroke: '#cbb88f', sw: 1.4 }];
       return P;
     },
   },
@@ -1003,13 +1004,13 @@ export const EXERCISES = {
   'circ-wallthrow': {
     duration: 1400,
     solve(t) {
-      const hip = [44, GROUND_Y - 5], ankle = [62, GROUND_Y - 1];
-      const torsoAng = lerp(280, 352, t);               // liegen -> aufrichten/werfen
+      const hip = [42, GROUND_Y - 6], ankle = [60, GROUND_Y - 1];
+      const torsoAng = lerp(282, 352, t);               // liegen -> aufrichten/werfen
       const shoulder = addv(hip, dir(torsoAng), BONE.torso);
       const arm = lerp(312, 56, t);                      // hinter dem Kopf -> nach vorn werfen
       const P = rig({ hip, shoulder, headAng: torsoAng - 8, ankle, kneeBend: -1, footAng: 95, armUp: arm, armFore: arm });
       const h = P.handN;
-      P.props = [{ type: 'rect', x: 90, y: 28, w: 6, h: 76, fill: '#5b6472' }, { type: 'circle', x: h[0], y: h[1], r: 5.5, fill: '#7a4a2a', front: true }];
+      P.props = [{ type: 'rect', x: 80, y: 34, w: 6, h: 70, fill: '#5b6472' }, { type: 'circle', x: h[0], y: h[1], r: 5.5, fill: '#7a4a2a', front: true }];
       return P;
     },
   },
