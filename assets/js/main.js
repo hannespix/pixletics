@@ -164,6 +164,20 @@ function setEmoji(set) {
   for (const id of set.exercises) { const ex = exerciseMap[id]; if (ex && ex.emoji) return ex.emoji; }
   return '🏋️';
 }
+// Kleines Standbild der Holzpuppe als Icon einer Übung (statt Emoji), sofern
+// dafür eine Animation existiert. Hängt ein <svg> in `host` und gibt true zurück.
+function mountExFigure(host, exId, t = 0.42) {
+  const figKey = exId && FIGURE_ANIMS[exId];
+  if (!figKey || !host) return false;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  host.appendChild(svg);
+  new FigureAnimator(svg).still(figKey, t);
+  return true;
+}
+// Repräsentative Übung eines Sets fürs Vorschaubild (erste mit Animation).
+function setFigExId(set) {
+  return set.exercises.find((id) => FIGURE_ANIMS[id]) || null;
+}
 
 let pickerIntroDone = false; // gestaffelter Einzug nur beim ersten Render
 
@@ -188,8 +202,9 @@ function renderPicker(highlightId) {
       intensity ? `<span class="pi-chip">${escapeHtml(intensity)}</span>` : '',
       ...focusTags.map((t) => `<span class="pi-chip">${escapeHtml(t)}</span>`),
     ].join('');
+    const figExId = setFigExId(set);
     item.innerHTML = `
-      <div class="pi-icon">${escapeHtml(setEmoji(set))}</div>
+      <div class="pi-icon">${figExId ? '' : escapeHtml(setEmoji(set))}</div>
       <div class="pi-body">
         <div class="pi-name">${escapeHtml(set.name)}</div>
         <div class="pi-sub">${set.exercises.length} Übungen · ≈ ${est} Min</div>
@@ -199,6 +214,7 @@ function renderPicker(highlightId) {
         ${selected ? `<div class="order-badge">#${order + 1}</div>` : ''}
         <div class="pi-check">${selected ? '✓' : ''}</div>
       </div>`;
+    if (figExId) mountExFigure(item.querySelector('.pi-icon'), figExId);
     item.addEventListener('click', () => {
       const idx = selectedSetIds.indexOf(set.id);
       if (idx === -1) selectedSetIds.push(set.id);
@@ -717,9 +733,10 @@ function renderEditor() {
     const li = document.createElement('li');
     li.className = 'ex-item';
     li.dataset.id = exId;
+    const figKey = FIGURE_ANIMS[exId];
     li.innerHTML = `
       <span class="handle" title="Ziehen zum Sortieren">⠿</span>
-      <span class="emoji">${escapeHtml(ex.emoji)}</span>
+      <span class="emoji${figKey ? ' ex-fig' : ''}">${figKey ? '' : escapeHtml(ex.emoji)}</span>
       <span class="ex-name">${escapeHtml(ex.name)}<div class="ex-area">${escapeHtml(ex.area)}</div></span>
       <span class="reps-step" title="Wiederholungen in diesem Set">
         <button type="button" class="reps-btn" data-d="-1" aria-label="weniger Wiederholungen">−</button>
@@ -727,6 +744,7 @@ function renderEditor() {
         <button type="button" class="reps-btn" data-d="1" aria-label="mehr Wiederholungen">+</button>
       </span>
       <button class="rm" title="Entfernen">✕</button>`;
+    if (figKey) mountExFigure(li.querySelector('.ex-fig'), exId);
     const valEl = li.querySelector('.reps-val');
     li.querySelectorAll('.reps-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -753,10 +771,12 @@ function renderEditor() {
     const inSet = set.exercises.includes(ex.id);
     const li = document.createElement('li');
     li.className = 'ex-item' + (inSet ? ' in-set' : '');
+    const figKey = FIGURE_ANIMS[ex.id];
     li.innerHTML = `
-      <span class="emoji">${escapeHtml(ex.emoji)}</span>
+      <span class="emoji${figKey ? ' ex-fig' : ''}">${figKey ? '' : escapeHtml(ex.emoji)}</span>
       <span class="ex-name">${escapeHtml(ex.name)}<div class="ex-area">${escapeHtml(ex.area)}</div></span>
       <span class="lib-check">${inSet ? '✓' : '＋'}</span>`;
+    if (figKey) mountExFigure(li.querySelector('.ex-fig'), ex.id);
     li.addEventListener('click', () => {
       if (set.exercises.includes(ex.id)) set.exercises = set.exercises.filter((id) => id !== ex.id);
       else set.exercises.push(ex.id);
@@ -820,11 +840,7 @@ function renderExercisesList() {
       </div>`;
     row.addEventListener('click', () => openExEditor(ex.id));
     host.appendChild(row);
-    if (figKey) { // statt Emoji ein Standbild der Figur
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      row.querySelector('.ex-fig').appendChild(svg);
-      new FigureAnimator(svg).still(figKey);
-    }
+    if (figKey) mountExFigure(row.querySelector('.ex-fig'), ex.id); // statt Emoji ein Standbild der Figur
   });
 }
 
@@ -1611,7 +1627,7 @@ function armRunner(steps, startIndex = 0) {
   const preview = resuming ? steps[pendingStartIndex] : (steps.find((s) => s.phase === PHASE.WORK) || steps[0]);
   const ex = preview && (preview.exId ? exerciseMap[preview.exId] : { name: preview.label, emoji: '⏱️', cue: '' });
   $('#phase-label').textContent = resuming ? 'Fortsetzen' : 'Bereit';
-  $('#exercise-name').textContent = ex ? `${ex.emoji} ${ex.name}` : '';
+  $('#exercise-name').textContent = ex ? ex.name : '';
   $('#exercise-cue').textContent = resuming ? 'Weiter, wo du aufgehört hast – auf Start' : 'Wähle ggf. Musik – dann auf Start';
   // Anleitung zur ersten/aktuellen Übung schon im „Bereit“-Screen anbieten.
   runnerCurrentExId = (preview && preview.exId) || null;
@@ -1917,7 +1933,7 @@ function updateRunnerFigure(exId, phase) {
 
 function setPhaseUI(label, ex, icon) {
   $('#phase-label').textContent = label;
-  $('#exercise-name').textContent = ex ? `${ex.emoji} ${ex.name}` : '';
+  $('#exercise-name').textContent = ex ? ex.name : '';
   $('#exercise-cue').textContent = ex ? ex.cue : '';
   $('#phase-icon').textContent = icon || '';
   // Info-Button nur zeigen, wenn zur aktuellen Übung eine Anleitung existiert.
@@ -1935,7 +1951,7 @@ function showNextAfter(steps, index) {
       if (!skippedUpcoming) { skippedUpcoming = true; continue; }
       const st = steps[i];
       const ex = exerciseMap[st.exId];
-      const label = ex ? `${ex.emoji} ${ex.name}` : (st.label || '');
+      const label = ex ? ex.name : (st.label || '');
       $('#next-up').textContent = label ? `Danach: ${label}` : '';
       return;
     }
@@ -2136,8 +2152,13 @@ function openHowtoModal(exId) {
   const ex = exerciseMap[exId];
   const html = howtoHtml(exId);
   if (!ex || !html) return;
-  $('#howto-title').textContent = `${ex.emoji || ''} ${ex.name}`.trim();
-  $('#howto-body').innerHTML = html;
+  $('#howto-title').textContent = ex.name;
+  const body = $('#howto-body');
+  body.innerHTML = html;
+  // Vorschaubild der Holzpuppe oben einblenden (statt Emoji im Titel).
+  const fig = document.createElement('div');
+  fig.className = 'howto-fig';
+  if (mountExFigure(fig, exId)) body.prepend(fig);
   $('#howto-modal').hidden = false;
 }
 $('#btn-close-howto').addEventListener('click', () => { $('#howto-modal').hidden = true; });
