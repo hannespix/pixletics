@@ -109,6 +109,7 @@ export class FigureAnimator {
       else if (pr.type === 'circle') add('circle', { cx: pr.x, cy: pr.y, r: pr.r, fill: pr.stroke ? (pr.fill || 'none') : fill, ...(pr.stroke ? { stroke, 'stroke-width': sw } : {}) });
       else if (pr.type === 'ellipse') add('ellipse', { cx: pr.x, cy: pr.y, rx: pr.rx, ry: pr.ry, fill: 'none', stroke, 'stroke-width': pr.sw || 1.5 });
       else if (pr.type === 'line') add('line', { x1: pr.x1, y1: pr.y1, x2: pr.x2, y2: pr.y2, stroke, 'stroke-width': sw, 'stroke-linecap': 'round', fill: 'none' });
+      else if (pr.type === 'path') add('path', { d: pr.d, fill: 'none', stroke: pr.stroke || fill, 'stroke-width': pr.sw || 1.6, 'stroke-linecap': 'round' });
       else if (pr.type === 'kb') { // Kettlebell: Kugel + Bügel
         add('path', { d: `M ${pr.x - pr.r * 0.7} ${pr.y - pr.r * 0.4} q ${pr.r * 0.7} ${-pr.r} ${pr.r * 1.4} 0`, fill: 'none', stroke: pr.stroke || '#3a3f47', 'stroke-width': 2.4 });
         add('circle', { cx: pr.x, cy: pr.y, r: pr.r, fill: pr.fill || '#3a3f47' });
@@ -296,6 +297,7 @@ function stageViewBox(a) {
     }
     for (const pr of (P.props || [])) { // nur kleine, gehaltene Geräte mit einfassen
       if (pr.type === 'kb' || (pr.type === 'circle' && pr.r <= 8)) ext(pr.x, pr.y, pr.r + 2);
+      if (pr.ext) for (const e of pr.ext) ext(e[0], e[1], 2); // explizite Einfass-Punkte (z. B. Sprungseil)
     }
   }
   const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
@@ -916,31 +918,86 @@ export const EXERCISES = {
     },
   },
 
-  // Rollbrett ziehen: bäuchlings auf dem Brett, mit den Armen nach vorne ziehen.
+  // Rollbrett-Rollout: kniend, die Hände auf dem Rollbrett. Das Brett rollt nach
+  // vorne, der Oberkörper fährt flach ganz weit nach vorn (Arme lang, Körper in
+  // der weitesten Lage durchgestreckt); dann zieht man sich wieder hoch und rollt
+  // bis zu den Knien zurück. Die Knie bleiben am Boden.
   'circ-scooter': {
-    duration: 1500, loop: 'cycle',
+    duration: 2000, pingpong: true,
     solve(t) {
-      const hip = [48, GROUND_Y - 7];
-      const shoulder = addv(hip, dir(70), BONE.torso);  // Brust deutlich angehoben (Blick nach vorn)
-      const arm = lerp(60, 104, (Math.sin(2 * Math.PI * t) + 1) / 2); // weit vorgreifen -> zurückziehen
-      const P = rig({ hip, shoulder, headAng: 72, thighAng: 261, shinAng: 261, footAng: 261, armUp: arm, armFore: arm });
-      P.props = [{ type: 'rect', x: 36, y: GROUND_Y - 5, w: 42, h: 5, rx: 2, fill: '#6b4a2c' }, // Rollbrett deutlich sichtbar
-        { type: 'circle', x: 45, y: GROUND_Y - 1, r: 2.6, fill: '#1c1c1c' }, { type: 'circle', x: 70, y: GROUND_Y - 1, r: 2.6, fill: '#1c1c1c' }];
+      const knee = [32, GROUND_Y - 2];                      // Knie bleibt am Boden
+      const thighUp = lerp(14, 50, t);                      // Hüfte hoch/hinten -> vor und tiefer
+      const hip = addv(knee, dir(thighUp), BONE.thigh);
+      const hand = [lerp(58, 92, t), GROUND_Y - 4];         // Brett rollt unter den Händen nach vorn
+      const torsoAng = lerp(96, 106, t);                    // Oberkörper streckt sich flach nach vorn
+      const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      const P = rig({
+        hip, shoulder, headAng: torsoAng + 14,
+        thighAng: thighUp + 180, shinAng: 270, footAng: 266, // Schienbein/Fuß flach am Boden hinter dem Knie
+        hand, elbowBend: -1,                                  // Ellbogen nach oben (nicht durch den Boden)
+      });
+      P.props = [
+        { type: 'rect', x: hand[0] - 10, y: GROUND_Y - 5, w: 22, h: 5, rx: 2, fill: '#6b4a2c' }, // Rollbrett unter den Händen
+        { type: 'circle', x: hand[0] - 6, y: GROUND_Y - 1, r: 2.6, fill: '#1c1c1c' },
+        { type: 'circle', x: hand[0] + 6, y: GROUND_Y - 1, r: 2.6, fill: '#1c1c1c' },
+      ];
       return P;
     },
   },
 
-  // Seilspringen: kleine Hopser auf den Fußballen, Seil dreht ums Männchen.
+  // Seilspringen: kleine Hopser auf den Fußballen; das Seil wird einmal pro
+  // Sprung komplett um den Körper geführt – über den Kopf, vorne herunter, unter
+  // den Füßen durch (genau wenn man hochspringt) und hinten wieder hoch.
   'circ-rope': {
-    duration: 480,
+    duration: 760, loop: 'cycle',
     solve(t) {
-      const hop = 8 * Math.sin(Math.PI * t);            // deutliche Hopser
+      const ra = 2 * Math.PI * t;                       // eine Seil-Umdrehung pro Sprung
+      const hop = 7 * (1 - Math.cos(ra)) / 2;           // Hüpfer; Höhepunkt wenn das Seil unten ist
       const hip = [CX, GROUND_Y - 37 - hop];
       const ankle = [CX, GROUND_Y - 4 - hop];
-      const shoulder = addv(hip, dir(3), BONE.torso);
-      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 116, headAng: 2, armUp: 150, armFore: 196 });
-      P.props = [{ type: 'ellipse', x: CX, y: GROUND_Y - 28, rx: lerp(19, 23, t), ry: 27, stroke: '#cbb88f', sw: 1.4 }];
+      const shoulder = addv(hip, dir(2), BONE.torso);
+      const handN = [CX + 11, GROUND_Y - 32 - hop];     // Hände an den Seiten drehen das Seil
+      const handF = [CX - 11, GROUND_Y - 32 - hop];
+      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 150, headAng: 2, handN, handF, elbowBend: 1 });
+      // Seilschlaufe von den Händen rund um den Körper. Der "ferne Punkt" F des
+      // Seils wandert mit ra einmal herum (oben=über Kopf, unten=unter den Füßen).
+      const cx = CX, cy = GROUND_Y - 46 - hop * 0.5, R = 45;
+      const fx = cx + R * Math.sin(ra), fy = cy - R * Math.cos(ra);
+      const hx = CX, hy = GROUND_Y - 33 - hop;          // Seilansatz mittig zwischen den Händen
+      const mx = (hx + fx) / 2, my = (hy + fy) / 2;
+      const dx = fx - hx, dy = fy - hy, len = Math.hypot(dx, dy) || 1;
+      const px = -dy / len * 16, py = dx / len * 16;    // Breite der Schlaufe
+      const d = `M ${hx.toFixed(1)} ${hy.toFixed(1)} Q ${(mx + px).toFixed(1)} ${(my + py).toFixed(1)} ${fx.toFixed(1)} ${fy.toFixed(1)} Q ${(mx - px).toFixed(1)} ${(my - py).toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)}`;
+      // unten/vorn vor der Figur (unter den Füßen sichtbar), oben/hinten dahinter.
+      P.props = [{ type: 'path', d, stroke: '#cbb88f', sw: 1.7, front: fy > cy, ext: [[fx, fy], [cx + R, cy], [cx - R, cy]] }];
       return P;
+    },
+  },
+
+  // Pendellauf -> Sprint auf der Stelle: starke Vorlage, ein Knie explosiv hoch
+  // nach vorn (Schienbein vorgereckt), das andere Bein streckt sich nach hinten
+  // durch (Abdruck), Arme pumpen kräftig gegengleich (~90°-Ellbogen).
+  'circ-shuttle': {
+    duration: 540, loop: 'cycle',
+    solve(t) {
+      const ph = 2 * Math.PI * t;
+      const pN = Math.sin(ph), pF = -pN;                 // Beine gegengleich
+      const bob = 3 * Math.abs(Math.cos(ph));           // leichtes Auf/Ab (Flugphase)
+      const hip = [CX, GROUND_Y - 41 - bob];
+      const lean = 33;                                   // starke Sprint-Vorlage
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      const thigh = (p) => lerp(214, 58, (p + 1) / 2);   // hinten-unten -> vorne-oben (Knie hoch)
+      const shin = (p) => lerp(238, 150, (p + 1) / 2);   // hinten gestreckt -> vorne vorgereckt
+      const foot = (p) => lerp(252, 158, (p + 1) / 2);   // Zehen gespitzt
+      const aUp = (a) => lerp(212, 156, (a + 1) / 2);    // Oberarm: zurück -> vor
+      const aFore = (a) => lerp(246, 86, (a + 1) / 2);   // Unterarm pumpt (Hand Hüfte -> Brust)
+      return rig({
+        hip, shoulder, headAng: lean - 8,
+        thighAngN: thigh(pN), shinAngN: shin(pN), footAngN: foot(pN),
+        thighAngF: thigh(pF), shinAngF: shin(pF), footAngF: foot(pF),
+        armUpN: aUp(-pN), armForeN: aFore(-pN),           // Arme gegengleich zu den Beinen
+        armUpF: aUp(-pF), armForeF: aFore(-pF),
+      });
     },
   },
 
