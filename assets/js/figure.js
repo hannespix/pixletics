@@ -944,17 +944,18 @@ export const EXERCISES = {
     },
   },
 
-  // Rollbrett-Rollout: kniend, die Hände auf dem Rollbrett. Das Brett rollt nach
-  // vorne, der Oberkörper fährt flach ganz weit nach vorn (Arme lang, Körper in
-  // der weitesten Lage durchgestreckt); dann zieht man sich wieder hoch und rollt
-  // bis zu den Knien zurück. Die Knie bleiben am Boden.
+  // Bauchroller (Core/Ab-Wheel): kniend, die Hände greifen die Achse des Rades.
+  // Das Rad rollt nach vorne, der Oberkörper fährt flach ganz weit nach vorn (Arme
+  // lang, Körper in der weitesten Lage durchgestreckt); dann zieht man sich wieder
+  // hoch und rollt bis zu den Knien zurück. Die Knie bleiben am Boden.
   'circ-scooter': {
     duration: 2000, pingpong: true,
     solve(t) {
+      const wheelR = 6;
       const knee = [32, GROUND_Y - 2];                      // Knie bleibt am Boden
       const thighUp = lerp(14, 50, t);                      // Hüfte hoch/hinten -> vor und tiefer
       const hip = addv(knee, dir(thighUp), BONE.thigh);
-      const hand = [lerp(58, 92, t), GROUND_Y - 4];         // Brett rollt unter den Händen nach vorn
+      const hand = [lerp(58, 92, t), GROUND_Y - wheelR];    // Hände an der Rad-Achse (rollt nach vorn)
       const torsoAng = lerp(96, 106, t);                    // Oberkörper streckt sich flach nach vorn
       const shoulder = addv(hip, dir(torsoAng), BONE.torso);
       const P = rig({
@@ -963,9 +964,9 @@ export const EXERCISES = {
         hand, elbowBend: -1,                                  // Ellbogen nach oben (nicht durch den Boden)
       });
       P.props = [
-        { type: 'rect', x: hand[0] - 10, y: GROUND_Y - 5, w: 22, h: 5, rx: 2, fill: '#6b4a2c' }, // Rollbrett unter den Händen
-        { type: 'circle', x: hand[0] - 6, y: GROUND_Y - 1, r: 2.6, fill: '#1c1c1c' },
-        { type: 'circle', x: hand[0] + 6, y: GROUND_Y - 1, r: 2.6, fill: '#1c1c1c' },
+        { type: 'circle', x: hand[0], y: hand[1], r: wheelR, fill: '#2b2d33' },        // Rad
+        { type: 'circle', x: hand[0], y: hand[1], r: wheelR - 1.4, fill: 'none', stroke: '#454953', sw: 1 }, // Reifen-Innenkante
+        { type: 'circle', x: hand[0], y: hand[1], r: 2.4, fill: '#7c828d' },           // Nabe/Achse (Griff)
       ];
       return P;
     },
