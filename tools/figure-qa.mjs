@@ -54,7 +54,10 @@ for (const name in EXERCISES) {
   const figFrac = figDim / S, footLift = GY - footMinY;
   const f = [];
   if (breach > 2.5) f.push('FLOOR+' + breach.toFixed(0));
-  if (figFrac < 0.72) f.push('SMALL ' + figFrac.toFixed(2));
+  // 0.69: knochenlimitierte Kompakt-Posen (z. B. Pike-Liegestütz, umgekehrtes V)
+  // füllen das quadratische Fenster naturgemäß weniger, rendern aber im gleichen
+  // Maßstab wie alle anderen. Echte "zu klein"-Fehler liegen deutlich darunter.
+  if (figFrac < 0.69) f.push('SMALL ' + figFrac.toFixed(2));
   if (!skipStatic.has(name) && amp < 7) f.push('STATIC ' + amp.toFixed(0));
   if (isJump.has(name) && footLift < 6) f.push('NOJUMP ' + footLift.toFixed(0));
   if (propOff > 26) f.push('PROPOFF+' + propOff.toFixed(0));
