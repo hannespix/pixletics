@@ -812,3 +812,22 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .howto-steps li, .howto-tips li { color: var(--text); line-height: 1.5; margin: 5px 0; font-size: 14px; }
 .howto-steps li::marker { color: var(--accent); font-weight: 700; }
 .howto-tips li::marker { color: var(--accent); }
+
+/* ===== Onko-Sport-Profil (versteckte Schwester-App, ruhigeres Theme) ===== */
+[data-app="onko"] {
+  --accent: #2f9e8f;     /* ruhiges Teal statt aggressivem Orange */
+  --accent-2: #7cc486;   /* sanftes Grün */
+  --grad-top: #14241f;   /* leicht grünlicher Hintergrund-Verlauf */
+  --blue: #4bb3a6;       /* Pause-/Vorbereitungsphase */
+}
+.onko-disclaimer {
+  background: rgba(47, 158, 143, 0.12);
+  border: 1px solid rgba(47, 158, 143, 0.40);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0 0 14px;
+}
+.onko-disclaimer strong { color: var(--accent-2); }

@@ -1186,6 +1186,54 @@ export const EXERCISES = {
     },
   },
 
+  // ---- Sanfte Onko-/Reha-Übungen (ruhige, gelenkschonende Bewegungen) ----
+  // Arme heben: gestreckte Arme von den Seiten nach vorne/oben und zurück
+  // (Schultermobilität & sanfte Kraft).
+  onko_armraise: {
+    duration: 2400, pingpong: true,
+    solve(t) {
+      const arm = lerp(192, 14, t);                      // unten -> nach vorne/oben gestreckt
+      return stand({ hipBob: 0, lean: 2, headAng: 2, armUp: arm, armFore: arm });
+    },
+  },
+  // Sanfte Rumpfbeuge nach vorn (Beweglichkeit/Dehnung), Beine gestreckt, Arme
+  // hängen Richtung Boden, dann wieder aufrichten.
+  onko_forwardbend: {
+    duration: 2800, pingpong: true,
+    solve(t) {
+      const ankle = [CX, GROUND_Y - 1];
+      const hip = [CX, GROUND_Y - 37];
+      const lean = lerp(4, 74, t);                       // aufrecht -> weit nach vorn gebeugt
+      const shoulder = addv(hip, dir(lean), BONE.torso);
+      return rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: lean + 8, armUp: 178, armFore: 178 });
+    },
+  },
+  // Einbeinstand (Gleichgewicht): ein Bein steht, das andere Knie ist angehoben,
+  // Arme leicht abgespreizt; sanftes Heben/Senken des Knies.
+  onko_balance: {
+    duration: 3000, pingpong: true,
+    solve(t) {
+      const hip = [CX, GROUND_Y - 37];
+      const shoulder = addv(hip, dir(3), BONE.torso);
+      const thigh = lerp(120, 100, t);                   // Knie mäßig hoch -> höher
+      return rig({
+        hip, shoulder, headAng: 2,
+        ankleF: [CX, GROUND_Y - 1], kneeBendF: -1, footAngF: 92, // Standbein gestreckt am Boden
+        thighAngN: thigh, shinAngN: 176, footAngN: 150,           // gehobenes Knie vorn, Schienbein hängt
+        armUpN: 150, armForeN: 150, armUpF: 150, armForeF: 150,   // Arme leicht zur Seite
+      });
+    },
+  },
+  // Tiefe Atmung / Entspannung: ruhig stehen, Arme heben sich langsam bis Brust-/
+  // Schulterhöhe (Einatmen) und senken wieder (Ausatmen).
+  onko_breathing: {
+    duration: 4200, pingpong: true,
+    solve(t) {
+      const arm = lerp(198, 118, t);
+      return stand({ hipBob: lerp(0, 1.6, t), lean: 1, headAng: 1, armUp: arm, armFore: arm });
+    },
+  },
+
   // Kurzer neutraler Stand (Arme locker an der Seite, leichtes Atmen) – wird als
   // 1-Sekunden-Übergang zwischen den Übungen gezeigt (Männchen "steht kurz").
   idle: {

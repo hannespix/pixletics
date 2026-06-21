@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="de" data-app="onko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>pixletics · Onko-Sport</title>
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="pixletics Onko-Sport – sanfte Bewegungsübungen für onkologische Trainingsgruppen, mit Coach-Ansagen und Musik." />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Onko-Sport" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <script>
+    // Installations-Event möglichst früh abfangen (feuert oft vor den Modulen).
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__bip = e; });
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 14' shape-rendering='crispEdges'><rect x='5' y='0' width='1' height='1' fill='%23ff5a36'/><rect x='6' y='0' width='1' height='1' fill='%23ff5a36'/><rect x='4' y='1' width='1' height='1' fill='%23ff5a36'/><rect x='5' y='1' width='1' height='1' fill='%23ff5a36'/><rect x='6' y='1' width='1' height='1' fill='%23ff5a36'/><rect x='7' y='1' width='1' height='1' fill='%23ff5a36'/><rect x='4' y='2' width='1' height='1' fill='%23ff5a36'/><rect x='5' y='2' width='1' height='1' fill='%23ff5a36'/><rect x='6' y='2' width='1' height='1' fill='%23ffae00'/><rect x='7' y='2' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='3' width='1' height='1' fill='%23ff5a36'/><rect x='4' y='3' width='1' height='1' fill='%23ff5a36'/><rect x='5' y='3' width='1' height='1' fill='%23ffae00'/><rect x='6' y='3' width='1' height='1' fill='%23ffae00'/><rect x='7' y='3' width='1' height='1' fill='%23ff5a36'/><rect x='8' y='3' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='4' width='1' height='1' fill='%23ff5a36'/><rect x='4' y='4' width='1' height='1' fill='%23ffae00'/><rect x='5' y='4' width='1' height='1' fill='%23ffae00'/><rect x='6' y='4' width='1' height='1' fill='%23ffae00'/><rect x='7' y='4' width='1' height='1' fill='%23ff5a36'/><rect x='2' y='5' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='5' width='1' height='1' fill='%23ff5a36'/><rect x='4' y='5' width='1' height='1' fill='%23ffae00'/><rect x='5' y='5' width='1' height='1' fill='%23ffae00'/><rect x='6' y='5' width='1' height='1' fill='%23ffae00'/><rect x='7' y='5' width='1' height='1' fill='%23ff5a36'/><rect x='8' y='5' width='1' height='1' fill='%23ff5a36'/><rect x='2' y='6' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='6' width='1' height='1' fill='%23ffae00'/><rect x='4' y='6' width='1' height='1' fill='%23ffae00'/><rect x='5' y='6' width='1' height='1' fill='%23ffae00'/><rect x='6' y='6' width='1' height='1' fill='%23ffae00'/><rect x='7' y='6' width='1' height='1' fill='%23ffae00'/><rect x='8' y='6' width='1' height='1' fill='%23ff5a36'/><rect x='1' y='7' width='1' height='1' fill='%23ff5a36'/><rect x='2' y='7' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='7' width='1' height='1' fill='%23ffae00'/><rect x='4' y='7' width='1' height='1' fill='%23ffae00'/><rect x='5' y='7' width='1' height='1' fill='%23ffae00'/><rect x='6' y='7' width='1' height='1' fill='%23ffe06a'/><rect x='7' y='7' width='1' height='1' fill='%23ffae00'/><rect x='8' y='7' width='1' height='1' fill='%23ffae00'/><rect x='9' y='7' width='1' height='1' fill='%23ff5a36'/><rect x='1' y='8' width='1' height='1' fill='%23ff5a36'/><rect x='2' y='8' width='1' height='1' fill='%23ffae00'/><rect x='3' y='8' width='1' height='1' fill='%23ffae00'/><rect x='4' y='8' width='1' height='1' fill='%23ffae00'/><rect x='5' y='8' width='1' height='1' fill='%23ffe06a'/><rect x='6' y='8' width='1' height='1' fill='%23ffe06a'/><rect x='7' y='8' width='1' height='1' fill='%23ffae00'/><rect x='8' y='8' width='1' height='1' fill='%23ffae00'/><rect x='9' y='8' width='1' height='1' fill='%23ff5a36'/><rect x='1' y='9' width='1' height='1' fill='%23ff5a36'/><rect x='2' y='9' width='1' height='1' fill='%23ffae00'/><rect x='3' y='9' width='1' height='1' fill='%23ffae00'/><rect x='4' y='9' width='1' height='1' fill='%23ffae00'/><rect x='5' y='9' width='1' height='1' fill='%23ffe06a'/><rect x='6' y='9' width='1' height='1' fill='%23ffe06a'/><rect x='7' y='9' width='1' height='1' fill='%23ffe06a'/><rect x='8' y='9' width='1' height='1' fill='%23ffae00'/><rect x='9' y='9' width='1' height='1' fill='%23ff5a36'/><rect x='1' y='10' width='1' height='1' fill='%23ff5a36'/><rect x='2' y='10' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='10' width='1' height='1' fill='%23ffae00'/><rect x='4' y='10' width='1' height='1' fill='%23ffae00'/><rect x='5' y='10' width='1' height='1' fill='%23ffae00'/><rect x='6' y='10' width='1' height='1' fill='%23ffe06a'/><rect x='7' y='10' width='1' height='1' fill='%23ffae00'/><rect x='8' y='10' width='1' height='1' fill='%23ffae00'/><rect x='9' y='10' width='1' height='1' fill='%23ff5a36'/><rect x='2' y='11' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='11' width='1' height='1' fill='%23ffae00'/><rect x='4' y='11' width='1' height='1' fill='%23ffae00'/><rect x='5' y='11' width='1' height='1' fill='%23ffae00'/><rect x='6' y='11' width='1' height='1' fill='%23ffae00'/><rect x='7' y='11' width='1' height='1' fill='%23ffae00'/><rect x='8' y='11' width='1' height='1' fill='%23ff5a36'/><rect x='2' y='12' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='12' width='1' height='1' fill='%23ff5a36'/><rect x='4' y='12' width='1' height='1' fill='%23ffae00'/><rect x='5' y='12' width='1' height='1' fill='%23ffae00'/><rect x='6' y='12' width='1' height='1' fill='%23ffae00'/><rect x='7' y='12' width='1' height='1' fill='%23ff5a36'/><rect x='8' y='12' width='1' height='1' fill='%23ff5a36'/><rect x='3' y='13' width='1' height='1' fill='%23ff5a36'/><rect x='4' y='13' width='1' height='1' fill='%23ff5a36'/><rect x='5' y='13' width='1' height='1' fill='%23ff5a36'/><rect x='6' y='13' width='1' height='1' fill='%23ff5a36'/><rect x='7' y='13' width='1' height='1' fill='%23ff5a36'/></svg>" />
+</head>
+<body>
+  <div class="app-aurora" aria-hidden="true"></div>
+  <!-- Wiederverwendbare SVG-Defs: Pixel-Wortmarke (Symbol), Farbverlauf & Gooey-Filter -->
+  <svg class="svg-defs" width="0" height="0" aria-hidden="true">
+    <defs>
+      <linearGradient id="pxg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#ff5a36"/><stop offset="0.55" stop-color="#ffae00"/><stop offset="1" stop-color="#3aa0ff"/>
+      </linearGradient>
+      <symbol id="px-word" viewBox="0 0 53 7"><g fill="#ffffff" shape-rendering="crispEdges"><rect x="0" y="0" width="1" height="1"/><rect x="1" y="0" width="1" height="1"/><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="0" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="0" y="3" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="8" y="0" width="1" height="1"/><rect x="9" y="0" width="1" height="1"/><rect x="10" y="0" width="1" height="1"/><rect x="8" y="1" width="1" height="1"/><rect x="8" y="2" width="1" height="1"/><rect x="8" y="3" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/><rect x="8" y="5" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="7" y="6" width="1" height="1"/><rect x="8" y="6" width="1" height="1"/><rect x="9" y="6" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/><rect x="16" y="0" width="1" height="1"/><rect x="12" y="1" width="1" height="1"/><rect x="16" y="1" width="1" height="1"/><rect x="13" y="2" width="1" height="1"/><rect x="15" y="2" width="1" height="1"/><rect x="14" y="3" width="1" height="1"/><rect x="13" y="4" width="1" height="1"/><rect x="15" y="4" width="1" height="1"/><rect x="12" y="5" width="1" height="1"/><rect x="16" y="5" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/><rect x="16" y="6" width="1" height="1"/><rect x="18" y="0" width="1" height="1"/><rect x="18" y="1" width="1" height="1"/><rect x="18" y="2" width="1" height="1"/><rect x="18" y="3" width="1" height="1"/><rect x="18" y="4" width="1" height="1"/><rect x="18" y="5" width="1" height="1"/><rect x="18" y="6" width="1" height="1"/><rect x="19" y="6" width="1" height="1"/><rect x="20" y="6" width="1" height="1"/><rect x="21" y="6" width="1" height="1"/><rect x="22" y="6" width="1" height="1"/><rect x="24" y="0" width="1" height="1"/><rect x="25" y="0" width="1" height="1"/><rect x="26" y="0" width="1" height="1"/><rect x="27" y="0" width="1" height="1"/><rect x="28" y="0" width="1" height="1"/><rect x="24" y="1" width="1" height="1"/><rect x="24" y="2" width="1" height="1"/><rect x="24" y="3" width="1" height="1"/><rect x="25" y="3" width="1" height="1"/><rect x="26" y="3" width="1" height="1"/><rect x="27" y="3" width="1" height="1"/><rect x="24" y="4" width="1" height="1"/><rect x="24" y="5" width="1" height="1"/><rect x="24" y="6" width="1" height="1"/><rect x="25" y="6" width="1" height="1"/><rect x="26" y="6" width="1" height="1"/><rect x="27" y="6" width="1" height="1"/><rect x="28" y="6" width="1" height="1"/><rect x="30" y="0" width="1" height="1"/><rect x="31" y="0" width="1" height="1"/><rect x="32" y="0" width="1" height="1"/><rect x="33" y="0" width="1" height="1"/><rect x="34" y="0" width="1" height="1"/><rect x="32" y="1" width="1" height="1"/><rect x="32" y="2" width="1" height="1"/><rect x="32" y="3" width="1" height="1"/><rect x="32" y="4" width="1" height="1"/><rect x="32" y="5" width="1" height="1"/><rect x="32" y="6" width="1" height="1"/><rect x="36" y="0" width="1" height="1"/><rect x="37" y="0" width="1" height="1"/><rect x="38" y="0" width="1" height="1"/><rect x="39" y="0" width="1" height="1"/><rect x="40" y="0" width="1" height="1"/><rect x="38" y="1" width="1" height="1"/><rect x="38" y="2" width="1" height="1"/><rect x="38" y="3" width="1" height="1"/><rect x="38" y="4" width="1" height="1"/><rect x="38" y="5" width="1" height="1"/><rect x="36" y="6" width="1" height="1"/><rect x="37" y="6" width="1" height="1"/><rect x="38" y="6" width="1" height="1"/><rect x="39" y="6" width="1" height="1"/><rect x="40" y="6" width="1" height="1"/><rect x="43" y="0" width="1" height="1"/><rect x="44" y="0" width="1" height="1"/><rect x="45" y="0" width="1" height="1"/><rect x="46" y="0" width="1" height="1"/><rect x="42" y="1" width="1" height="1"/><rect x="42" y="2" width="1" height="1"/><rect x="42" y="3" width="1" height="1"/><rect x="42" y="4" width="1" height="1"/><rect x="42" y="5" width="1" height="1"/><rect x="43" y="6" width="1" height="1"/><rect x="44" y="6" width="1" height="1"/><rect x="45" y="6" width="1" height="1"/><rect x="46" y="6" width="1" height="1"/><rect x="49" y="0" width="1" height="1"/><rect x="50" y="0" width="1" height="1"/><rect x="51" y="0" width="1" height="1"/><rect x="52" y="0" width="1" height="1"/><rect x="48" y="1" width="1" height="1"/><rect x="48" y="2" width="1" height="1"/><rect x="49" y="3" width="1" height="1"/><rect x="50" y="3" width="1" height="1"/><rect x="51" y="3" width="1" height="1"/><rect x="52" y="4" width="1" height="1"/><rect x="52" y="5" width="1" height="1"/><rect x="48" y="6" width="1" height="1"/><rect x="49" y="6" width="1" height="1"/><rect x="50" y="6" width="1" height="1"/><rect x="51" y="6" width="1" height="1"/></g></symbol>
+      <symbol id="wo-word" viewBox="0 0 41 7"><g fill="#ffffff" shape-rendering="crispEdges"><rect x="0" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="0" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="0" y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="4" y="6" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="8" y="0" width="1" height="1"/><rect x="9" y="0" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="10" y="1" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="10" y="2" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="10" y="3" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="7" y="6" width="1" height="1"/><rect x="8" y="6" width="1" height="1"/><rect x="9" y="6" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/><rect x="13" y="0" width="1" height="1"/><rect x="14" y="0" width="1" height="1"/><rect x="15" y="0" width="1" height="1"/><rect x="12" y="1" width="1" height="1"/><rect x="16" y="1" width="1" height="1"/><rect x="12" y="2" width="1" height="1"/><rect x="16" y="2" width="1" height="1"/><rect x="12" y="3" width="1" height="1"/><rect x="13" y="3" width="1" height="1"/><rect x="14" y="3" width="1" height="1"/><rect x="15" y="3" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/><rect x="14" y="4" width="1" height="1"/><rect x="12" y="5" width="1" height="1"/><rect x="15" y="5" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/><rect x="16" y="6" width="1" height="1"/><rect x="18" y="0" width="1" height="1"/><rect x="22" y="0" width="1" height="1"/><rect x="18" y="1" width="1" height="1"/><rect x="21" y="1" width="1" height="1"/><rect x="18" y="2" width="1" height="1"/><rect x="20" y="2" width="1" height="1"/><rect x="18" y="3" width="1" height="1"/><rect x="19" y="3" width="1" height="1"/><rect x="18" y="4" width="1" height="1"/><rect x="20" y="4" width="1" height="1"/><rect x="18" y="5" width="1" height="1"/><rect x="21" y="5" width="1" height="1"/><rect x="18" y="6" width="1" height="1"/><rect x="22" y="6" width="1" height="1"/><rect x="25" y="0" width="1" height="1"/><rect x="26" y="0" width="1" height="1"/><rect x="27" y="0" width="1" height="1"/><rect x="24" y="1" width="1" height="1"/><rect x="28" y="1" width="1" height="1"/><rect x="24" y="2" width="1" height="1"/><rect x="28" y="2" width="1" height="1"/><rect x="24" y="3" width="1" height="1"/><rect x="28" y="3" width="1" height="1"/><rect x="24" y="4" width="1" height="1"/><rect x="28" y="4" width="1" height="1"/><rect x="24" y="5" width="1" height="1"/><rect x="28" y="5" width="1" height="1"/><rect x="25" y="6" width="1" height="1"/><rect x="26" y="6" width="1" height="1"/><rect x="27" y="6" width="1" height="1"/><rect x="30" y="0" width="1" height="1"/><rect x="34" y="0" width="1" height="1"/><rect x="30" y="1" width="1" height="1"/><rect x="34" y="1" width="1" height="1"/><rect x="30" y="2" width="1" height="1"/><rect x="34" y="2" width="1" height="1"/><rect x="30" y="3" width="1" height="1"/><rect x="34" y="3" width="1" height="1"/><rect x="30" y="4" width="1" height="1"/><rect x="34" y="4" width="1" height="1"/><rect x="30" y="5" width="1" height="1"/><rect x="34" y="5" width="1" height="1"/><rect x="31" y="6" width="1" height="1"/><rect x="32" y="6" width="1" height="1"/><rect x="33" y="6" width="1" height="1"/><rect x="36" y="0" width="1" height="1"/><rect x="37" y="0" width="1" height="1"/><rect x="38" y="0" width="1" height="1"/><rect x="39" y="0" width="1" height="1"/><rect x="40" y="0" width="1" height="1"/><rect x="38" y="1" width="1" height="1"/><rect x="38" y="2" width="1" height="1"/><rect x="38" y="3" width="1" height="1"/><rect x="38" y="4" width="1" height="1"/><rect x="38" y="5" width="1" height="1"/><rect x="38" y="6" width="1" height="1"/></g></symbol>
+      <filter id="goo-head" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="11" result="t-head">
+          <animate attributeName="baseFrequency" dur="7s" values="0.024;0.05;0.024" repeatCount="indefinite"/>
+        </feTurbulence>
+        <feDisplacementMap in="SourceGraphic" in2="t-head" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d-head"/>
+        <feGaussianBlur in="d-head" stdDeviation="0" result="b-head"/>
+        <feColorMatrix in="b-head" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4"/>
+      </filter>
+      <filter id="goo-slogan" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="t-slo">
+          <animate attributeName="baseFrequency" dur="9s" values="0.014;0.03;0.014" repeatCount="indefinite"/>
+        </feTurbulence>
+        <feDisplacementMap in="SourceGraphic" in2="t-slo" scale="0" xChannelSelector="R" yChannelSelector="G" result="d-slo"/>
+        <feGaussianBlur in="d-slo" stdDeviation="0" result="b-slo"/>
+        <feColorMatrix in="b-slo" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-morph" id="brand-morph" role="img" aria-label="pixletics – workout">
+        <div class="morph-layer" id="brand-a">
+          <svg class="brand-name" viewBox="0 0 53 7" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><use href="#px-word" width="53" height="7"/></svg>
+        </div>
+        <div class="morph-layer" id="brand-b">
+          <svg class="brand-name brand-wt" viewBox="0 0 41 7" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><use href="#wo-word" width="41" height="7"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-view="train">Training</button>
+        <button class="tab" data-view="sets">Sets</button>
+        <button class="tab" data-view="exercises">Übungen</button>
+        <button class="tab" data-view="musik">Musik</button>
+      </nav>
+      <button class="icon-btn music-btn" id="btn-music" title="Musik: Sender wählen / Spotify" aria-label="Musik wählen">🎵</button>
+      <button class="icon-btn fs-btn" id="btn-fullscreen" title="Vollbild umschalten" aria-label="Vollbild umschalten">⛶</button>
+      <button class="icon-btn nav-toggle" id="btn-nav" aria-label="Menü" aria-expanded="false" aria-controls="tabs">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ TRAINING ============ -->
+    <section class="view active" id="view-train">
+
+      <div class="onko-disclaimer" role="note">
+        <strong>⚕️ Hinweis:</strong> Diese Übungen ersetzen keine ärztliche oder physiotherapeutische Beratung. Bitte stimme dein Training mit deinem Behandlungsteam ab, beginne langsam und höre auf deinen Körper.
+      </div>
+
+      <header class="train-hero">
+        <h1 class="hero-title" id="hero-slogan">
+          <span class="slogan-layer" id="slogan-a"><span class="hero-line">Schön, dass du <span class="hero-accent">aktiv</span> bleibst! 🌿</span></span>
+          <span class="slogan-layer" id="slogan-b" aria-hidden="true"></span>
+        </h1>
+        <div class="hero-stats">
+          <span class="hero-stat"><b id="hero-sets">0</b><span>Sets</span></span>
+          <span class="hero-stat"><b id="hero-ex">0</b><span>Übungen</span></span>
+          <span class="hero-stat"><b id="hero-min">0</b><span>Min geplant</span></span>
+        </div>
+        <button type="button" class="hero-resume" id="hero-resume" hidden>⏯︎ Workout pausiert – hier tippen, um unten fortzusetzen</button>
+      </header>
+
+      <div class="mode-switch" id="mode-switch" data-active="plan" role="tablist">
+        <span class="mode-thumb" aria-hidden="true"></span>
+        <button type="button" class="mode-btn on" data-mode="plan" role="tab" aria-selected="true">🏋️ Plan</button>
+        <button type="button" class="mode-btn" data-mode="interval" role="tab" aria-selected="false">⏱️ Intervall</button>
+      </div>
+
+      <div id="mode-plan">
+        <div class="card">
+          <h2>Trainingsplan wählen</h2>
+          <div id="set-picker" class="set-picker"></div>
+        </div>
+
+        <div class="start-cta">
+          <button class="btn btn-primary btn-big" id="btn-resume" hidden>⏯︎ Workout fortsetzen</button>
+          <button class="btn btn-primary btn-big" id="btn-start" disabled>
+            <span class="cta-label">▶︎ Workout starten</span>
+            <span class="cta-summary" id="plan-summary" hidden></span>
+          </button>
+        </div>
+      </div>
+
+      <div id="mode-interval" hidden>
+        <div class="card">
+          <h2>⏱️ Intervall-Timer</h2>
+          <p class="muted">Reiner Timer ohne Übungen – ideal für Tabata, EMOM, AMRAP oder freie Intervalle.</p>
+          <div class="preset-chips" id="preset-chips">
+            <button class="chip" type="button" data-preset="tabata">Tabata</button>
+            <button class="chip" type="button" data-preset="emom">EMOM</button>
+            <button class="chip" type="button" data-preset="amrap">AMRAP</button>
+            <button class="chip" type="button" data-preset="free">Frei</button>
+          </div>
+          <p class="muted small" id="preset-desc"></p>
+          <div class="settings-grid interval-grid">
+            <label id="iv-work-wrap">Belastung (Sek.)<input type="number" id="iv-work" min="5" max="600" step="5" /></label>
+            <label id="iv-rest-wrap">Pause (Sek.)<input type="number" id="iv-rest" min="0" max="180" step="5" /></label>
+            <label id="iv-rounds-wrap"><span id="iv-rounds-label">Runden</span><input type="number" id="iv-rounds" min="1" max="60" step="1" /></label>
+          </div>
+          <button class="btn btn-primary btn-big" id="btn-interval-start">▶︎ Intervall starten</button>
+        </div>
+      </div>
+
+      <h3 class="section-head">Optionen</h3>
+
+      <div class="card menu" id="settings-menu">
+        <details class="collapsible" id="settings-card">
+          <summary><span>⚙️ Einstellungen</span></summary>
+          <div class="settings-grid">
+            <label>Übung (Sek.)<input type="number" id="cfg-work" min="5" max="300" step="5" /></label>
+            <label>Pause (Sek.)<input type="number" id="cfg-pause" min="5" max="180" step="5" /></label>
+            <label>Gesamtdauer (Min.)<input type="number" id="cfg-total" min="1" max="120" step="1" /></label>
+          </div>
+          <p class="muted small">Die Pause enthält die Vorbereitung: Gleich zu Beginn der Pause wird die nächste Übung angesagt.</p>
+          <div class="toggles">
+            <label class="switch"><input type="checkbox" id="cfg-voice" /> <span>Sprachansagen</span></label>
+            <label class="switch"><input type="checkbox" id="cfg-beeps" /> <span>Signaltöne</span></label>
+            <label class="switch"><input type="checkbox" id="cfg-duck" /> <span>Musik bei Ansage leiser</span></label>
+          </div>
+        </details>
+      </div>
+
+      <div class="card menu">
+        <details class="collapsible voice-card" id="voice-card">
+          <summary><span>🎙️ Stimme &amp; Coach</span></summary>
+          <p class="muted">Wähle einen Coach-Charakter mit eigenem Tonfall und Sprüchen – je ein Spruch pro Pause und pro Übung. Feinjustiere Stimmlage und Tempo. (Nutzt die Stimmen deines Geräts.)</p>
+          <div id="persona-list" class="persona-list"></div>
+          <div class="voice-grid">
+            <label class="voice-full">Ansagen
+              <select id="cfg-verbosity">
+                <option value="full">Voll – Sprüche + Übungsnamen</option>
+                <option value="phrases">Sprüche, ohne Übungsnamen</option>
+                <option value="concise">Knapp – nur das Wichtigste</option>
+                <option value="minimal">Minimal – nur Countdown</option>
+              </select>
+            </label>
+            <label>Dein Name (optional)<input id="cfg-coachname" type="text" maxlength="20" placeholder="z. B. Alex" /></label>
+            <label>Gerätestimme<select id="cfg-voiceuri"></select></label>
+          </div>
+          <div class="toggles">
+            <label class="switch"><input type="checkbox" id="cfg-comments" /> <span>Motivationssprüche &amp; Kommentare</span></label>
+          </div>
+          <p class="muted small">Aus = nur die wichtigen Ansagen (Übungsname, „Als Nächstes“, Countdown), ohne Sprüche.</p>
+          <p class="muted small">⭐ = besonders natürliche Stimme. Tipp: Android nutzt „Google Deutsch"; am iPhone unter <em>Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen</em> eine deutsche <em>Premium</em>-/<em>Enhanced</em>-Stimme laden – die App wählt sie dann automatisch.</p>
+          <div class="slider-row">
+            <label>
+              <span class="slider-head">🔊 Lautstärke <span class="slider-val" id="val-voicevol"></span></span>
+              <input type="range" id="cfg-voicevol" min="0" max="100" step="5" />
+            </label>
+            <label>
+              <span class="slider-head">Stimmlage <span class="slider-val" id="val-pitch"></span></span>
+              <input type="range" id="cfg-pitch" min="0.8" max="1.2" step="0.05" />
+            </label>
+            <label>
+              <span class="slider-head">Tempo <span class="slider-val" id="val-rate"></span></span>
+              <input type="range" id="cfg-rate" min="0.85" max="1.25" step="0.05" />
+            </label>
+          </div>
+          <button class="btn" id="btn-voice-test">▶︎ Stimme testen</button>
+        </details>
+      </div>
+
+      <div class="card menu">
+        <details class="collapsible" id="share-card">
+          <summary><span>🔗 Teilen &amp; Sichern</span></summary>
+          <p class="muted">Übungen, Sets, Radiosender &amp; Einstellungen als Link teilen oder als Datei sichern – ganz ohne Server.</p>
+          <div class="share-actions">
+            <button class="btn btn-primary" id="btn-share-link">🔗 Teilen-Link erstellen</button>
+            <button class="btn" id="btn-export">⬇︎ Export</button>
+            <label class="btn" for="import-file">⬆︎ Import</label>
+            <input id="import-file" type="file" accept="application/json,.json" hidden />
+          </div>
+          <textarea id="share-output" class="share-output" rows="3" readonly hidden></textarea>
+        </details>
+      </div>
+    </section>
+
+    <!-- ============ SETS ============ -->
+    <section class="view" id="view-sets">
+      <div class="card">
+        <div class="row-between">
+          <h2>Deine Übungssets</h2>
+          <div class="set-head-btns">
+            <button class="btn btn-accent" id="btn-auto-set">✨ Auto-Set</button>
+            <button class="btn" id="btn-new-set">+ Neues Set</button>
+          </div>
+        </div>
+        <p class="muted">Tippe auf ein Set zum Bearbeiten. Hake die gewünschten Übungen an und ziehe sie per Drag &amp; Drop in die richtige Reihenfolge.</p>
+        <div id="sets-list" class="sets-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ ÜBUNGEN ============ -->
+    <section class="view" id="view-exercises">
+      <div class="card">
+        <div class="row-between">
+          <h2>Übungen</h2>
+          <button class="btn" id="btn-new-ex">+ Neue Übung</button>
+        </div>
+        <p class="muted">Tippe auf eine Übung, um Name, Beschreibung, Emoji und Wiederholungen zu bearbeiten. Beidseitige Übungen (z. B. je Bein/Arm) stehen standardmäßig auf 4 Wiederholungen, sonst 3.</p>
+        <div id="exercises-filter" class="radio-filter"></div>
+        <div id="exercises-list" class="sets-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ MUSIK (Radio + Spotify) ============ -->
+    <section class="view" id="view-musik">
+      <div class="card">
+        <div class="row-between">
+          <h2>📻 Radio</h2>
+          <button class="btn" id="btn-new-station">+ Sender</button>
+        </div>
+        <p class="muted">Internet-Radio – kein Login, kein Key, kein Premium nötig. Tippe einen Sender zum Abspielen. Eigene Sender (HTTPS-Stream-URL) kannst du hinzufügen.</p>
+        <div class="sp-now" id="radio-now"></div>
+        <div id="radio-filter" class="radio-filter"></div>
+        <div id="radio-list" class="radio-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>Spotify steuern</h2>
+        <p class="muted">Optional. Verbinde einfach deinen <strong>eigenen Spotify-Account</strong> – läuft im Browser mit, steuerbar von hier und wird bei Ansagen automatisch leiser. Benötigt <strong>Spotify Premium</strong>. Kein Key nötig.</p>
+        <div id="spotify-panel"></div>
+        <details class="help">
+          <summary>So funktioniert’s</summary>
+          <ul>
+            <li>Tippe <strong>„Mit Spotify verbinden“</strong> und melde dich mit deinem Account an.</li>
+            <li>Starte in der Spotify-App einen Song und wähle als Wiedergabegerät <strong>„pixletics“</strong>.</li>
+            <li>Hinweis: In der Test-Phase der App können sich nur vom Betreiber freigeschaltete Accounts anmelden (max. 25).</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+
+    <div class="app-share">
+      <span class="app-share-text">Gefällt dir pixletics? Teile es mit Freunden 💪</span>
+      <button class="btn btn-primary" id="btn-share-app">📲 App teilen</button>
+    </div>
+
+    <footer class="app-footer">
+      <a href="impressum.html">Impressum</a>
+      <span aria-hidden="true">·</span>
+      <a href="privacy.html">Datenschutz</a>
+    </footer>
+  </main>
+
+  <!-- ============ RUNNER (Vollbild) ============ -->
+  <div class="runner" id="runner" hidden>
+    <div class="runner-bg" id="runner-bg"><div class="runner-aurora" aria-hidden="true"></div></div>
+    <div class="runner-top">
+      <div class="runner-meta">
+        <span id="runner-round"></span>
+        <span id="runner-session"></span>
+      </div>
+      <div class="runner-top-btns">
+        <button class="icon-btn" id="btn-fs-runner" title="Vollbild umschalten" aria-label="Vollbild umschalten">⛶</button>
+        <button class="icon-btn" id="btn-close-runner" title="Beenden">✕</button>
+      </div>
+    </div>
+
+    <div class="runner-center">
+      <div class="phase-label" id="phase-label">Bereit</div>
+      <div class="exercise-name" id="exercise-name"></div>
+      <div class="exercise-cue" id="exercise-cue"></div>
+      <button class="howto-pill" id="btn-runner-howto" hidden>ℹ️ So geht's – Anleitung</button>
+      <div class="timer-ring" id="timer-ring">
+        <div class="big-timer" id="big-timer">00</div>
+        <div class="exercise-figure" id="exercise-figure" hidden><svg id="exercise-figure-svg" aria-hidden="true"></svg></div>
+      </div>
+      <div class="phase-icon" id="phase-icon"></div>
+      <div class="next-up" id="next-up"></div>
+      <button class="btn btn-primary btn-big runner-start" id="btn-runner-start" hidden>▶︎ Start</button>
+    </div>
+
+    <div class="runner-progress"><div id="runner-progress-bar"></div></div>
+
+    <!-- Workout-Steuerung -->
+    <div class="runner-section" id="runner-workout-sec">
+      <span class="runner-section-label">Workout</span>
+      <div class="runner-controls">
+        <button class="ctrl ctrl-skip" id="btn-prev" title="Eine Übung zurück">⏮︎ Übung</button>
+        <button class="ctrl" id="btn-pause" title="Workout pausieren">⏸</button>
+        <button class="ctrl ctrl-skip" id="btn-skip" title="Übung überspringen">⏭︎ Übung</button>
+      </div>
+    </div>
+
+    <!-- Schnellzugriff: Coach & Musik -->
+    <div class="runner-section runner-access">
+      <button class="access-btn" id="btn-runner-coach" title="Coach-Einstellungen">
+        <span class="ab-ic">🎙️</span><span class="ab-tx">Coach</span>
+      </button>
+      <button class="access-btn" id="btn-runner-music" title="Musik wählen – Sender oder Spotify">
+        <span class="ab-ic">🎵</span><span class="ab-tx">Musik</span>
+      </button>
+    </div>
+    <div class="runner-nowline" id="runner-nowplaying"><span class="muted small">Tippen, um Sender/Spotify zu wählen</span></div>
+  </div>
+
+  <!-- ============ SET-EDITOR (Modal) ============ -->
+  <div class="modal" id="set-editor" hidden>
+    <div class="modal-card">
+      <div class="row-between">
+        <input class="set-name-input" id="editor-name" placeholder="Set-Name" />
+        <button class="icon-btn" id="btn-close-editor">✕</button>
+      </div>
+      <textarea class="set-desc-input" id="editor-desc" rows="2" placeholder="Beschreibung (optional) – wofür ist dieses Set, wie wirkt es?"></textarea>
+      <p class="muted small">Angehakte Übungen sind im Set. Ziehe am ⠿ Griff, um die Reihenfolge zu ändern.</p>
+      <div class="editor-cols">
+        <div>
+          <h3>Im Set <span class="count" id="chosen-count"></span></h3>
+          <ul class="sortable" id="chosen-list"></ul>
+        </div>
+        <div>
+          <h3>Übungsbibliothek</h3>
+          <ul class="library" id="library-list"></ul>
+        </div>
+      </div>
+      <div class="row-between editor-actions">
+        <button class="btn btn-danger" id="btn-delete-set">Set löschen</button>
+        <div class="set-head-btns">
+          <button class="btn" id="btn-regenerate-set" hidden>🎲 Neu würfeln</button>
+          <button class="btn btn-primary" id="btn-save-set">Fertig</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ AUTO-SET-ASSISTENT (Modal) ============ -->
+  <div class="modal" id="set-wizard" hidden>
+    <div class="modal-card wizard-card">
+      <div class="row-between">
+        <h2 style="margin:0">✨ Set automatisch erstellen</h2>
+        <button class="icon-btn" id="btn-close-wizard">✕</button>
+      </div>
+      <p class="muted small">Beantworte ein paar Fragen – pixletics stellt dir ein passendes, abwechslungsreiches Set zusammen.</p>
+
+      <div class="wiz-field">
+        <label class="wiz-label">Intensität</label>
+        <div class="seg" id="wiz-intensity">
+          <button type="button" data-v="locker">Locker</button>
+          <button type="button" data-v="mittel" class="on">Mittel</button>
+          <button type="button" data-v="intensiv">Intensiv</button>
+        </div>
+      </div>
+
+      <div class="wiz-field">
+        <label class="wiz-label">Schwerpunkt</label>
+        <div class="seg" id="wiz-goal">
+          <button type="button" data-v="kraft">Kraft</button>
+          <button type="button" data-v="mix" class="on">Mix</button>
+          <button type="button" data-v="ausdauer">Ausdauer</button>
+        </div>
+      </div>
+
+      <div class="wiz-field">
+        <label class="wiz-label">Körperfokus <span class="muted small">(Mehrfachauswahl)</span></label>
+        <div class="chips" id="wiz-focus">
+          <button type="button" data-v="ganzkoerper" class="on">Ganzkörper</button>
+          <button type="button" data-v="oberkoerper">Oberkörper</button>
+          <button type="button" data-v="unterkoerper">Unterkörper</button>
+          <button type="button" data-v="core">Bauch &amp; Core</button>
+          <button type="button" data-v="cardio">Cardio</button>
+        </div>
+      </div>
+
+      <div class="wiz-field">
+        <label class="wiz-label" for="wiz-duration">Gewünschte Dauer: <strong id="wiz-duration-val">20</strong> Min.</label>
+        <input type="range" id="wiz-duration" min="8" max="60" step="2" value="20" />
+      </div>
+
+      <div class="row-between editor-actions">
+        <span class="muted small" id="wiz-hint"></span>
+        <button class="btn btn-primary" id="btn-generate-set">Set erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ÜBUNGS-EDITOR (Modal) ============ -->
+  <div class="modal" id="exercise-editor" hidden>
+    <div class="modal-card">
+      <div class="row-between">
+        <h3 id="ex-editor-title">Übung bearbeiten</h3>
+        <button class="icon-btn" id="btn-close-ex-editor">✕</button>
+      </div>
+      <div class="ex-form">
+        <label class="ex-form-emoji">Emoji<input id="ex-emoji" maxlength="4" placeholder="🏋️" /></label>
+        <label class="ex-form-name">Name<input id="ex-name" placeholder="z. B. Kniebeugen" /></label>
+        <label>Bereich<input id="ex-area" list="ex-area-options" placeholder="wählen oder eintippen" /></label>
+        <datalist id="ex-area-options"></datalist>
+        <label>Wiederholungen<input type="number" id="ex-reps" min="1" max="6" step="1" /></label>
+        <label class="ex-form-cue">Beschreibung<input id="ex-cue" placeholder="kurzer Bewegungshinweis" /></label>
+      </div>
+      <div class="ex-howto-section">
+        <div class="ex-howto ex-howto-view" id="ex-howto-view"></div>
+        <button type="button" class="btn btn-small" id="btn-edit-howto">✏️ Anleitung bearbeiten</button>
+        <div class="ex-howto-edit" id="ex-howto-edit" hidden>
+          <label class="ex-howto-field">So führst du sie aus <span class="muted small">– Durchführung, eine Anweisung pro Zeile</span>
+            <textarea id="ex-steps" rows="4" placeholder="Eine Anweisung pro Zeile, z. B.&#10;Schulterbreiter Stand, Fußspitzen leicht nach außen.&#10;Hüfte zurückschieben und in die Knie gehen …"></textarea>
+          </label>
+          <label class="ex-howto-field">⚠️ Worauf besonders achten <span class="muted small">– ein Punkt pro Zeile</span>
+            <textarea id="ex-tips" rows="4" placeholder="Ein Hinweis pro Zeile, z. B.&#10;Knie folgen der Richtung der Fußspitzen.&#10;Fersen bleiben am Boden."></textarea>
+          </label>
+        </div>
+      </div>
+      <div class="row-between editor-actions">
+        <button class="btn btn-danger" id="btn-delete-ex">Löschen</button>
+        <button class="btn btn-primary" id="btn-save-ex">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ÜBUNGSANLEITUNG (Modal) ============ -->
+  <div class="modal" id="howto-modal" hidden>
+    <div class="modal-card howto-modal-card">
+      <div class="row-between">
+        <h3 id="howto-title" style="margin:0"></h3>
+        <button class="icon-btn" id="btn-close-howto">✕</button>
+      </div>
+      <div class="ex-howto" id="howto-body"></div>
+    </div>
+  </div>
+
+  <!-- ============ SENDER-EDITOR (Modal) ============ -->
+  <div class="modal" id="station-editor" hidden>
+    <div class="modal-card">
+      <div class="row-between">
+        <h3 id="station-editor-title">Sender</h3>
+        <button class="icon-btn" id="btn-close-station-editor">✕</button>
+      </div>
+      <div class="ex-form">
+        <label class="ex-form-name">Name<input id="station-name" placeholder="z. B. ROCK ANTENNE" /></label>
+        <label>Genre<input id="station-genre" list="station-genre-options" placeholder="wählen oder eintippen" /></label>
+        <datalist id="station-genre-options"></datalist>
+        <label>Musikrichtung (Filter)<select id="station-cat"></select></label>
+        <label class="ex-form-cue">Stream-URL (HTTPS)<input id="station-url" placeholder="https://…/stream.mp3" /></label>
+      </div>
+      <p class="muted small">Tipp: Es muss ein direkter HTTPS-Stream (MP3/AAC) sein – keine Webseite und kein HLS/.m3u8.</p>
+      <div class="row-between editor-actions">
+        <button class="btn btn-danger" id="btn-delete-station">Löschen</button>
+        <button class="btn btn-primary" id="btn-save-station">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MUSIK-SCHNELLWAHL (Modal) ============ -->
+  <div class="modal music-modal" id="music-modal" hidden>
+    <div class="modal-card music-modal-card">
+      <div class="row-between">
+        <h3>🎵 Musik</h3>
+        <button class="icon-btn" id="btn-close-music" title="Schließen">✕</button>
+      </div>
+      <label class="mm-vol">
+        <span class="slider-head">🔊 Musik-Lautstärke <span class="slider-val" id="val-musicvol"></span></span>
+        <input type="range" id="cfg-musicvol" min="0" max="100" step="5" />
+      </label>
+      <p class="muted small">Sender antippen zum Abspielen.</p>
+      <div id="mm-filter" class="radio-filter"></div>
+      <div id="mm-radio" class="mm-radio"></div>
+      <div id="mm-spotify" class="mm-spotify"></div>
+      <div class="rm-row">
+        <div class="rm-group">
+          <button class="ctrl ctrl-sp" id="btn-radio-toggle" title="Radio an/aus">📻</button>
+          <span class="rm-label">Radio</span>
+        </div>
+        <span class="rm-sep" aria-hidden="true"></span>
+        <div class="rm-group">
+          <button class="ctrl ctrl-sp" id="btn-prev-track" title="Vorheriger Titel">⏮</button>
+          <button class="ctrl ctrl-sp" id="btn-sp-toggle" title="Play/Pause">⏯</button>
+          <button class="ctrl ctrl-sp" id="btn-next-track" title="Nächster Titel">⏭</button>
+          <span class="rm-label">Spotify</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ COACH (Modal, im laufenden Workout) ============ -->
+  <div class="modal" id="coach-modal" hidden>
+    <div class="modal-card">
+      <div class="row-between">
+        <h3>🎙️ Coach</h3>
+        <button class="icon-btn" id="btn-close-coach" title="Schließen">✕</button>
+      </div>
+      <div class="voice-grid">
+        <label class="voice-full">Charakter<select id="rc-persona"></select></label>
+        <label class="voice-full">Ansagen
+          <select id="rc-verbosity">
+            <option value="full">Voll – Sprüche + Übungsnamen</option>
+            <option value="phrases">Sprüche, ohne Übungsnamen</option>
+            <option value="concise">Knapp – nur das Wichtigste</option>
+            <option value="minimal">Minimal – nur Countdown</option>
+          </select>
+        </label>
+      </div>
+      <div class="toggles">
+        <label class="switch"><input type="checkbox" id="rc-voice" /> <span>Sprachansagen</span></label>
+        <label class="switch"><input type="checkbox" id="rc-comments" /> <span>Motivationssprüche</span></label>
+        <label class="switch"><input type="checkbox" id="rc-beeps" /> <span>Signaltöne</span></label>
+        <label class="switch"><input type="checkbox" id="rc-duck" /> <span>Musik bei Ansage leiser</span></label>
+      </div>
+      <label class="mm-vol">
+        <span class="slider-head">🔊 Coach-Lautstärke <span class="slider-val" id="rc-val-voicevol"></span></span>
+        <input type="range" id="rc-voicevol" min="0" max="100" step="5" />
+      </label>
+    </div>
+  </div>
+
+  <!-- ============ PWA: Installieren ============ -->
+  <div class="install-banner" id="install-banner" hidden>
+    <svg class="ib-icon" viewBox="0 0 12 14" shape-rendering="crispEdges" aria-hidden="true"><rect x="5" y="0" width="1" height="1" fill="#ff5a36"/><rect x="6" y="0" width="1" height="1" fill="#ff5a36"/><rect x="4" y="1" width="1" height="1" fill="#ff5a36"/><rect x="5" y="1" width="1" height="1" fill="#ff5a36"/><rect x="6" y="1" width="1" height="1" fill="#ff5a36"/><rect x="7" y="1" width="1" height="1" fill="#ff5a36"/><rect x="4" y="2" width="1" height="1" fill="#ff5a36"/><rect x="5" y="2" width="1" height="1" fill="#ff5a36"/><rect x="6" y="2" width="1" height="1" fill="#ffae00"/><rect x="7" y="2" width="1" height="1" fill="#ff5a36"/><rect x="3" y="3" width="1" height="1" fill="#ff5a36"/><rect x="4" y="3" width="1" height="1" fill="#ff5a36"/><rect x="5" y="3" width="1" height="1" fill="#ffae00"/><rect x="6" y="3" width="1" height="1" fill="#ffae00"/><rect x="7" y="3" width="1" height="1" fill="#ff5a36"/><rect x="8" y="3" width="1" height="1" fill="#ff5a36"/><rect x="3" y="4" width="1" height="1" fill="#ff5a36"/><rect x="4" y="4" width="1" height="1" fill="#ffae00"/><rect x="5" y="4" width="1" height="1" fill="#ffae00"/><rect x="6" y="4" width="1" height="1" fill="#ffae00"/><rect x="7" y="4" width="1" height="1" fill="#ff5a36"/><rect x="2" y="5" width="1" height="1" fill="#ff5a36"/><rect x="3" y="5" width="1" height="1" fill="#ff5a36"/><rect x="4" y="5" width="1" height="1" fill="#ffae00"/><rect x="5" y="5" width="1" height="1" fill="#ffae00"/><rect x="6" y="5" width="1" height="1" fill="#ffae00"/><rect x="7" y="5" width="1" height="1" fill="#ff5a36"/><rect x="8" y="5" width="1" height="1" fill="#ff5a36"/><rect x="2" y="6" width="1" height="1" fill="#ff5a36"/><rect x="3" y="6" width="1" height="1" fill="#ffae00"/><rect x="4" y="6" width="1" height="1" fill="#ffae00"/><rect x="5" y="6" width="1" height="1" fill="#ffae00"/><rect x="6" y="6" width="1" height="1" fill="#ffae00"/><rect x="7" y="6" width="1" height="1" fill="#ffae00"/><rect x="8" y="6" width="1" height="1" fill="#ff5a36"/><rect x="1" y="7" width="1" height="1" fill="#ff5a36"/><rect x="2" y="7" width="1" height="1" fill="#ff5a36"/><rect x="3" y="7" width="1" height="1" fill="#ffae00"/><rect x="4" y="7" width="1" height="1" fill="#ffae00"/><rect x="5" y="7" width="1" height="1" fill="#ffae00"/><rect x="6" y="7" width="1" height="1" fill="#ffe06a"/><rect x="7" y="7" width="1" height="1" fill="#ffae00"/><rect x="8" y="7" width="1" height="1" fill="#ffae00"/><rect x="9" y="7" width="1" height="1" fill="#ff5a36"/><rect x="1" y="8" width="1" height="1" fill="#ff5a36"/><rect x="2" y="8" width="1" height="1" fill="#ffae00"/><rect x="3" y="8" width="1" height="1" fill="#ffae00"/><rect x="4" y="8" width="1" height="1" fill="#ffae00"/><rect x="5" y="8" width="1" height="1" fill="#ffe06a"/><rect x="6" y="8" width="1" height="1" fill="#ffe06a"/><rect x="7" y="8" width="1" height="1" fill="#ffae00"/><rect x="8" y="8" width="1" height="1" fill="#ffae00"/><rect x="9" y="8" width="1" height="1" fill="#ff5a36"/><rect x="1" y="9" width="1" height="1" fill="#ff5a36"/><rect x="2" y="9" width="1" height="1" fill="#ffae00"/><rect x="3" y="9" width="1" height="1" fill="#ffae00"/><rect x="4" y="9" width="1" height="1" fill="#ffae00"/><rect x="5" y="9" width="1" height="1" fill="#ffe06a"/><rect x="6" y="9" width="1" height="1" fill="#ffe06a"/><rect x="7" y="9" width="1" height="1" fill="#ffe06a"/><rect x="8" y="9" width="1" height="1" fill="#ffae00"/><rect x="9" y="9" width="1" height="1" fill="#ff5a36"/><rect x="1" y="10" width="1" height="1" fill="#ff5a36"/><rect x="2" y="10" width="1" height="1" fill="#ff5a36"/><rect x="3" y="10" width="1" height="1" fill="#ffae00"/><rect x="4" y="10" width="1" height="1" fill="#ffae00"/><rect x="5" y="10" width="1" height="1" fill="#ffae00"/><rect x="6" y="10" width="1" height="1" fill="#ffe06a"/><rect x="7" y="10" width="1" height="1" fill="#ffae00"/><rect x="8" y="10" width="1" height="1" fill="#ffae00"/><rect x="9" y="10" width="1" height="1" fill="#ff5a36"/><rect x="2" y="11" width="1" height="1" fill="#ff5a36"/><rect x="3" y="11" width="1" height="1" fill="#ffae00"/><rect x="4" y="11" width="1" height="1" fill="#ffae00"/><rect x="5" y="11" width="1" height="1" fill="#ffae00"/><rect x="6" y="11" width="1" height="1" fill="#ffae00"/><rect x="7" y="11" width="1" height="1" fill="#ffae00"/><rect x="8" y="11" width="1" height="1" fill="#ff5a36"/><rect x="2" y="12" width="1" height="1" fill="#ff5a36"/><rect x="3" y="12" width="1" height="1" fill="#ff5a36"/><rect x="4" y="12" width="1" height="1" fill="#ffae00"/><rect x="5" y="12" width="1" height="1" fill="#ffae00"/><rect x="6" y="12" width="1" height="1" fill="#ffae00"/><rect x="7" y="12" width="1" height="1" fill="#ff5a36"/><rect x="8" y="12" width="1" height="1" fill="#ff5a36"/><rect x="3" y="13" width="1" height="1" fill="#ff5a36"/><rect x="4" y="13" width="1" height="1" fill="#ff5a36"/><rect x="5" y="13" width="1" height="1" fill="#ff5a36"/><rect x="6" y="13" width="1" height="1" fill="#ff5a36"/><rect x="7" y="13" width="1" height="1" fill="#ff5a36"/></svg>
+    <span class="ib-text">pixletics als App installieren</span>
+    <button class="btn btn-primary" id="ib-install">Installieren</button>
+    <button class="icon-btn" id="ib-dismiss" title="Später" aria-label="Schließen">✕</button>
+  </div>
+
+  <!-- iOS: Anleitung „Zum Home-Bildschirm“ -->
+  <div class="modal ios-install" id="ios-install" hidden>
+    <div class="modal-card ios-install-card">
+      <h3>Auf dem iPhone installieren</h3>
+      <p class="muted">Safari kann pixletics als App ablegen:</p>
+      <ol>
+        <li>Unten auf das <strong>Teilen-Symbol</strong> tippen (Quadrat mit Pfeil nach oben).</li>
+        <li><strong>„Zum Home-Bildschirm“</strong> wählen.</li>
+        <li>Mit <strong>„Hinzufügen“</strong> bestätigen – fertig. 🔥</li>
+      </ol>
+      <div class="row-between editor-actions">
+        <span></span>
+        <button class="btn btn-primary" id="ios-close">Verstanden</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

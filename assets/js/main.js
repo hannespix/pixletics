@@ -18,6 +18,7 @@ import { Radio } from './radio.js';
 import { encodeShare, decodeShare } from './share.js';
 import { GooeyMorph } from './gooey.js';
 import { initPWA } from './pwa.js';
+import { PACK } from './content.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -100,7 +101,8 @@ setTrainMode(localStorage.getItem(MODE_KEY) || 'plan');
 // Rotierender Hero-Slogan: alle 10 s ein zufälliger Spruch mit weicher
 // Blur-Überblendung (gooey-artig, ohne SVG-Filter).
 // Slogans mit *Akzent-Wort* (wird zweifarbig im Gradient dargestellt).
-const HERO_SLOGANS = [
+// Das aktive Inhalts-Pack (z. B. Onko) kann eigene Slogans liefern.
+const BASE_HERO_SLOGANS = [
   'Bereit für *Action*? 🔥', 'Dem *Speck* an den Kragen!', 'Schwitzen statt *sitzen*!',
   'Keine *Ausreden* – los geht’s!', 'Heute schmilzt das *Hüftgold*.', '*Vollgas* statt Couch!',
   'Auf geht’s, *Champion*! 💪', 'Zeit zu *glühen*!', 'Das Sofa läuft nicht weg – *beweg dich*!',
@@ -109,6 +111,7 @@ const HERO_SLOGANS = [
   'Jede *Wiederholung* zählt.', 'Weniger *Bierbauch*, mehr Power!', 'Einmal richtig *auspowern*!',
   'Dein Körper kann *mehr*, als du denkst.', 'Los, der *Schweiß* darf fließen!',
 ];
+const HERO_SLOGANS = (PACK.HERO_SLOGANS && PACK.HERO_SLOGANS.length) ? PACK.HERO_SLOGANS : BASE_HERO_SLOGANS;
 let _lastSlogan = -1;
 function pickSlogan() {
   let i;
@@ -1533,8 +1536,8 @@ async function createShareLink() {
 async function shareApp() {
   const url = `${location.origin}${location.pathname}`; // ohne #share-Hash
   const data = {
-    title: 'pixletics',
-    text: 'pixletics – kostenloser Workout- & Intervall-Timer mit Coach-Ansagen, Musik und eigenen Sets. Probier ihn aus:',
+    title: PACK.BRAND?.shareTitle || 'pixletics',
+    text: PACK.BRAND?.shareText || 'pixletics – kostenloser Workout- & Intervall-Timer mit Coach-Ansagen, Musik und eigenen Sets. Probier ihn aus:',
     url,
   };
   if (navigator.share) {
@@ -1554,7 +1557,7 @@ function exportFile() {
   const blob = new Blob([JSON.stringify(gatherShareData(), null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'pixletics-konfiguration.json';
+  a.download = PACK.BRAND?.shareFile || 'pixletics-konfiguration.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
@@ -1899,7 +1902,7 @@ function runnerHandlers(steps) {
 
 // ---- Übungs-Vorführung (Holzpuppe) ----
 // Welche Übung welche Animation bekommt (wird nach und nach erweitert).
-const FIGURE_ANIMS = { squats: 'squats', pushups: 'pushups', lunges: 'lunges', highknees: 'highknees', climbers: 'climbers', situps: 'situps', crunches: 'crunches', legraises: 'legraises', bridge: 'bridge', superman: 'superman', calfraises: 'calfraises', jumpsquats: 'jumpsquats', plank: 'plank', pikepushups: 'pikepushups', diamond: 'diamond', jacks: 'jacks', swimmers: 'swimmers', shouldertaps: 'shouldertaps', plankjacks: 'plankjacks', twists: 'twists', sideplank: 'sideplank', skater: 'skater', burpees: 'burpees', wallsit: 'wallsit', tricepdips: 'tricepdips', 'circ-lunge': 'lunges', 'circ-shuttle': 'circ-shuttle', 'circ-kettlebell': 'circ-kettlebell', 'circ-overhead': 'circ-overhead', 'circ-bench': 'circ-bench', 'circ-boxjump': 'circ-boxjump', 'circ-stepups': 'circ-stepups', 'circ-hipthrust': 'circ-hipthrust', 'circ-scooter': 'circ-scooter', 'circ-rope': 'circ-rope', 'circ-rings': 'circ-rings', 'circ-wallbars': 'circ-wallbars', 'circ-battlerope': 'circ-battlerope', 'circ-ballwall': 'circ-ballwall', 'circ-medball': 'circ-medball', 'circ-wallthrow': 'circ-wallthrow', 'circ-sliders': 'circ-sliders', 'circ-kbtwist': 'circ-kbtwist', 'circ-rotpushup': 'circ-rotpushup' };
+const FIGURE_ANIMS = { ...(PACK.FIGURE_ANIMS || {}), squats: 'squats', pushups: 'pushups', lunges: 'lunges', highknees: 'highknees', climbers: 'climbers', situps: 'situps', crunches: 'crunches', legraises: 'legraises', bridge: 'bridge', superman: 'superman', calfraises: 'calfraises', jumpsquats: 'jumpsquats', plank: 'plank', pikepushups: 'pikepushups', diamond: 'diamond', jacks: 'jacks', swimmers: 'swimmers', shouldertaps: 'shouldertaps', plankjacks: 'plankjacks', twists: 'twists', sideplank: 'sideplank', skater: 'skater', burpees: 'burpees', wallsit: 'wallsit', tricepdips: 'tricepdips', 'circ-lunge': 'lunges', 'circ-shuttle': 'circ-shuttle', 'circ-kettlebell': 'circ-kettlebell', 'circ-overhead': 'circ-overhead', 'circ-bench': 'circ-bench', 'circ-boxjump': 'circ-boxjump', 'circ-stepups': 'circ-stepups', 'circ-hipthrust': 'circ-hipthrust', 'circ-scooter': 'circ-scooter', 'circ-rope': 'circ-rope', 'circ-rings': 'circ-rings', 'circ-wallbars': 'circ-wallbars', 'circ-battlerope': 'circ-battlerope', 'circ-ballwall': 'circ-ballwall', 'circ-medball': 'circ-medball', 'circ-wallthrow': 'circ-wallthrow', 'circ-sliders': 'circ-sliders', 'circ-kbtwist': 'circ-kbtwist', 'circ-rotpushup': 'circ-rotpushup' };
 const PREVIEW_SPEED = 0.55; // In der Pause die Übung in ~halbem Tempo vorführen
 let figureAnimator = null, _figLead = null;
 // Holzpuppe führt in BEIDEN Phasen dieselbe Übung vor: in der WORK-Phase im
