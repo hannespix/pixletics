@@ -5,6 +5,7 @@
 // Statische Zuordnung über die Übungs-ID. Vorteil: keine Migration nötig –
 // die Anzeige schlägt zur Laufzeit per ID nach. Eigene/zusätzliche Übungen
 // ohne Eintrag zeigen einfach keine Anleitung.
+import { PACK } from './content.js';
 
 export const EX_HOWTO = {
   // ---------------- Standard-Übungen ----------------
@@ -496,9 +497,13 @@ export const EX_HOWTO = {
   },
 };
 
+// Kuratierte Anleitungen des aktiven Inhalts-Packs (z. B. Vital), per ID.
+const PACK_HOWTO = (PACK && PACK.HOWTO) || {};
+
 // Liefert das kuratierte Anleitungs-Objekt zu einer Übungs-ID (oder null).
+// Berücksichtigt zuerst die Standard-Übungen, dann das aktive Pack (Vital).
 export function getHowto(exId) {
-  return EX_HOWTO[exId] || null;
+  return EX_HOWTO[exId] || PACK_HOWTO[exId] || null;
 }
 
 // Auflösen für eine konkrete Übung: bevorzugt die am Objekt gespeicherte,
@@ -514,5 +519,5 @@ export function resolveHowto(ex) {
     const out = { steps: ownSteps || [], tips: ownTips || [] };
     return (out.steps.length || out.tips.length) ? out : null;
   }
-  return EX_HOWTO[ex.id] || null;
+  return EX_HOWTO[ex.id] || PACK_HOWTO[ex.id] || null;
 }

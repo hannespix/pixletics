@@ -94,3 +94,190 @@ export const BRAND = {
   shareText: 'pixletics Vital – sanfte Bewegungsübungen mit Coach-Ansagen, Musik und eigenen Sets:',
   shareFile: 'pixletics-vital-konfiguration.json',
 };
+
+// Kuratierte, sanfte Anleitungen pro Vital-Übung (Struktur wie howto.js: steps =
+// Schritt-für-Schritt, tips = worauf besonders achten). howto.js greift per
+// Übungs-id darauf zu, wenn keine eigene Anleitung am Objekt hinterlegt ist.
+// Bewusst gelenkschonend formuliert: „nur so weit wie angenehm“, ggf. festhalten.
+export const HOWTO = {
+  'vital-march': {
+    steps: [
+      'Aufrecht hinstellen, die Füße etwa hüftbreit, der Blick geht nach vorn.',
+      'Abwechselnd die Knie locker anheben – nur so hoch, wie es angenehm ist.',
+      'Die Arme entspannt mitschwingen lassen und ruhig weiteratmen.',
+    ],
+    tips: [
+      'Das Tempo selbst bestimmen – langsam ist völlig in Ordnung.',
+      'Bei unsicherem Stand in der Nähe einer Wand oder Stuhllehne marschieren.',
+      'Locker bleiben, die Schultern nicht hochziehen.',
+    ],
+  },
+  'vital-armraise': {
+    steps: [
+      'Aufrecht stehen oder sitzen, die Arme hängen locker an den Seiten.',
+      'Die gestreckten Arme langsam nach vorn und oben heben – so weit, wie es ohne Schmerzen geht.',
+      'Ebenso langsam wieder absenken.',
+    ],
+    tips: [
+      'Die Schultern bleiben tief und locker, nicht zu den Ohren ziehen.',
+      'Nur bis zur angenehmen Höhe heben – nicht in den Schmerz hinein.',
+      'Ruhig atmen: beim Heben ein, beim Senken aus.',
+    ],
+  },
+  'vital-squat': {
+    steps: [
+      'Vor einen Stuhl stellen, die Füße etwa hüftbreit.',
+      'Das Gesäß nach hinten schieben, als wolltest du dich setzen – nur so tief, wie es angenehm ist.',
+      'Über die Fersen wieder aufrichten.',
+    ],
+    tips: [
+      'Die Knie zeigen in Richtung der Fußspitzen, nicht nach innen.',
+      'Ein echter Stuhl hinter dir gibt Sicherheit – kurz auftippen ist erlaubt.',
+      'Den Oberkörper aufrecht lassen, der Blick geht nach vorn.',
+    ],
+  },
+  'vital-calf': {
+    steps: [
+      'Aufrecht stehen, bei Bedarf an einer Wand oder Stuhllehne festhalten.',
+      'Langsam auf die Fußballen hochkommen.',
+      'Kurz oben halten und kontrolliert wieder absenken.',
+    ],
+    tips: [
+      'Zur Sicherheit ruhig festhalten – das ist kein Nachteil.',
+      'Langsam absenken, nicht einfach fallen lassen.',
+      'Gleichmäßig weiteratmen.',
+    ],
+  },
+  'vital-bridge': {
+    steps: [
+      'In Rückenlage die Knie aufstellen, die Füße hüftbreit am Boden.',
+      'Den Po anspannen und das Becken sanft anheben.',
+      'Kurz halten, dann langsam wieder ablegen.',
+    ],
+    tips: [
+      'Nur so hoch heben, wie es angenehm ist – kein Hohlkreuz erzwingen.',
+      'Die Kraft kommt aus dem Po, nicht aus dem unteren Rücken.',
+      'Die Füße bleiben ruhig am Boden, das Gewicht auf den Fersen.',
+    ],
+  },
+  'vital-superman': {
+    steps: [
+      'In Bauchlage legen, die Arme nach vorn oder neben den Körper.',
+      'Arme und Beine nur leicht vom Boden abheben.',
+      'Kurz halten und wieder ablegen.',
+    ],
+    tips: [
+      'Eine ganz kleine Bewegung genügt – nicht hochreißen.',
+      'Der Blick geht zum Boden, der Nacken bleibt lang.',
+      'Bei Beschwerden im unteren Rücken nur die Arme oder nur die Beine heben.',
+    ],
+  },
+  'vital-legraise': {
+    steps: [
+      'In Rückenlage ein Bein anstellen, das andere strecken (oder beide strecken).',
+      'Das gestreckte Bein langsam anheben.',
+      'Ebenso langsam wieder absenken.',
+    ],
+    tips: [
+      'Der untere Rücken bleibt flach am Boden – kein Hohlkreuz.',
+      'Lieber ein Bein nach dem anderen, wenn beide zu anstrengend sind.',
+      'Langsam und kontrolliert bewegen, vor allem beim Absenken.',
+    ],
+  },
+  'vital-crunch': {
+    steps: [
+      'In Rückenlage die Knie aufstellen, die Füße am Boden.',
+      'Die Schulterblätter nur leicht vom Boden lösen.',
+      'Kurz halten und langsam zurück.',
+    ],
+    tips: [
+      'Nur ein kleines Stück anheben – das ist kein kompletter Sit-up.',
+      'Das Kinn nicht auf die Brust pressen, etwas Abstand lassen.',
+      'Der Nacken bleibt locker, die Bewegung kommt aus dem Bauch.',
+    ],
+  },
+  'vital-bend': {
+    steps: [
+      'Aufrecht stehen, die Füße etwa hüftbreit, die Knie leicht gebeugt.',
+      'Den Oberkörper langsam nach vorn sinken lassen – so weit, wie es angenehm ist.',
+      'Langsam Wirbel für Wirbel wieder aufrichten.',
+    ],
+    tips: [
+      'Die Knie dürfen leicht gebeugt bleiben – das schont den Rücken.',
+      'Nicht wippen oder federn, sanft in die Dehnung gehen.',
+      'Bei Schwindel langsamer aufrichten und kurz stehen bleiben.',
+    ],
+  },
+  'vital-twist': {
+    steps: [
+      'Aufrecht stehen oder sitzen, die Arme locker vor dem Körper.',
+      'Den Oberkörper langsam zu einer Seite drehen, die Hüfte bleibt ruhig nach vorn.',
+      'Zur Mitte zurück und zur anderen Seite drehen.',
+    ],
+    tips: [
+      'Nur so weit drehen, wie es angenehm ist.',
+      'Die Bewegung ist langsam und kontrolliert, nicht schwungvoll.',
+      'Aufrecht bleiben und gleichmäßig weiteratmen.',
+    ],
+  },
+  'vital-balance': {
+    steps: [
+      'Aufrecht stehen, bei Bedarf an einer Wand oder Stuhllehne festhalten.',
+      'Ein Knie leicht anheben und das Gleichgewicht auf dem Standbein halten.',
+      'Kurz halten, absetzen und die Seite wechseln.',
+    ],
+    tips: [
+      'Ruhig festhalten oder eine Hand in Wandnähe lassen – Sicherheit geht vor.',
+      'Einen festen Punkt vor dir mit den Augen fixieren, das hilft beim Balancieren.',
+      'Pro Seite gleich lange üben.',
+    ],
+  },
+  'vital-lunge': {
+    steps: [
+      'Aufrecht stehen, dann einen kleinen Schritt nach vorn machen.',
+      'Beide Knie leicht beugen – nur so tief, wie es angenehm ist.',
+      'Über das vordere Bein zurück in den Stand und die Seite wechseln.',
+    ],
+    tips: [
+      'Das vordere Knie bleibt über dem Knöchel, nicht weiter nach vorn.',
+      'Bei unsicherem Stand seitlich an einer Wand oder Lehne festhalten.',
+      'Den Oberkörper aufrecht halten.',
+    ],
+  },
+  'vital-wallsit': {
+    steps: [
+      'Mit dem Rücken an eine Wand stellen und ein Stück nach unten rutschen.',
+      'Nur leicht in die Knie gehen – ein tiefer Winkel ist nicht nötig.',
+      'Die Position kurz halten und wieder hochrutschen.',
+    ],
+    tips: [
+      'So weit herunterrutschen, wie es angenehm ist – lieber höher als zu tief.',
+      'Der ganze Rücken bleibt an der Wand.',
+      'Gleichmäßig weiteratmen, nicht die Luft anhalten.',
+    ],
+  },
+  'vital-plank': {
+    steps: [
+      'Auf die Unterarme stützen, die Ellbogen unter den Schultern.',
+      'Den Körper gerade halten – auch auf den Knien abgestützt möglich.',
+      'Die Position kurz halten, dann ablegen.',
+    ],
+    tips: [
+      'Die Knie-Variante ist gelenkschonend und völlig ausreichend.',
+      'Po und Bauch leicht anspannen, die Hüfte nicht durchhängen lassen.',
+      'Schon wenige Sekunden bringen etwas – lieber kurz und sauber.',
+    ],
+  },
+  'vital-breathe': {
+    steps: [
+      'Bequem hinsetzen oder hinstellen, die Schultern locker.',
+      'Langsam durch die Nase einatmen und die Arme dabei sanft heben.',
+      'Ruhig durch den Mund ausatmen und die Arme wieder senken.',
+    ],
+    tips: [
+      'Tief in den Bauch atmen – die Bauchdecke hebt sich.',
+      'Länger ausatmen als einatmen, das beruhigt.',
+      'Die Augen bei Bedarf schließen und ganz ruhig werden.',
+    ],
+  },
+};
