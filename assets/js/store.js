@@ -18,6 +18,15 @@ const STATIONS_KEY = `${NS}.stations.v1`;
 const SEED_KEY = `${NS}.seed.v1`;
 const SESSION_KEY = `${NS}.session.v1`;
 
+// Robuster localStorage-Zugriff: im iOS-Privatmodus, bei „alle Cookies blockieren“
+// oder vollem Speicher kann jeder Zugriff werfen (z. B. SecurityError). Das darf die
+// App NIE crashen lassen (sonst weißer Bildschirm beim ersten Laden eines neuen
+// Profils, da dann Defaults geschrieben werden). Im Fehlerfall läuft die App mit
+// In-Memory-Defaults weiter – nur ohne Persistenz über den Tab hinaus.
+function lsGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
+function lsSet(key, value) { try { localStorage.setItem(key, value); return true; } catch { return false; } }
+function lsRemove(key) { try { localStorage.removeItem(key); } catch { /* ignore */ } }
+
 // Kuratierte Power-Sender quer durch die Genres (alle HTTPS-Direktstreams,
 // auf Erreichbarkeit/Audio-Antwort geprüft). Nutzer können eigene hinzufügen.
 // np = SomaFM-Kanal-ID für die „Now Playing“-Anzeige (nur SomaFM liefert sie
@@ -107,7 +116,7 @@ function safeParse(raw, fallback) {
 
 // ---------------- Übungen (editierbare Bibliothek) ----------------
 export function loadExercises() {
-  const raw = localStorage.getItem(EXERCISES_KEY);
+  const raw = lsGet(EXERCISES_KEY);
   if (!raw) {
     const copy = DEFAULT_EXERCISES.map((e) => ({ ...e }));
     saveExercises(copy);
@@ -118,12 +127,12 @@ export function loadExercises() {
 }
 
 export function saveExercises(exercises) {
-  localStorage.setItem(EXERCISES_KEY, JSON.stringify(exercises));
+  lsSet(EXERCISES_KEY, JSON.stringify(exercises));
 }
 
 // ---------------- Radio-Sender ----------------
 export function loadStations() {
-  const raw = localStorage.getItem(STATIONS_KEY);
+  const raw = lsGet(STATIONS_KEY);
   if (!raw) {
     const copy = DEFAULT_STATIONS.map((s) => ({ ...s }));
     saveStations(copy);
@@ -133,12 +142,12 @@ export function loadStations() {
 }
 
 export function saveStations(stations) {
-  localStorage.setItem(STATIONS_KEY, JSON.stringify(stations));
+  lsSet(STATIONS_KEY, JSON.stringify(stations));
 }
 
 // ---------------- Sets ----------------
 export function loadSets() {
-  const raw = localStorage.getItem(SETS_KEY);
+  const raw = lsGet(SETS_KEY);
   if (!raw) {
     // Erstinitialisierung mit Beispiel-Sets.
     const copy = DEFAULT_SETS.map((s) => ({ ...s, exercises: [...s.exercises] }));
@@ -149,28 +158,28 @@ export function loadSets() {
 }
 
 export function saveSets(sets) {
-  localStorage.setItem(SETS_KEY, JSON.stringify(sets));
+  lsSet(SETS_KEY, JSON.stringify(sets));
 }
 
 // ---------------- Einstellungen ----------------
 export function loadConfig() {
-  const raw = localStorage.getItem(CONFIG_KEY);
+  const raw = lsGet(CONFIG_KEY);
   return { ...DEFAULT_CONFIG, ...safeParse(raw, {}) };
 }
 
 export function saveConfig(config) {
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  lsSet(CONFIG_KEY, JSON.stringify(config));
 }
 
 // ---------------- Laufendes Workout (zum Fortsetzen nach Verlassen) ----------------
 export function loadSession() {
-  return safeParse(localStorage.getItem(SESSION_KEY), null);
+  return safeParse(lsGet(SESSION_KEY), null);
 }
 export function saveSession(session) {
-  try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch {}
+  lsSet(SESSION_KEY, JSON.stringify(session));
 }
 export function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
+  lsRemove(SESSION_KEY);
 }
 
 export function uid(prefix = 'set') {
@@ -186,7 +195,7 @@ export function ensureDefaultsSeeded() {
   // Vital (und andere Profile) brauchen keine Freeletics-Migrationen; ihre
   // Defaults werden beim ersten Laden über load*()/DEFAULT_* gesetzt.
   if (NS !== 'freeletics') return;
-  const applied = safeParse(localStorage.getItem(SEED_KEY), []);
+  const applied = safeParse(lsGet(SEED_KEY), []);
 
   // Migration: Emoji in die Titel der Standard-Sets nachziehen – aber nur, wenn
   // der Nutzer den Namen nicht selbst geändert hat (Abgleich über stabile ID +
@@ -207,7 +216,7 @@ export function ensureDefaultsSeeded() {
     });
     if (changed) saveSets(sets);
     applied.push('titles-v1');
-    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+    lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
   // Migration: RADIO BOB! 80er/90er Rock auch bei Bestandsnutzern ergänzen und
@@ -223,7 +232,7 @@ export function ensureDefaultsSeeded() {
     const toAdd = bob.filter((b) => !have.has(b.id));
     if (toAdd.length) saveStations([...toAdd, ...stations]);
     applied.push('stations-bob-v1');
-    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+    lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
   // Migration: deutlich mehr Genres (Electro/EDM, Pop, HipHop, …) ergänzen und
@@ -240,7 +249,7 @@ export function ensureDefaultsSeeded() {
     });
     if (changed) saveStations(stations);
     applied.push('stations-genres-v1');
-    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+    lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
   // Migration: fehlende Standard-Sender ergänzen (u. a. neue Kategorie „Punk“).
@@ -251,7 +260,7 @@ export function ensureDefaultsSeeded() {
     const toAdd = DEFAULT_STATIONS.filter((s) => !have.has(s.id));
     if (toAdd.length) saveStations([...stations, ...toAdd]);
     applied.push('stations-punk-v1');
-    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+    lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
   // Migration: Standard-Zirkeltraining auf die kuratierten 15 Stationen setzen
@@ -272,7 +281,7 @@ export function ensureDefaultsSeeded() {
       saveSets(sets);
     }
     applied.push('zirkel-v2');
-    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+    lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
   // Migration: Vollkörper-Freeletics-Sets. Ergänzt fehlende Übungen (Schultern,
@@ -301,7 +310,7 @@ export function ensureDefaultsSeeded() {
     if (setsChanged) saveSets(sets);
     if (!applied.includes('set-fullbody-v1')) applied.push('set-fullbody-v1');
     applied.push('set-fullbody-v2');
-    localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+    lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
   if (applied.includes('content-v4')) return;
@@ -326,5 +335,5 @@ export function ensureDefaultsSeeded() {
   saveStations(DEFAULT_STATIONS.map((s) => ({ ...s })));
 
   ['zirkel-v1', 'content-v2', 'content-v3', 'content-v4'].forEach((k) => { if (!applied.includes(k)) applied.push(k); });
-  localStorage.setItem(SEED_KEY, JSON.stringify(applied));
+  lsSet(SEED_KEY, JSON.stringify(applied));
 }
