@@ -1,12 +1,22 @@
 // Persistenz über localStorage: Übungen, Übungssets und Einstellungen.
-import { DEFAULT_SETS, DEFAULT_EXERCISES, DEFAULT_REPS, CIRCUIT_EXERCISES, EXTRA_EXERCISES, CIRCUIT_SET } from './exercises.js';
+// Profilfähig: 'freeletics' (Standard) nutzt die eingebauten Defaults, 'onko'
+// das Onko-Pack. Speicher-Schlüssel sind pro App getrennt (Namespace = APP_ID),
+// damit beide Apps unabhängige Daten haben. Für Freeletics bleiben die Keys
+// exakt wie bisher (freeletics.*) – keine Migration nötig.
+import * as FREE from './exercises.js';
+import { PACK, APP_ID } from './content.js';
 
-const SETS_KEY = 'freeletics.sets.v2';
-const CONFIG_KEY = 'freeletics.config.v2';
-const EXERCISES_KEY = 'freeletics.exercises.v1';
-const STATIONS_KEY = 'freeletics.stations.v1';
-const SEED_KEY = 'freeletics.seed.v1';
-const SESSION_KEY = 'freeletics.session.v1';
+const NS = APP_ID;                                              // 'freeletics' | 'onko'
+const DEFAULT_EXERCISES = PACK.DEFAULT_EXERCISES || FREE.DEFAULT_EXERCISES;
+const DEFAULT_SETS = PACK.DEFAULT_SETS || FREE.DEFAULT_SETS;
+const DEFAULT_REPS = PACK.DEFAULT_REPS || FREE.DEFAULT_REPS;
+
+const SETS_KEY = `${NS}.sets.v2`;
+const CONFIG_KEY = `${NS}.config.v2`;
+const EXERCISES_KEY = `${NS}.exercises.v1`;
+const STATIONS_KEY = `${NS}.stations.v1`;
+const SEED_KEY = `${NS}.seed.v1`;
+const SESSION_KEY = `${NS}.session.v1`;
 
 // Kuratierte Power-Sender quer durch die Genres (alle HTTPS-Direktstreams,
 // auf Erreichbarkeit/Audio-Antwort geprüft). Nutzer können eigene hinzufügen.
@@ -61,7 +71,7 @@ export const DEFAULT_STATIONS = [
   { id: 'st-soma-70s',      name: 'SomaFM Left Coast 70s',  genre: '70er Rock',    cat: 'retro',   url: 'https://ice1.somafm.com/seventies-128-mp3',   np: 'seventies' },
 ];
 
-export const DEFAULT_CONFIG = {
+const BASE_CONFIG = {
   workSeconds: 30,    // Dauer einer Übung (Belastung)
   pauseSeconds: 30,   // Pause + Vorbereitung zusammen, vor jeder Übung
   totalMinutes: 60,   // Gesamtdauer des Programms
@@ -82,6 +92,9 @@ export const DEFAULT_CONFIG = {
   // ---- Intervall-Timer (reiner Timer ohne Übungen) ----
   interval: { mode: 'tabata', work: 20, rest: 10, rounds: 8 },
 };
+
+// App-spezifische Vorgaben (z. B. sanftere Onko-Werte) über die Basis legen.
+export const DEFAULT_CONFIG = { ...BASE_CONFIG, ...(PACK.CONFIG_OVERRIDES || {}) };
 
 function safeParse(raw, fallback) {
   try {
@@ -170,6 +183,9 @@ export function uid(prefix = 'set') {
 // Jede Migration läuft nur einmal – löscht der Nutzer Inhalte später wieder,
 // kommen sie nicht zurück.
 export function ensureDefaultsSeeded() {
+  // Onko (und andere Profile) brauchen keine Freeletics-Migrationen; ihre
+  // Defaults werden beim ersten Laden über load*()/DEFAULT_* gesetzt.
+  if (NS !== 'freeletics') return;
   const applied = safeParse(localStorage.getItem(SEED_KEY), []);
 
   // Migration: Emoji in die Titel der Standard-Sets nachziehen – aber nur, wenn
@@ -245,14 +261,14 @@ export function ensureDefaultsSeeded() {
     const exercises = loadExercises();
     const have = new Set(exercises.map((e) => e.id));
     let exChanged = false;
-    CIRCUIT_EXERCISES.forEach((e) => { if (!have.has(e.id)) { exercises.push({ ...e }); exChanged = true; } });
+    FREE.CIRCUIT_EXERCISES.forEach((e) => { if (!have.has(e.id)) { exercises.push({ ...e }); exChanged = true; } });
     if (exChanged) saveExercises(exercises);
     const sets = loadSets();
-    const z = sets.find((s) => s.id === CIRCUIT_SET.id);
+    const z = sets.find((s) => s.id === FREE.CIRCUIT_SET.id);
     if (z) {
-      z.exercises = [...CIRCUIT_SET.exercises];
-      z.reps = { ...(CIRCUIT_SET.reps || {}) };
-      z.activeRest = CIRCUIT_SET.activeRest;
+      z.exercises = [...FREE.CIRCUIT_SET.exercises];
+      z.reps = { ...(FREE.CIRCUIT_SET.reps || {}) };
+      z.activeRest = FREE.CIRCUIT_SET.activeRest;
       saveSets(sets);
     }
     applied.push('zirkel-v2');
@@ -267,7 +283,7 @@ export function ensureDefaultsSeeded() {
     const exercises = loadExercises();
     const have = new Set(exercises.map((e) => e.id));
     let exChanged = false;
-    EXTRA_EXERCISES.forEach((e) => {
+    FREE.EXTRA_EXERCISES.forEach((e) => {
       if (!have.has(e.id)) { exercises.push({ ...e }); exChanged = true; }
     });
     if (exChanged) saveExercises(exercises);
@@ -294,7 +310,7 @@ export function ensureDefaultsSeeded() {
   const exercises = loadExercises();
   const have = new Set(exercises.map((e) => e.id));
   let exChanged = false;
-  CIRCUIT_EXERCISES.forEach((e) => {
+  FREE.CIRCUIT_EXERCISES.forEach((e) => {
     if (!have.has(e.id)) {
       exercises.push({ ...e });
       exChanged = true;
