@@ -813,14 +813,23 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
 .howto-steps li::marker { color: var(--accent); font-weight: 700; }
 .howto-tips li::marker { color: var(--accent); }
 
+<<<<<<< HEAD
 /* ===== Vital-Profil (versteckte Schwester-App, ruhigeres Theme) ===== */
 [data-app="vital"] {
+=======
+/* ===== Onko-Sport-Profil (versteckte Schwester-App, ruhigeres Theme) ===== */
+[data-app="onko"] {
+>>>>>>> origin/main
   --accent: #2f9e8f;     /* ruhiges Teal statt aggressivem Orange */
   --accent-2: #7cc486;   /* sanftes Grün */
   --grad-top: #14241f;   /* leicht grünlicher Hintergrund-Verlauf */
   --blue: #4bb3a6;       /* Pause-/Vorbereitungsphase */
 }
+<<<<<<< HEAD
 .vital-disclaimer {
+=======
+.onko-disclaimer {
+>>>>>>> origin/main
   background: rgba(47, 158, 143, 0.12);
   border: 1px solid rgba(47, 158, 143, 0.40);
   color: var(--text);
@@ -830,4 +839,8 @@ body.dragging-active { user-select: none; -webkit-user-select: none; cursor: gra
   line-height: 1.45;
   margin: 0 0 14px;
 }
+<<<<<<< HEAD
 .vital-disclaimer strong { color: var(--accent-2); }
+=======
+.onko-disclaimer strong { color: var(--accent-2); }
+>>>>>>> origin/main

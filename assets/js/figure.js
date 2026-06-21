@@ -1186,10 +1186,17 @@ export const EXERCISES = {
     },
   },
 
+<<<<<<< HEAD
   // ---- Sanfte Vital-/Reha-Übungen (ruhige, gelenkschonende Bewegungen) ----
   // Arme heben: gestreckte Arme von den Seiten nach vorne/oben und zurück
   // (Schultermobilität & sanfte Kraft).
   vital_armraise: {
+=======
+  // ---- Sanfte Onko-/Reha-Übungen (ruhige, gelenkschonende Bewegungen) ----
+  // Arme heben: gestreckte Arme von den Seiten nach vorne/oben und zurück
+  // (Schultermobilität & sanfte Kraft).
+  onko_armraise: {
+>>>>>>> origin/main
     duration: 2400, pingpong: true,
     solve(t) {
       const arm = lerp(192, 14, t);                      // unten -> nach vorne/oben gestreckt
@@ -1198,7 +1205,11 @@ export const EXERCISES = {
   },
   // Sanfte Rumpfbeuge nach vorn (Beweglichkeit/Dehnung), Beine gestreckt, Arme
   // hängen Richtung Boden, dann wieder aufrichten.
+<<<<<<< HEAD
   vital_forwardbend: {
+=======
+  onko_forwardbend: {
+>>>>>>> origin/main
     duration: 2800, pingpong: true,
     solve(t) {
       const ankle = [CX, GROUND_Y - 1];
@@ -1210,7 +1221,11 @@ export const EXERCISES = {
   },
   // Einbeinstand (Gleichgewicht): ein Bein steht, das andere Knie ist angehoben,
   // Arme leicht abgespreizt; sanftes Heben/Senken des Knies.
+<<<<<<< HEAD
   vital_balance: {
+=======
+  onko_balance: {
+>>>>>>> origin/main
     duration: 3000, pingpong: true,
     solve(t) {
       const hip = [CX, GROUND_Y - 37];
@@ -1226,7 +1241,11 @@ export const EXERCISES = {
   },
   // Tiefe Atmung / Entspannung: ruhig stehen, Arme heben sich langsam bis Brust-/
   // Schulterhöhe (Einatmen) und senken wieder (Ausatmen).
+<<<<<<< HEAD
   vital_breathing: {
+=======
+  onko_breathing: {
+>>>>>>> origin/main
     duration: 4200, pingpong: true,
     solve(t) {
       const arm = lerp(198, 118, t);

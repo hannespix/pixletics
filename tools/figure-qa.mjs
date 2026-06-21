@@ -20,7 +20,11 @@
 import { EXERCISES } from '../assets/js/figure.js';
 
 const GY = 104, STAGE_S = 82;
+<<<<<<< HEAD
 const skipStatic = new Set(['plank', 'wallsit', 'sideplank', 'idle', 'vital_balance']);
+=======
+const skipStatic = new Set(['plank', 'wallsit', 'sideplank', 'idle', 'onko_balance']);
+>>>>>>> origin/main
 const isJump = new Set(['jumpsquats', 'burpees', 'circ-boxjump']);
 const isThrow = new Set(['circ-ballwall', 'circ-medball', 'circ-wallthrow']); // Ball muss fliegen
 const isBox = new Set(['circ-boxjump', 'circ-stepups']);                       // Fuß muss auf die Box
