@@ -159,10 +159,17 @@ const FOCUS_LABEL = {
   ganzkoerper: 'Ganzkörper', oberkoerper: 'Oberkörper',
   unterkoerper: 'Unterkörper', core: 'Core', cardio: 'Cardio',
 };
-// Geschätzte Dauer eines Sets in Minuten (Übungszahl × Zyklus aus Übung+Pause).
+// Geschätzte Dauer EINES kompletten Durchlaufs durch das Set in Minuten.
+// Jede Wiederholung einer Übung ist im Ablauf ein eigener Übung+Pause-Block
+// (siehe engine.js), daher zählt die Summe ALLER Wiederholungen – nicht nur die
+// Anzahl der Übungen. Beispiel: 19 Übungen à ×3 ≈ 57 Blöcke, nicht 19.
 function setEstMinutes(set) {
   const cycle = (config.workSeconds || 30) + (config.pauseSeconds || 30);
-  return Math.max(1, Math.round((set.exercises.length * cycle) / 60));
+  const totalReps = set.exercises.reduce(
+    (sum, exId) => (exerciseMap[exId] ? sum + setReps(set, exId) : sum),
+    0,
+  );
+  return Math.max(1, Math.round((totalReps * cycle) / 60));
 }
 // Emoji-Badge: erstes vorhandenes Übungs-Emoji des Sets, sonst Default.
 function setEmoji(set) {
