@@ -101,11 +101,7 @@ setTrainMode(localStorage.getItem(MODE_KEY) || 'plan');
 // Rotierender Hero-Slogan: alle 10 s ein zufälliger Spruch mit weicher
 // Blur-Überblendung (gooey-artig, ohne SVG-Filter).
 // Slogans mit *Akzent-Wort* (wird zweifarbig im Gradient dargestellt).
-<<<<<<< HEAD
 // Das aktive Inhalts-Pack (z. B. Vital) kann eigene Slogans liefern.
-=======
-// Das aktive Inhalts-Pack (z. B. Onko) kann eigene Slogans liefern.
->>>>>>> origin/main
 const BASE_HERO_SLOGANS = [
   'Bereit für *Action*? 🔥', 'Dem *Speck* an den Kragen!', 'Schwitzen statt *sitzen*!',
   'Keine *Ausreden* – los geht’s!', 'Heute schmilzt das *Hüftgold*.', '*Vollgas* statt Couch!',
