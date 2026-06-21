@@ -25,7 +25,9 @@ export function initPWA() {
   if (!banner) return;
 
   // Schon installiert oder bewusst weggeklickt -> nichts zeigen.
-  if (isStandalone() || localStorage.getItem(DISMISS_KEY) === '1') return;
+  let dismissed = false;
+  try { dismissed = localStorage.getItem(DISMISS_KEY) === '1'; } catch {} // Storage kann blockiert sein
+  if (isStandalone() || dismissed) return;
 
   let deferred = window.__bip || null; // evtl. früh im <head> abgefangen
   const showBanner = () => { banner.hidden = false; };
@@ -63,7 +65,7 @@ export function initPWA() {
 
   dismissBtn?.addEventListener('click', () => {
     hideBanner();
-    localStorage.setItem(DISMISS_KEY, '1');
+    try { localStorage.setItem(DISMISS_KEY, '1'); } catch {} // Storage kann blockiert sein
   });
 
   document.getElementById('ios-close')?.addEventListener('click', () => {

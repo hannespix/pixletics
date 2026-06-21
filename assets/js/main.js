@@ -96,7 +96,9 @@ function setTrainMode(mode) {
 $$('#mode-switch .mode-btn').forEach((btn) => {
   btn.addEventListener('click', () => setTrainMode(btn.dataset.mode));
 });
-setTrainMode(localStorage.getItem(MODE_KEY) || 'plan');
+let _savedMode = 'plan';
+try { _savedMode = localStorage.getItem(MODE_KEY) || 'plan'; } catch {} // Storage kann blockiert sein
+setTrainMode(_savedMode);
 
 // Rotierender Hero-Slogan: alle 10 s ein zufälliger Spruch mit weicher
 // Blur-Überblendung (gooey-artig, ohne SVG-Filter).
