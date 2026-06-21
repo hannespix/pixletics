@@ -1,12 +1,12 @@
 // Persistenz über localStorage: Übungen, Übungssets und Einstellungen.
-// Profilfähig: 'freeletics' (Standard) nutzt die eingebauten Defaults, 'onko'
-// das Onko-Pack. Speicher-Schlüssel sind pro App getrennt (Namespace = APP_ID),
+// Profilfähig: 'freeletics' (Standard) nutzt die eingebauten Defaults, 'vital'
+// das Vital-Pack. Speicher-Schlüssel sind pro App getrennt (Namespace = APP_ID),
 // damit beide Apps unabhängige Daten haben. Für Freeletics bleiben die Keys
 // exakt wie bisher (freeletics.*) – keine Migration nötig.
 import * as FREE from './exercises.js';
 import { PACK, APP_ID } from './content.js';
 
-const NS = APP_ID;                                              // 'freeletics' | 'onko'
+const NS = APP_ID;                                              // 'freeletics' | 'vital'
 const DEFAULT_EXERCISES = PACK.DEFAULT_EXERCISES || FREE.DEFAULT_EXERCISES;
 const DEFAULT_SETS = PACK.DEFAULT_SETS || FREE.DEFAULT_SETS;
 const DEFAULT_REPS = PACK.DEFAULT_REPS || FREE.DEFAULT_REPS;
@@ -93,7 +93,7 @@ const BASE_CONFIG = {
   interval: { mode: 'tabata', work: 20, rest: 10, rounds: 8 },
 };
 
-// App-spezifische Vorgaben (z. B. sanftere Onko-Werte) über die Basis legen.
+// App-spezifische Vorgaben (z. B. sanftere Vital-Werte) über die Basis legen.
 export const DEFAULT_CONFIG = { ...BASE_CONFIG, ...(PACK.CONFIG_OVERRIDES || {}) };
 
 function safeParse(raw, fallback) {
@@ -183,7 +183,7 @@ export function uid(prefix = 'set') {
 // Jede Migration läuft nur einmal – löscht der Nutzer Inhalte später wieder,
 // kommen sie nicht zurück.
 export function ensureDefaultsSeeded() {
-  // Onko (und andere Profile) brauchen keine Freeletics-Migrationen; ihre
+  // Vital (und andere Profile) brauchen keine Freeletics-Migrationen; ihre
   // Defaults werden beim ersten Laden über load*()/DEFAULT_* gesetzt.
   if (NS !== 'freeletics') return;
   const applied = safeParse(localStorage.getItem(SEED_KEY), []);
