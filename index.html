@@ -146,6 +146,11 @@
             <label class="switch"><input type="checkbox" id="cfg-beeps" /> <span>Signaltöne</span></label>
             <label class="switch"><input type="checkbox" id="cfg-duck" /> <span>Musik bei Ansage leiser</span></label>
           </div>
+          <label class="mm-vol">
+            <span class="slider-head">🔔 Signalton-Lautstärke <span class="slider-val" id="val-beepvol"></span></span>
+            <input type="range" id="cfg-beepvol" min="0" max="100" step="5" />
+          </label>
+          <button class="btn btn-small" id="btn-beep-test">▶︎ Signalton testen</button>
         </details>
       </div>
 
@@ -528,6 +533,10 @@
       <label class="mm-vol">
         <span class="slider-head">🔊 Coach-Lautstärke <span class="slider-val" id="rc-val-voicevol"></span></span>
         <input type="range" id="rc-voicevol" min="0" max="100" step="5" />
+      </label>
+      <label class="mm-vol">
+        <span class="slider-head">🔔 Signalton-Lautstärke <span class="slider-val" id="rc-val-beepvol"></span></span>
+        <input type="range" id="rc-beepvol" min="0" max="100" step="5" />
       </label>
     </div>
   </div>

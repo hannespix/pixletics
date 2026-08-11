@@ -87,7 +87,8 @@ const BASE_CONFIG = {
   voice: true,        // Sprachansagen an/aus
   beeps: true,        // Signaltöne an/aus
   duckSpotify: true,  // Spotify bei Ansagen leiser
-  voiceVolume: 1.0,   // Lautstärke Coach (Ansagen + Signaltöne), 0–1
+  voiceVolume: 1.0,   // Lautstärke Coach (Sprachansagen), 0–1
+  beepVolume: 1.0,    // Lautstärke Signaltöne (Töne + Applaus), 0–1
   musicVolume: 0.8,   // Lautstärke Musik (Radio + Spotify), 0–1
   // ---- Stimme & Coach ----
   voicePersona: 'standard', // gewählter Coach-Charakter (siehe coach.js)
