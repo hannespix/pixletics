@@ -5,7 +5,7 @@ import {
   ensureDefaultsSeeded, loadSession, saveSession, clearSession,
 } from './store.js';
 import {
-  initAudio, sound, speak, cancelSpeech, setSpeechHooks,
+  initAudio, sound, speak, cancelSpeech, setSpeechHooks, testBeep,
   primeVoices, onVoicesReady, getGermanVoices, pickVoiceURI, setVoiceSettings,
 } from './audio.js';
 import { PERSONAS, getPersona, line, motivationLine, resetCoachBags } from './coach.js';
@@ -326,7 +326,11 @@ function applyVoiceSettings() {
   if (!voiceURI || voiceURI === 'auto') voiceURI = pickVoiceURI(persona.gender);
   const pitch = clampRange(config.voicePitch, PITCH_MIN, PITCH_MAX, 1.0);
   const rate = clampRange(config.voiceRate, RATE_MIN, RATE_MAX, 1.05);
-  setVoiceSettings({ voiceURI, pitch, rate, volume: config.voiceVolume });
+  setVoiceSettings({
+    voiceURI, pitch, rate,
+    volume: config.voiceVolume,
+    beepVolume: config.beepVolume ?? 1,
+  });
 }
 
 // Musik-Lautstärke (Radio + Spotify) anwenden.
@@ -392,6 +396,7 @@ function renderVoiceSettings() {
   if ($('#cfg-verbosity')) $('#cfg-verbosity').value = config.verbosity || 'full';
   if ($('#cfg-comments')) $('#cfg-comments').checked = config.coachComments !== false;
   setSlider('cfg-voicevol', 'val-voicevol', Math.round((config.voiceVolume ?? 1) * 100), (v) => Math.round(v) + ' %');
+  setSlider('cfg-beepvol', 'val-beepvol', Math.round((config.beepVolume ?? 1) * 100), (v) => Math.round(v) + ' %');
   setSlider('cfg-pitch', 'val-pitch', config.voicePitch, (v) => v.toFixed(2));
   setSlider('cfg-rate', 'val-rate', config.voiceRate, (v) => v.toFixed(2) + '×');
   updateVoiceCurrentLabel();
@@ -463,6 +468,20 @@ function bindVoiceSettings() {
     if (lab) lab.textContent = Math.round(pct) + ' %';
     saveConfig(config);
     applyVoiceSettings();
+  });
+  // Signalton-Lautstärke – bewusst getrennt von der Coach-/Sprachlautstärke.
+  $('#cfg-beepvol')?.addEventListener('input', () => {
+    const pct = Number($('#cfg-beepvol').value);
+    config.beepVolume = Math.max(0, Math.min(1, pct / 100));
+    const lab = $('#val-beepvol');
+    if (lab) lab.textContent = Math.round(pct) + ' %';
+    saveConfig(config);
+    applyVoiceSettings();
+  });
+  $('#btn-beep-test')?.addEventListener('click', () => {
+    initAudio();
+    applyVoiceSettings();
+    testBeep();
   });
   bindRange('cfg-pitch', 'voicePitch', 'val-pitch', (v) => v.toFixed(2), true);
   bindRange('cfg-rate', 'voiceRate', 'val-rate', (v) => v.toFixed(2) + '×', true);
@@ -1398,6 +1417,14 @@ function bindCoachModal() {
   $('#rc-voice')?.addEventListener('change', (e) => { config.voice = e.target.checked; saveConfig(config); });
   $('#rc-beeps')?.addEventListener('change', (e) => { config.beeps = e.target.checked; saveConfig(config); });
   $('#rc-duck')?.addEventListener('change', (e) => { config.duckSpotify = e.target.checked; saveConfig(config); });
+  $('#rc-beepvol')?.addEventListener('input', () => {
+    const pct = Number($('#rc-beepvol').value);
+    config.beepVolume = Math.max(0, Math.min(1, pct / 100));
+    const lab = $('#rc-val-beepvol');
+    if (lab) lab.textContent = Math.round(pct) + ' %';
+    saveConfig(config);
+    applyVoiceSettings();
+  });
   $('#rc-voicevol')?.addEventListener('input', () => {
     const pct = Number($('#rc-voicevol').value);
     config.voiceVolume = Math.max(0, Math.min(1, pct / 100));
@@ -1421,6 +1448,9 @@ function openCoachModal() {
   const pct = Math.round((config.voiceVolume ?? 1) * 100);
   if ($('#rc-voicevol')) $('#rc-voicevol').value = pct;
   if ($('#rc-val-voicevol')) $('#rc-val-voicevol').textContent = pct + ' %';
+  const bpct = Math.round((config.beepVolume ?? 1) * 100);
+  if ($('#rc-beepvol')) $('#rc-beepvol').value = bpct;
+  if ($('#rc-val-beepvol')) $('#rc-val-beepvol').textContent = bpct + ' %';
   $('#coach-modal').hidden = false;
 }
 function closeCoachModal() {

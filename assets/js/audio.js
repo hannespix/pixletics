@@ -11,7 +11,8 @@ let voicesCbs = [];        // Callbacks, sobald die Stimmenliste verfügbar ist
 let currentVoice = null;   // gewählte SpeechSynthesisVoice (oder null = Auto)
 let currentPitch = 1.0;
 let currentRate = 1.05;
-let currentVolume = 1.0;    // Coach-Lautstärke (Ansagen + Signaltöne + Applaus), 0–1
+let currentVolume = 1.0;    // Coach-Lautstärke (Sprachansagen), 0–1
+let currentBeepVolume = 1.0; // Signalton-Lautstärke (Töne + Applaus), 0–1
 
 // Heuristik zur Geschlechtsschätzung anhand des Stimmnamens. Die Web-Speech-API
 // liefert kein Geschlecht, daher raten wir über bekannte Namensbestandteile.
@@ -46,9 +47,36 @@ export function initAudio() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (AC) ctx = new AC();
   }
-  if (ctx && ctx.state === 'suspended') ctx.resume();
+  resumeCtx();
   loadVoices();
   unlockApplause();
+}
+
+// Den AudioContext bei Bedarf wieder aufwecken. WICHTIG: Handys suspendieren
+// ihn jederzeit von sich aus (Bildschirmsperre, Anruf, App-Wechsel, iOS-Audio-
+// Fokus). Ohne erneutes resume() liefen alle Signaltöne danach ins Leere –
+// die Sprachausgabe (eigene API) lief weiter, es „fehlten“ also nur die Töne.
+function resumeCtx() {
+  if (!ctx) return;
+  if (ctx.state === 'suspended' || ctx.state === 'interrupted') {
+    const pr = ctx.resume();
+    if (pr && pr.catch) pr.catch(() => {});
+  }
+}
+
+// Master-Bus für Signaltöne: trägt die Signalton-Lautstärke und schützt über
+// einen Kompressor vor Übersteuern, wenn sich Töne kurz überlappen.
+let beepBus = null;
+function beepOut() {
+  if (!ctx) return null;
+  if (!beepBus) {
+    const bus = ctx.createGain();
+    const comp = ctx.createDynamicsCompressor();
+    bus.connect(comp).connect(ctx.destination);
+    beepBus = bus;
+  }
+  beepBus.gain.value = currentBeepVolume;
+  return beepBus;
 }
 
 // Echte (gemeinfreie) Applaus-Datei. Wird über ein HTML-Audio-Element gespielt
@@ -78,8 +106,9 @@ function playApplauseFile() {
   try {
     a.muted = false;
     a.currentTime = 0;
-    a.volume = clamp(0.9 * currentVolume, 0, 1);
-    if (currentVolume <= 0) return true; // stumm: nicht abspielen
+    // Applaus gehört zu den Signaltönen (wird über config.beeps ausgelöst).
+    a.volume = clamp(0.9 * currentBeepVolume, 0, 1);
+    if (currentBeepVolume <= 0) return true; // stumm: nicht abspielen
     const pr = a.play();
     if (pr && pr.catch) pr.catch(() => applauseSynth());
     return true;
@@ -153,18 +182,31 @@ export function pickVoiceURI(gender = 'any') {
 }
 
 // Aktuelle Stimm-Einstellungen setzen (vom Coach / den Reglern).
-export function setVoiceSettings({ voiceURI, pitch, rate, volume } = {}) {
+// `volume` = Sprachansagen, `beepVolume` = Signaltöne/Applaus (eigener Regler).
+export function setVoiceSettings({ voiceURI, pitch, rate, volume, beepVolume } = {}) {
   if (voiceURI !== undefined) {
     currentVoice = voiceURI ? allVoices.find((v) => v.voiceURI === voiceURI) || null : null;
   }
   if (typeof pitch === 'number') currentPitch = pitch;
   if (typeof rate === 'number') currentRate = rate;
   if (typeof volume === 'number') currentVolume = clamp(volume, 0, 1);
+  if (typeof beepVolume === 'number') {
+    currentBeepVolume = clamp(beepVolume, 0, 1);
+    if (beepBus) beepBus.gain.value = currentBeepVolume; // sofort hörbar
+  }
 }
 
-function tone({ freq = 880, duration = 0.15, type = 'sine', gain = 0.25, when = 0 }) {
-  if (!ctx || currentVolume <= 0) return; // Coach-Lautstärke 0 -> kein Signalton
-  const peak = Math.max(0.0002, gain * currentVolume);
+// Signalton zum Ausprobieren (für den Lautstärke-Regler in den Einstellungen).
+export function testBeep() {
+  sound.start();
+}
+
+function tone({ freq = 880, duration = 0.15, type = 'sine', gain = 0.45, when = 0 }) {
+  if (!ctx || currentBeepVolume <= 0) return; // Signalton-Lautstärke 0 -> stumm
+  resumeCtx();                                // ggf. aus dem Suspend aufwecken
+  const out = beepOut();
+  if (!out) return;
+  const peak = Math.max(0.0002, gain);        // Lautstärke liegt am Master-Bus
   const t0 = ctx.currentTime + when;
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
@@ -173,25 +215,28 @@ function tone({ freq = 880, duration = 0.15, type = 'sine', gain = 0.25, when = 
   g.gain.setValueAtTime(0.0001, t0);
   g.gain.exponentialRampToValueAtTime(peak, t0 + 0.01);
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-  osc.connect(g).connect(ctx.destination);
+  osc.connect(g).connect(out);
   osc.start(t0);
   osc.stop(t0 + duration + 0.02);
 }
 
 // Semantische Töne
+// Semantische Töne. Die Grundpegel liegen bewusst deutlich höher als früher:
+// die Signaltöne lagen rund 14 dB unter der Sprachausgabe und gingen dadurch
+// gegen laufende Musik unter. Der Kompressor am Master-Bus fängt Überlappungen ab.
 export const sound = {
-  tick: () => tone({ freq: 720, duration: 0.12, type: 'sine', gain: 0.2 }),
+  tick: () => tone({ freq: 720, duration: 0.12, type: 'sine', gain: 0.38 }),
   start: () => {
     // Aufsteigendes Startsignal
     tone({ freq: 660, duration: 0.18, when: 0 });
     tone({ freq: 880, duration: 0.18, when: 0.18 });
-    tone({ freq: 1180, duration: 0.32, when: 0.36, type: 'square', gain: 0.3 });
+    tone({ freq: 1180, duration: 0.32, when: 0.36, type: 'square', gain: 0.5 });
   },
   end: () => {
-    tone({ freq: 520, duration: 0.25, type: 'triangle', gain: 0.28 });
-    tone({ freq: 400, duration: 0.3, type: 'triangle', gain: 0.28, when: 0.18 });
+    tone({ freq: 520, duration: 0.25, type: 'triangle', gain: 0.5 });
+    tone({ freq: 400, duration: 0.3, type: 'triangle', gain: 0.5, when: 0.18 });
   },
-  rest: () => tone({ freq: 480, duration: 0.2, type: 'sine', gain: 0.22 }),
+  rest: () => tone({ freq: 480, duration: 0.2, type: 'sine', gain: 0.42 }),
   done: () => {
     tone({ freq: 660, duration: 0.2, when: 0 });
     tone({ freq: 880, duration: 0.2, when: 0.2 });
@@ -205,7 +250,10 @@ export const sound = {
 
 // Synthetischer Applaus (Fallback): viele einzelne Klatscher + Jubel-Rufe.
 function applauseSynth() {
-  if (!ctx) return;
+  if (!ctx || currentBeepVolume <= 0) return;
+  resumeCtx();
+  const busOut = beepOut();
+  if (!busOut) return;
     const t0 = ctx.currentTime;
     const sr = ctx.sampleRate;
     const duration = 3.4;
@@ -238,7 +286,7 @@ function applauseSynth() {
     const peak = ctx.createBiquadFilter();
     peak.type = 'peaking'; peak.frequency.value = 2400; peak.gain.value = 6; peak.Q.value = 0.7;
     const g = ctx.createGain(); g.gain.value = 1.0;
-    src.connect(hp).connect(peak).connect(g).connect(ctx.destination);
+    src.connect(hp).connect(peak).connect(g).connect(busOut);
     src.start(t0); src.stop(t0 + duration);
 
     // Jubel-Rufe („Woo!“) – ein paar versetzte, aufsteigende Töne.
@@ -262,7 +310,7 @@ function applauseSynth() {
       g2.gain.setValueAtTime(0.0001, st);
       g2.gain.exponentialRampToValueAtTime(0.09, st + 0.08);
       g2.gain.exponentialRampToValueAtTime(0.0001, st + 0.45);
-      o.connect(lp).connect(g2).connect(ctx.destination);
+      o.connect(lp).connect(g2).connect(busOut);
       o.start(st); o.stop(st + 0.5);
     });
 }
