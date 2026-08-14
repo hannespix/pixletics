@@ -314,6 +314,27 @@ export function ensureDefaultsSeeded() {
     lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
+  // Migration: Montags-Programm („3er Serien 2 – blaue Hantel“) ergänzen –
+  // fehlende Übungen zur Bibliothek und das Set selbst, falls noch nicht da.
+  // Vorhandene/eigene Inhalte bleiben unangetastet.
+  if (!applied.includes('montag-v1')) {
+    const exercises = loadExercises();
+    const have = new Set(exercises.map((e) => e.id));
+    let exChanged = false;
+    FREE.MONDAY_EXERCISES.forEach((e) => {
+      if (!have.has(e.id)) { exercises.push({ ...e }); exChanged = true; }
+    });
+    if (exChanged) saveExercises(exercises);
+
+    const sets = loadSets();
+    if (!sets.some((s) => s.id === FREE.MONDAY_SET.id)) {
+      const m = FREE.MONDAY_SET;
+      saveSets([...sets, { ...m, exercises: [...m.exercises], reps: { ...(m.reps || {}) } }]);
+    }
+    applied.push('montag-v1');
+    lsSet(SEED_KEY, JSON.stringify(applied));
+  }
+
   if (applied.includes('content-v4')) return;
 
   // Fehlende Zirkel-Stationen zur Übungs-Bibliothek hinzufügen (eigene behalten).

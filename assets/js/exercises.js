@@ -46,6 +46,22 @@ export const EXTRA_EXERCISES = [
   { id: 'swimmers',     name: 'Schwimmer',          area: 'Rücken',     emoji: '🏊', cue: 'Bäuchlings Arme und Beine wechselseitig heben', reps: 3 },
 ];
 
+// Übungen aus dem Montags-Programm („3er Serien 2 – blaue Hantel“), die es in
+// der Bibliothek noch nicht gab. Werden bei Bestandsnutzern per Migration
+// ergänzt. Die übrigen Montags-Übungen sind bereits Standard (Liegestütze,
+// Kniebeugen, Sit-ups, Burpees, Ausfallschritte, Seitstütz, Wandsitzen,
+// Beckenheben, Trizeps-Dips).
+export const MONDAY_EXERCISES = [
+  { id: 'mo-row',        name: 'Rudern (Hantel)',                  area: 'Rücken', emoji: '🚣', cue: 'Oberkörper vorgebeugt, Hantel zum Bauch ziehen', reps: 3 },
+  { id: 'mo-vsit',       name: 'Sitzen, Beine anheben & halten',   area: 'Bauch',  emoji: '🚤', cue: 'Aufrecht sitzen, Beine anheben und oben halten', reps: 3 },
+  { id: 'mo-bridgeknee', name: 'Brücke, Knie zum Ellenbogen',      area: 'Core',   emoji: '🌉', cue: 'In der Brücke Knie zum gegenüberliegenden Ellenbogen', reps: 3 },
+  { id: 'mo-armcircles', name: 'Bauchlage, Arme kreisen',          area: 'Rücken', emoji: '🔄', cue: 'Bäuchlings die gestreckten Arme kreisen lassen', reps: 3 },
+  { id: 'mo-bike',       name: 'Fahrrad fahren',                   area: 'Bauch',  emoji: '🚴', cue: 'In Rückenlage die Beine wie beim Radfahren treten', reps: 3 },
+  { id: 'mo-revplank',   name: 'Unterarmstütz rücklings, Beine anheben', area: 'Core', emoji: '🔙', cue: 'Rücklings auf die Unterarme stützen, Beine abwechselnd heben', reps: 3 },
+  { id: 'mo-quadruped',  name: 'Vierfüßler, Knie & Ellenbogen',    area: 'Core',   emoji: '🐾', cue: 'Im Vierfüßlerstand Knie und Ellenbogen zusammenführen', reps: 3 },
+  { id: 'mo-dbhops',     name: 'Beine über Hantel, rechts/links',  area: 'Cardio', emoji: '🏋️', cue: 'Seitlich über die Hantel springen – rechts, links', reps: 3 },
+];
+
 export const DEFAULT_EXERCISES = [
   { id: 'burpees',      name: 'Burpees',            area: 'Ganzkörper', emoji: '🔥', cue: 'Liegestütz + Strecksprung', reps: 3 },
   { id: 'pushups',      name: 'Liegestütze',        area: 'Brust',      emoji: '💪', cue: 'Körper gerade, tief runter', reps: 3 },
@@ -70,9 +86,40 @@ export const DEFAULT_EXERCISES = [
   { id: 'skater',       name: 'Skater-Sprünge',     area: 'Beine',      emoji: '⛸️', cue: 'Pro Seite – seitlich von Bein zu Bein', reps: 4 },
   // Ergänzende Übungen (Schultern, Waden, Rücken).
   ...EXTRA_EXERCISES,
+  // Übungen aus dem Montags-Programm.
+  ...MONDAY_EXERCISES,
   // Zirkeltraining-Stationen mit anhängen (in der Bibliothek wählbar).
   ...CIRCUIT_EXERCISES,
 ];
+
+// Montags-Programm, 1:1 in der Reihenfolge des bisherigen Ablaufs
+// („3er Serien 2 – blaue Hantel“): 17 Übungen, jede 3× hintereinander.
+// Bei 30 s Belastung + 30 s Pause ergibt das ~51 Minuten pro Durchlauf.
+export const MONDAY_SET = {
+  id: 'set-montag',
+  name: '🗓️ Montag · 3er Serien (blaue Hantel)',
+  exercises: [
+    'situps',         //  1. Situps gerade
+    'burpees',        //  2. Burpees
+    'squats',         //  3. Kniebeugen
+    'mo-row',         //  4. Rudern
+    'tricepdips',     //  5. Rücklings an Kiste – Trizeps
+    'mo-vsit',        //  6. Sitzen, Beine anheben und halten
+    'wallsit',        //  7. Sitzen an der Wand
+    'mo-bridgeknee',  //  8. Brücke, Knie zum gegenüberliegenden Ellenbogen
+    'bridge',         //  9. Rückenlage, Hüfte anheben
+    'mo-armcircles',  // 10. Bauchlage, Arme kreisen
+    'sideplank',      // 11. Seitstütz
+    'lunges',         // 12. Ausfallschritte
+    'mo-bike',        // 13. Fahrrad fahren
+    'pushups',        // 14. Liegestütze
+    'mo-revplank',    // 15. Unterarmstütz rücklings, Beine anheben
+    'mo-quadruped',   // 16. Vierfüßler, Knie und Ellenbogen zusammen
+    'mo-dbhops',      // 17. Beine über Hantel rechts/links
+  ],
+  // Im Original läuft JEDE Übung 3× – auch die sonst beidseitigen (4×).
+  reps: { lunges: 3, sideplank: 3 },
+};
 
 // Vorgefertigtes Zirkeltraining: 15 Stationen, jede einmal pro Runde „im Kreis“.
 // activeRest: ab der 2. Runde ist die Pause eine Aktivpause (Runde um die Halle).
@@ -184,5 +231,6 @@ export const DEFAULT_SETS = [
       'burpees',      // Ganzkörper-Finisher
     ],
   },
+  MONDAY_SET,
   CIRCUIT_SET,
 ];
