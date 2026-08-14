@@ -314,6 +314,103 @@ export const EX_HOWTO = {
       'Den Bauch leicht anspannen, um den unteren Rücken zu schützen.',
     ],
   },
+  // ---------------- Montags-Programm („3er Serien“) ----------------
+  'mo-row': {
+    steps: [
+      'Hüftbreiter Stand, Knie leicht gebeugt, Oberkörper mit geradem Rücken nach vorn beugen.',
+      'Die Hantel hängen lassen, dann eng am Körper zum Bauch ziehen.',
+      'Kontrolliert wieder absenken, ohne den Oberkörper aufzurichten.',
+    ],
+    tips: [
+      'Zuerst die Schulterblätter zusammenziehen, dann erst mit den Armen ziehen.',
+      'Der Rücken bleibt gerade – nicht rund werden lassen.',
+      'Die Ellbogen dicht am Körper führen, nicht nach außen abspreizen.',
+    ],
+  },
+  'mo-vsit': {
+    steps: [
+      'Auf den Boden setzen, Hände seitlich oder hinter dem Körper abstützen.',
+      'Den Oberkörper leicht zurücklehnen und die Beine anheben.',
+      'Die Position halten – Beine gestreckt oder leicht gebeugt.',
+    ],
+    tips: [
+      'Den Rücken gerade lassen, nicht zusammensacken.',
+      'Bauch fest anspannen, gleichmäßig weiteratmen.',
+      'Zu schwer? Die Knie stärker beugen oder die Füße tiefer halten.',
+    ],
+  },
+  'mo-bridgeknee': {
+    steps: [
+      'In Rückenlage die Knie aufstellen und die Hüfte zur Brücke anheben.',
+      'Die Hüfte oben halten und ein Knie zum gegenüberliegenden Ellenbogen führen.',
+      'Zurück in die Brücke und die Seite wechseln.',
+    ],
+    tips: [
+      'Die Hüfte bleibt oben – nicht bei jeder Wiederholung absacken.',
+      'Der Po bleibt durchgehend angespannt.',
+      'Die Bewegung kontrolliert ausführen, nicht mit Schwung reißen.',
+    ],
+  },
+  'mo-armcircles': {
+    steps: [
+      'Bäuchlings auf den Boden legen, die Arme seitlich ausstrecken.',
+      'Brust und Arme leicht vom Boden abheben.',
+      'Die gestreckten Arme gleichmäßig große Kreise beschreiben lassen.',
+    ],
+    tips: [
+      'Der Blick geht zum Boden, der Nacken bleibt lang.',
+      'Die Arme bleiben die ganze Zeit in der Luft.',
+      'Langsam kreisen – die Größe der Kreise ist wichtiger als das Tempo.',
+    ],
+  },
+  'mo-bike': {
+    steps: [
+      'In Rückenlage legen, den unteren Rücken fest zum Boden drücken.',
+      'Die Beine anheben und wie beim Radfahren treten.',
+      'Gleichmäßig weitertreten, ohne die Fersen abzulegen.',
+    ],
+    tips: [
+      'Der untere Rücken bleibt am Boden – kein Hohlkreuz.',
+      'Je tiefer die Beine, desto anstrengender.',
+      'Ruhig weiteratmen, nicht die Luft anhalten.',
+    ],
+  },
+  'mo-revplank': {
+    steps: [
+      'Rücklings hinsetzen und auf die Unterarme stützen, Ellbogen unter den Schultern.',
+      'Die Hüfte anheben, bis der Körper eine gerade Linie bildet.',
+      'In dieser Position die Beine abwechselnd anheben.',
+    ],
+    tips: [
+      'Die Hüfte oben halten und den Po fest anspannen.',
+      'Die Schultern weg von den Ohren ziehen, die Brust bleibt offen.',
+      'Zu schwer? Nur die Position halten, ohne die Beine zu heben.',
+    ],
+  },
+  'mo-quadruped': {
+    steps: [
+      'In den Vierfüßlerstand gehen, Hände unter den Schultern, Knie unter der Hüfte.',
+      'Ein Bein und den gegenüberliegenden Arm ausstrecken.',
+      'Knie und Ellenbogen unter dem Bauch zusammenführen, dann wieder strecken.',
+    ],
+    tips: [
+      'Der Rücken bleibt gerade, die Hüfte kippt nicht zur Seite.',
+      'Den Bauch anspannen – das hält den Rumpf stabil.',
+      'Langsam und kontrolliert, die Seite nach der Hälfte wechseln.',
+    ],
+  },
+  'mo-dbhops': {
+    steps: [
+      'Die Hantel seitlich neben die Füße auf den Boden legen.',
+      'Mit beiden Beinen seitlich über die Hantel springen.',
+      'Direkt wieder zurückspringen und im Rhythmus weitermachen.',
+    ],
+    tips: [
+      'Weich auf den Fußballen landen, die Knie federn ab.',
+      'Kleine, schnelle Sprünge – nicht hoch hüpfen.',
+      'Gelenke schonen: ohne Sprung seitlich über die Hantel steigen.',
+    ],
+  },
   // ---------------- Zirkel-/Gerätestationen ----------------
   'circ-rope': {
     steps: [
