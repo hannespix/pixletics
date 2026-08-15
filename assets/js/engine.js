@@ -9,7 +9,7 @@ export const PHASE = { PREPARE: 'prepare', WORK: 'work', REST: 'rest', DONE: 'do
 // Diese Sequenz wird durchlaufen und so oft wiederholt, bis die Gesamtdauer
 // (totalMinutes) erreicht ist.
 // `items` ist ein Array aus { exId, reps }.
-export function buildSchedule(items, config, { wholeLaps = false } = {}) {
+export function buildSchedule(items, config, { wholeLaps = false, maxLaps = 0 } = {}) {
   const { workSeconds, pauseSeconds, totalMinutes } = config;
   // Pause + Vorbereitung sind zusammengelegt: vor jeder Übung ein Block, in dem
   // man sich erholt UND gleich zu Beginn hört, was als Nächstes kommt.
@@ -26,6 +26,10 @@ export function buildSchedule(items, config, { wholeLaps = false } = {}) {
     const reps = Math.max(1, it.reps || 1);
     for (let r = 0; r < reps; r++) sequence.push({ exId: it.exId, rep: r + 1, repsTotal: reps });
   }
+
+  // Feste Durchlauf-Anzahl (z. B. Montags-Programm: genau 1 Durchlauf, ~51 Min
+  // bei 30/30 s) – die Sequenz wird dann nicht bis totalMinutes wiederholt.
+  if (maxLaps > 0) maxRounds = Math.min(maxRounds, sequence.length * maxLaps);
 
   // Zirkel: auf volle Runden kürzen (kein angebrochener letzter Durchlauf, der
   // sonst mit „Runde geschafft“ + nur einer Übung am Ende komisch wirkt) –

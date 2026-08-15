@@ -538,9 +538,14 @@ function updatePlanSummary() {
   if (!el) return;
   if (!has) { el.hidden = true; el.textContent = ''; return; }
   const cycle = config.pauseSeconds + config.workSeconds;
-  const rounds = Math.max(1, Math.floor((config.totalMinutes * 60) / cycle));
+  let rounds = Math.max(1, Math.floor((config.totalMinutes * 60) / cycle));
+  // Ein-Durchlauf-Sets (laps: 1, z. B. Montag): Anzeige auf einen Durchlauf gedeckelt.
+  if (selectedSetIds.length && selectedSetIds.every((id) => sets.find((s) => s.id === id)?.laps === 1)) {
+    const blocks = selectedExercises().reduce((sum, it) => sum + Math.max(1, it.reps || 1), 0);
+    rounds = Math.min(rounds, blocks);
+  }
   el.hidden = false;
-  el.textContent = `≈ ${config.totalMinutes} Min · ${rounds} Runden`;
+  el.textContent = `≈ ${Math.round((rounds * cycle) / 60)} Min · ${rounds} Runden`;
 }
 
 // ================ INTERVALL-TIMER (reiner Timer ohne Übungen) ================
@@ -1648,7 +1653,9 @@ async function startWorkout() {
   workoutActiveRest = selectedSetIds.some((id) => sets.find((s) => s.id === id)?.activeRest);
   clearSession(); updateResumeButton(); // neues Workout ersetzt einen gespeicherten Stand
   // Zirkel (Aktivpause) enden auf einer vollen Runde – kein angebrochener Durchlauf.
-  const steps = buildSchedule(items, config, { wholeLaps: workoutActiveRest });
+  // Sets mit fester Durchlauf-Anzahl (laps: 1, z. B. Montag): genau ein Durchlauf.
+  const oneLap = selectedSetIds.length > 0 && selectedSetIds.every((id) => sets.find((s) => s.id === id)?.laps === 1);
+  const steps = buildSchedule(items, config, { wholeLaps: workoutActiveRest, maxLaps: oneLap ? 1 : 0 });
   armRunner(steps);
 }
 
