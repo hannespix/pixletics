@@ -721,22 +721,23 @@ export const EXERCISES = {
   sideplank: {
     duration: 2600, pingpong: true,
     solve(t) {
-      // Körper als gerade, gespannte Diagonale: nur der (untere) Fuß stützt am
-      // Boden, der Oberkörper liegt seitlich auf dem ELLBOGEN/Unterarm auf
-      // (Ellbogen unter der Schulter, Unterarm flach Richtung Füße). Aktive
-      // Hüft-Dips: Hüfte hoch (t=0) -> leicht abgesenkt (t=1) und wieder hoch.
-      const dip = lerp(0, 9, t);
-      const toe = [80, GROUND_Y - 1], ankle = [76, GROUND_Y - 5];
-      const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
-      const bodyAng = 280.5;                            // flacher: Schulter über dem Ellbogen
-      const shoulder = addv(ankle, dir(bodyAng), bodyLen);
-      shoulder[1] += dip * 0.8;                         // Oberkörper senkt sich beim Dip
-      const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
-      hip[1] += dip * 0.5;                              // Hüfte folgt etwas
+      // Unterarm-Seitstütz nach Lehrbuch: gerade Linie Kopf -> Schulter -> Hüfte
+      // -> Füße; der Ellbogen liegt EXAKT unter der Schulter (Oberarm senkrecht,
+      // Unterarm flach nach vorn = klares Stütz-Dreieck), nur der untere Fuß
+      // stützt (Füße gestapelt), der obere Arm zeigt senkrecht nach oben, der
+      // Kopf bleibt neutral in der Linie. Aktiver Halt: die Hüfte sackt leicht
+      // aus der Linie ab und drückt wieder hoch – Kontakte bleiben fix.
+      const dip = lerp(0, 5, t);
+      const shoulder = [22, GROUND_Y - 16];             // direkt über dem Ellbogen
+      const bodyAng = 100.8;                            // Linie Schulter -> Fersen
+      const ankle = addv(shoulder, dir(bodyAng), BONE.torso + BONE.thigh + BONE.shin);
+      const toe = [ankle[0] + 6.6, ankle[1] + 1];       // Fußkante am Boden
+      const lineHip = addv(shoulder, dir(bodyAng), BONE.torso);
+      const hip = [lineHip[0], lineHip[1] + dip];       // Dip: nur die Hüfte sackt/drückt
       return rig({
-        hip, shoulder, ankle, toe, kneeBend: 1, headAng: 285,
-        armUpF: 186, armForeF: 92,                      // Unterarm flach, Ellbogen unter der Schulter
-        armUpN: 2, armForeN: 2,                          // oberer (naher) Arm gerade nach oben
+        hip, shoulder, ankle, toe, kneeBend: 1, headAng: 281, // Kopf neutral in der Linie
+        armUpF: 180, armForeF: 92,                      // Oberarm senkrecht, Unterarm flach
+        armUpN: 0, armForeN: 0,                          // oberer Arm gerade nach oben
       });
     },
   },
@@ -890,24 +891,31 @@ export const EXERCISES = {
     },
   },
 
-  // Bauchlage, Arme kreisen: Brust angehoben, die GESTRECKTEN Arme schwingen in
-  // einem großen Bogen von vorn (über dem Kopf) nach hinten (über den Rücken) und
-  // zurück – dabei wird die blaue Hantel vorn bzw. hinten von einer Hand in die
-  // andere gegeben; sie „kreist“ also mit den Händen mit.
+  // Bauchlage, Arme kreisen: die Arme kreisen FLACH wie ein Hubschrauber-Rotor um
+  // den Oberkörper (beide Hände fegen gemeinsam vorn -> seitlich -> hinten und
+  // zurück; seitlich erscheinen die Arme verkürzt = Hand nah über der Schulter).
+  // Die blaue Hantel wandert dabei im Kreis um den Körper: auf dem Hinweg trägt
+  // sie die eine Hand, beim Treffen in der Mitte wird sie übergeben und die
+  // andere Hand trägt sie zurück.
   mo_armcircles: {
-    duration: 2000,
+    duration: 2200, loop: 'cycle',
     solve(t) {
+      const ph = 2 * Math.PI * t;
       const hip = [46, GROUND_Y - 4];
       const shoulder = addv(hip, dir(72), BONE.torso);  // Brust deutlich angehoben
-      const up = lerp(68, -65, t);                      // vorn -> über oben -> hinten
-      const fore = up + 6 * Math.sin(Math.PI * t);      // minimal weich im Übergang
-      const upF = lerp(72, -61, t);                     // fern minimal versetzt (Tiefe)
+      const sweep = Math.cos(ph);                       // +1 vorn .. -1 hinten
+      const side = Math.abs(Math.sin(ph));              // 1 = Arme zeigen zur Seite
+      // Flache Rotor-Bahn: vorn/hinten weit ausgestreckt, seitlich „verkürzt“
+      // (Hand nah über der Schulter, Ellbogen gebeugt – Tiefen-Illusion).
+      const hand = [shoulder[0] + 26 * sweep, shoulder[1] - 2 - 10 * side];
       const P = rig({
         hip, shoulder, headAng: 48,
         thighAng: 267, shinAng: 264, footAng: 262,      // Beine gestreckt am Boden
-        armUpN: up, armForeN: fore, armUpF: upF, armForeF: upF + 6 * Math.sin(Math.PI * t),
+        hand, elbowBend: 1,                              // beide Hände auf der Rotor-Bahn
       });
-      const h = P.handN;                                // Hantel wandert mit den Händen
+      // Hantel kreist um den Körper: vorn->hinten in der nahen, hinten->vorn in
+      // der fernen Hand; der Wechsel passiert genau beim Treffen der Hände.
+      const h = t < 0.5 ? P.handN : P.handF;
       P.props = [
         { type: 'circle', x: h[0], y: h[1], r: 4.2, fill: '#4a80d0', front: true },
         { type: 'circle', x: h[0], y: h[1], r: 1.4, fill: '#9db9e8', front: true },

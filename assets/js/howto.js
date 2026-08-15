@@ -354,8 +354,8 @@ export const EX_HOWTO = {
   'mo-armcircles': {
     steps: [
       'Bäuchlings legen, die Brust leicht anheben, die Hantel in eine Hand nehmen.',
-      'Die gestreckten Arme in einem großen Bogen von vorn über den Kopf nach hinten führen.',
-      'Vorn und hinter dem Rücken die Hantel jeweils in die andere Hand übergeben – sie kreist mit.',
+      'Die gestreckten Arme flach wie einen Hubschrauber-Rotor um den Oberkörper kreisen lassen.',
+      'Sobald sich die Hände treffen, die Hantel in die andere Hand übergeben – sie wandert so ständig im Kreis um den Körper.',
     ],
     tips: [
       'Arme und Brust bleiben die ganze Zeit in der Luft.',
