@@ -665,7 +665,27 @@ function renderSetsList() {
         ${set.desc ? `<div class="sr-desc">${escapeHtml(set.desc)}</div>` : ''}
         <div class="sr-sub">${set.exercises.length} Übungen · ${set.exercises.map((id) => exerciseMap[id]?.name).filter(Boolean).join(', ') || '—'}</div>
       </div>
-      <span class="icon-btn">✎</span>`;
+      <span class="sr-actions">
+        <span class="icon-btn sr-copy" title="Set kopieren – als Vorlage zum Abwandeln">⧉</span>
+        <span class="icon-btn">✎</span>
+      </span>`;
+    // Kopieren: tiefe Kopie mit neuer ID und „(Kopie)“-Namen anlegen und direkt
+    // im Editor öffnen – so lässt sich ein Set einfach für andere Zwecke abwandeln.
+    row.querySelector('.sr-copy').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const copy = {
+        ...set,
+        id: uid(),
+        name: `${set.name} (Kopie)`,
+        exercises: [...set.exercises],
+      };
+      if (set.reps) copy.reps = { ...set.reps }; // set-spezifische Wiederholungen mitnehmen
+      sets.push(copy);
+      saveSets(sets);
+      renderSetsList();
+      renderPicker();
+      openEditor(copy.id);
+    });
     row.addEventListener('click', () => openEditor(set.id));
     host.appendChild(row);
   });

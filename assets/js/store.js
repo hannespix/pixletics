@@ -360,6 +360,19 @@ export function ensureDefaultsSeeded() {
     lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
+  // Migration: Vierfüßler-Cue präzisieren (diagonal: Knie zum GEGENÜBERLIEGENDEN
+  // Ellenbogen) – nur wenn der Nutzer den Text nicht selbst geändert hat.
+  if (!applied.includes('montag-v3')) {
+    const exercises = loadExercises();
+    const q = exercises.find((e) => e.id === 'mo-quadruped');
+    if (q && q.cue === 'Im Vierfüßlerstand Knie und Ellenbogen zusammenführen') {
+      q.cue = 'Im Vierfüßlerstand diagonal: Knie zum gegenüberliegenden Ellenbogen';
+      saveExercises(exercises);
+    }
+    applied.push('montag-v3');
+    lsSet(SEED_KEY, JSON.stringify(applied));
+  }
+
   if (applied.includes('content-v4')) return;
 
   // Fehlende Zirkel-Stationen zur Übungs-Bibliothek hinzufügen (eigene behalten).

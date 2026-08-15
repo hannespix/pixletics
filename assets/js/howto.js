@@ -391,7 +391,7 @@ export const EX_HOWTO = {
     steps: [
       'In den Vierfüßlerstand gehen, Hände unter den Schultern, Knie unter der Hüfte.',
       'Ein Bein und den gegenüberliegenden Arm ausstrecken.',
-      'Knie und Ellenbogen unter dem Bauch zusammenführen, dann wieder strecken.',
+      'Dieses Knie und den gegenüberliegenden Ellenbogen unter dem Bauch zusammenführen, dann wieder strecken.',
     ],
     tips: [
       'Der Rücken bleibt gerade, die Hüfte kippt nicht zur Seite.',

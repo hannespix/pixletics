@@ -58,7 +58,7 @@ export const MONDAY_EXERCISES = [
   { id: 'mo-armcircles', name: 'Bauchlage, Arme kreisen',          area: 'Schultern', emoji: '🔄', cue: 'Bäuchlings Arme kreisen, die Hantel dabei von Hand zu Hand geben', reps: 3 },
   { id: 'mo-bike',       name: 'Fahrrad fahren',                   area: 'Bauch',  emoji: '🚴', cue: 'In Rückenlage die Beine wie beim Radfahren treten', reps: 3 },
   { id: 'mo-revplank',   name: 'Unterarmstütz rücklings, Beine anheben', area: 'Core', emoji: '🔙', cue: 'Rücklings auf die Unterarme stützen, Beine abwechselnd heben', reps: 3 },
-  { id: 'mo-quadruped',  name: 'Vierfüßler, Knie & Ellenbogen',    area: 'Core',   emoji: '🐾', cue: 'Im Vierfüßlerstand Knie und Ellenbogen zusammenführen', reps: 3 },
+  { id: 'mo-quadruped',  name: 'Vierfüßler, Knie & Ellenbogen',    area: 'Core',   emoji: '🐾', cue: 'Im Vierfüßlerstand diagonal: Knie zum gegenüberliegenden Ellenbogen', reps: 3 },
   { id: 'mo-dbhops',     name: 'Beine über Hantel, rechts/links',  area: 'Bauch',  emoji: '🏋️', cue: 'Rücklings sitzend die gestreckten Beine links/rechts der Hantel aufsetzen', reps: 3 },
 ];
 

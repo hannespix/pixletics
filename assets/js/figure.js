@@ -977,13 +977,15 @@ export const EXERCISES = {
       const shoulder = [66, GROUND_Y - 30];
       return rig({
         hip, shoulder, headAng: lerp(78, 115, t),       // Kopf neutral -> eingerollt
-        handF: [66, GROUND_Y - 1], elbowBend: 1,        // Stützarm unter der Schulter
-        thighAngF: 168, shinAngF: 266, footAngF: 264,   // kniendes Bein am Boden
-        armUpN: lerp(84, 200, t),                       // Arm vor -> Ellbogen unter die Brust
+        handF: [66, GROUND_Y - 1], elbowBend: 1,        // Stützarm (fern) unter der Schulter
+        thighAngN: 168, shinAngN: 266, footAngN: 264,   // kniendes Bein (nah) am Boden
+        armUpN: lerp(84, 200, t),                       // naher Arm vor -> Ellbogen unter die Brust
         armForeN: lerp(86, 95, t),                      // Beugung nach VORN (echte Ellbogen-Flexion)
-        thighAngN: lerp(272, 108, t),                   // Bein hinten -> Knie an den Ellbogen
-        shinAngN: lerp(272, 252, t) + 34 * Math.sin(Math.PI * t), // Ferse curlt hoch
-        footAngN: lerp(268, 247, t) + 30 * Math.sin(Math.PI * t),
+        // DIAGONAL: das GEGENÜBERLIEGENDE (ferne) Bein streckt nach hinten und
+        // zieht dann das Knie an den nahen Ellbogen (links-Knie -> rechts-Ellbogen).
+        thighAngF: lerp(272, 108, t),
+        shinAngF: lerp(272, 252, t) + 34 * Math.sin(Math.PI * t), // Ferse curlt hoch
+        footAngF: lerp(268, 247, t) + 30 * Math.sin(Math.PI * t),
       });
     },
   },

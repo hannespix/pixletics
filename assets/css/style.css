@@ -383,6 +383,7 @@ main {
 .set-row .sr-desc { color: var(--text); font-size: 13px; margin-top: 4px; line-height: 1.45; opacity: 0.85;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .set-row .sr-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.set-row .sr-actions { display: flex; gap: 4px; flex-shrink: 0; }
 
 /* Set-Beschreibung im Editor */
 .set-desc-input {
