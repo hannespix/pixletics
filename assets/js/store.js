@@ -335,6 +335,31 @@ export function ensureDefaultsSeeded() {
     lsSet(SEED_KEY, JSON.stringify(applied));
   }
 
+  // Migration: Montags-Programm v2 – Bewegungsabläufe korrigiert (Rudern im
+  // Sitzen, Stütz statt Rückenlage-Brücke, Hantel-Kreisen, Beine über Hantel im
+  // Sitzen). Cue/Bereich nur angleichen, wenn der Nutzer den Text nicht selbst
+  // geändert hat; zusätzlich läuft das Montags-Set genau EINEN Durchlauf (laps).
+  if (!applied.includes('montag-v2')) {
+    const fixes = {
+      'mo-row':        ['Oberkörper vorgebeugt, Hantel zum Bauch ziehen', 'Im Sitzen „rudern“: Beine in der Luft ausstoßen, Hantel wie Riemen ziehen', 'Bauch'],
+      'mo-bridgeknee': ['In der Brücke Knie zum gegenüberliegenden Ellenbogen', 'Im Stütz (Blick zum Boden) das Knie zum Ellenbogen ziehen', 'Core'],
+      'mo-armcircles': ['Bäuchlings die gestreckten Arme kreisen lassen', 'Bäuchlings Arme kreisen, die Hantel dabei von Hand zu Hand geben', 'Schultern'],
+      'mo-dbhops':     ['Seitlich über die Hantel springen – rechts, links', 'Rücklings sitzend die gestreckten Beine links/rechts der Hantel aufsetzen', 'Bauch'],
+    };
+    const exercises = loadExercises();
+    let changed = false;
+    exercises.forEach((e) => {
+      const f = fixes[e.id];
+      if (f && e.cue === f[0]) { e.cue = f[1]; e.area = f[2]; changed = true; }
+    });
+    if (changed) saveExercises(exercises);
+    const moSets = loadSets();
+    const mo = moSets.find((s) => s.id === 'set-montag');
+    if (mo && mo.laps == null) { mo.laps = 1; saveSets(moSets); }
+    applied.push('montag-v2');
+    lsSet(SEED_KEY, JSON.stringify(applied));
+  }
+
   if (applied.includes('content-v4')) return;
 
   // Fehlende Zirkel-Stationen zur Übungs-Bibliothek hinzufügen (eigene behalten).

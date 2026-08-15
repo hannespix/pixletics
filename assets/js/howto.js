@@ -317,14 +317,14 @@ export const EX_HOWTO = {
   // ---------------- Montags-Programm („3er Serien“) ----------------
   'mo-row': {
     steps: [
-      'Hüftbreiter Stand, Knie leicht gebeugt, Oberkörper mit geradem Rücken nach vorn beugen.',
-      'Die Hantel hängen lassen, dann eng am Körper zum Bauch ziehen.',
-      'Kontrolliert wieder absenken, ohne den Oberkörper aufzurichten.',
+      'Auf den Boden setzen wie ins Ruderboot – das Gesäß bleibt am Boden, die Hantel mit beiden Händen vor dem Körper.',
+      'Die Beine in der Luft nach vorn ausstoßen, den Oberkörper leicht zurücklehnen und die Hantel wie Riemen zum Körper ziehen.',
+      'Dann die Knie zur Brust holen, den Oberkörper nach vorn nehmen und die Arme strecken – ein fließender Ruderschlag.',
     ],
     tips: [
-      'Zuerst die Schulterblätter zusammenziehen, dann erst mit den Armen ziehen.',
-      'Der Rücken bleibt gerade – nicht rund werden lassen.',
-      'Die Ellbogen dicht am Körper führen, nicht nach außen abspreizen.',
+      'Die Füße bleiben die ganze Zeit in der Luft – der Bauch hält die Balance.',
+      'Den Rücken gerade lassen, nicht rund zusammensacken.',
+      'Fließend und gleichmäßig rudern, nicht ruckartig reißen.',
     ],
   },
   'mo-vsit': {
@@ -341,26 +341,26 @@ export const EX_HOWTO = {
   },
   'mo-bridgeknee': {
     steps: [
-      'In Rückenlage die Knie aufstellen und die Hüfte zur Brücke anheben.',
-      'Die Hüfte oben halten und ein Knie zum gegenüberliegenden Ellenbogen führen.',
-      'Zurück in die Brücke und die Seite wechseln.',
+      'In den hohen Stütz gehen (Brücke nach vorn gebeugt): Hände unter den Schultern, der Blick zum Boden.',
+      'Ein Knie unter dem Körper zum Ellenbogen ziehen und kurz halten.',
+      'Das Bein zurückstrecken – in der nächsten Runde die Seite wechseln.',
     ],
     tips: [
-      'Die Hüfte bleibt oben – nicht bei jeder Wiederholung absacken.',
-      'Der Po bleibt durchgehend angespannt.',
-      'Die Bewegung kontrolliert ausführen, nicht mit Schwung reißen.',
+      'Die Hüfte stabil halten – nicht absacken und nicht hochschieben.',
+      'Das Knie knapp über dem Boden führen, ohne aufzusetzen.',
+      'Ruhig weiteratmen, die Bewegung kontrolliert ausführen.',
     ],
   },
   'mo-armcircles': {
     steps: [
-      'Bäuchlings auf den Boden legen, die Arme seitlich ausstrecken.',
-      'Brust und Arme leicht vom Boden abheben.',
-      'Die gestreckten Arme gleichmäßig große Kreise beschreiben lassen.',
+      'Bäuchlings legen, die Brust leicht anheben, die Hantel in eine Hand nehmen.',
+      'Die gestreckten Arme in einem großen Bogen von vorn über den Kopf nach hinten führen.',
+      'Vorn und hinter dem Rücken die Hantel jeweils in die andere Hand übergeben – sie kreist mit.',
     ],
     tips: [
+      'Arme und Brust bleiben die ganze Zeit in der Luft.',
+      'Langsame, große Bewegungen – der Bogen zählt, nicht das Tempo.',
       'Der Blick geht zum Boden, der Nacken bleibt lang.',
-      'Die Arme bleiben die ganze Zeit in der Luft.',
-      'Langsam kreisen – die Größe der Kreise ist wichtiger als das Tempo.',
     ],
   },
   'mo-bike': {
@@ -401,14 +401,14 @@ export const EX_HOWTO = {
   },
   'mo-dbhops': {
     steps: [
-      'Die Hantel seitlich neben die Füße auf den Boden legen.',
-      'Mit beiden Beinen seitlich über die Hantel springen.',
-      'Direkt wieder zurückspringen und im Rhythmus weitermachen.',
+      'Rücklings auf den Boden setzen und die Hände hinter dem Körper aufstützen.',
+      'Die gestreckten Beine anheben und über die Hantel schwenken.',
+      'Die Füße abwechselnd links und rechts der Hantel kurz aufsetzen.',
     ],
     tips: [
-      'Weich auf den Fußballen landen, die Knie federn ab.',
-      'Kleine, schnelle Sprünge – nicht hoch hüpfen.',
-      'Gelenke schonen: ohne Sprung seitlich über die Hantel steigen.',
+      'Die Beine möglichst gestreckt lassen – die Kraft kommt aus dem Bauch.',
+      'Die Hantel nicht berühren, sauber darüber schwenken.',
+      'Die Schultern weg von den Ohren, gleichmäßig weiteratmen.',
     ],
   },
   // ---------------- Zirkel-/Gerätestationen ----------------

@@ -52,14 +52,14 @@ export const EXTRA_EXERCISES = [
 // Kniebeugen, Sit-ups, Burpees, Ausfallschritte, Seitstütz, Wandsitzen,
 // Beckenheben, Trizeps-Dips).
 export const MONDAY_EXERCISES = [
-  { id: 'mo-row',        name: 'Rudern (Hantel)',                  area: 'Rücken', emoji: '🚣', cue: 'Oberkörper vorgebeugt, Hantel zum Bauch ziehen', reps: 3 },
+  { id: 'mo-row',        name: 'Rudern (Hantel)',                  area: 'Bauch',  emoji: '🚣', cue: 'Im Sitzen „rudern“: Beine in der Luft ausstoßen, Hantel wie Riemen ziehen', reps: 3 },
   { id: 'mo-vsit',       name: 'Sitzen, Beine anheben & halten',   area: 'Bauch',  emoji: '🚤', cue: 'Aufrecht sitzen, Beine anheben und oben halten', reps: 3 },
-  { id: 'mo-bridgeknee', name: 'Brücke, Knie zum Ellenbogen',      area: 'Core',   emoji: '🌉', cue: 'In der Brücke Knie zum gegenüberliegenden Ellenbogen', reps: 3 },
-  { id: 'mo-armcircles', name: 'Bauchlage, Arme kreisen',          area: 'Rücken', emoji: '🔄', cue: 'Bäuchlings die gestreckten Arme kreisen lassen', reps: 3 },
+  { id: 'mo-bridgeknee', name: 'Brücke, Knie zum Ellenbogen',      area: 'Core',   emoji: '🌉', cue: 'Im Stütz (Blick zum Boden) das Knie zum Ellenbogen ziehen', reps: 3 },
+  { id: 'mo-armcircles', name: 'Bauchlage, Arme kreisen',          area: 'Schultern', emoji: '🔄', cue: 'Bäuchlings Arme kreisen, die Hantel dabei von Hand zu Hand geben', reps: 3 },
   { id: 'mo-bike',       name: 'Fahrrad fahren',                   area: 'Bauch',  emoji: '🚴', cue: 'In Rückenlage die Beine wie beim Radfahren treten', reps: 3 },
   { id: 'mo-revplank',   name: 'Unterarmstütz rücklings, Beine anheben', area: 'Core', emoji: '🔙', cue: 'Rücklings auf die Unterarme stützen, Beine abwechselnd heben', reps: 3 },
   { id: 'mo-quadruped',  name: 'Vierfüßler, Knie & Ellenbogen',    area: 'Core',   emoji: '🐾', cue: 'Im Vierfüßlerstand Knie und Ellenbogen zusammenführen', reps: 3 },
-  { id: 'mo-dbhops',     name: 'Beine über Hantel, rechts/links',  area: 'Cardio', emoji: '🏋️', cue: 'Seitlich über die Hantel springen – rechts, links', reps: 3 },
+  { id: 'mo-dbhops',     name: 'Beine über Hantel, rechts/links',  area: 'Bauch',  emoji: '🏋️', cue: 'Rücklings sitzend die gestreckten Beine links/rechts der Hantel aufsetzen', reps: 3 },
 ];
 
 export const DEFAULT_EXERCISES = [
@@ -119,6 +119,8 @@ export const MONDAY_SET = {
   ],
   // Im Original läuft JEDE Übung 3× – auch die sonst beidseitigen (4×).
   reps: { lunges: 3, sideplank: 3 },
+  // Genau EIN Durchlauf (51 Blöcke ≈ 51 Min) – nicht bis totalMinutes wiederholen.
+  laps: 1,
 };
 
 // Vorgefertigtes Zirkeltraining: 15 Stationen, jede einmal pro Runde „im Kreis“.

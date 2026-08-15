@@ -721,21 +721,22 @@ export const EXERCISES = {
   sideplank: {
     duration: 2600, pingpong: true,
     solve(t) {
-      // Körper als gerade, gespannte Diagonale (Füße rechts am Boden, Stützarm
-      // links senkrecht zum Boden). Aktive Hüft-Dips: Hüfte hoch/gespannt (t=0)
-      // -> leicht abgesenkt (t=1) und wieder hoch -> klar erkennbar & dynamisch.
-      const dip = lerp(0, 10, t);
+      // Körper als gerade, gespannte Diagonale: nur der (untere) Fuß stützt am
+      // Boden, der Oberkörper liegt seitlich auf dem ELLBOGEN/Unterarm auf
+      // (Ellbogen unter der Schulter, Unterarm flach Richtung Füße). Aktive
+      // Hüft-Dips: Hüfte hoch (t=0) -> leicht abgesenkt (t=1) und wieder hoch.
+      const dip = lerp(0, 9, t);
       const toe = [80, GROUND_Y - 1], ankle = [76, GROUND_Y - 5];
       const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
-      const bodyAng = 293;                              // steiler: Füße (rechts) nach links-oben
+      const bodyAng = 280.5;                            // flacher: Schulter über dem Ellbogen
       const shoulder = addv(ankle, dir(bodyAng), bodyLen);
-      shoulder[1] += dip;                               // Oberkörper senkt sich beim Dip
+      shoulder[1] += dip * 0.8;                         // Oberkörper senkt sich beim Dip
       const hip = addv(ankle, dir(bodyAng), BONE.thigh + BONE.shin);
-      hip[1] += dip * 0.6;                              // Hüfte folgt etwas
+      hip[1] += dip * 0.5;                              // Hüfte folgt etwas
       return rig({
-        hip, shoulder, ankle, toe, kneeBend: 1, headAng: 333,
-        handF: [shoulder[0], GROUND_Y - 1], elbowBend: -1, // unterer (ferner) Arm stützt am Boden
-        armUpN: 2, armForeN: 2,                            // oberer (naher) Arm gerade nach oben
+        hip, shoulder, ankle, toe, kneeBend: 1, headAng: 285,
+        armUpF: 186, armForeF: 92,                      // Unterarm flach, Ellbogen unter der Schulter
+        armUpN: 2, armForeN: 2,                          // oberer (naher) Arm gerade nach oben
       });
     },
   },
@@ -823,23 +824,27 @@ export const EXERCISES = {
   },
 
   // ---- Montags-Programm („3er Serien – blaue Hantel“) ----
-  // Rudern mit der Hantel: Hüfthinge (Gesäß zurück, Rücken gerade, Knie leicht
-  // gebeugt). Der Arm hängt mit der Hantel senkrecht nach unten; der Ellbogen
-  // zieht eng am Körper nach hinten-oben, bis die Hand an der Hüfte ist.
+  // Rudern mit der Hantel: wie im Ruderboot SITZEND. Das Gesäß bleibt am Boden,
+  // die Beine „stoßen sich in der Luft ab“ (Knie zur Brust -> ausstrecken, ohne
+  // Bodenkontakt), der Oberkörper pendelt vor/zurück und die Arme ziehen die
+  // Hantel wie Riemen: vorn gestreckt greifen -> zum Körper ziehen.
   mo_row: {
-    duration: 1500,
+    duration: 1600,
     solve(t) {
-      const ankle = [CX - 2, GROUND_Y - 1];
-      const hip = [CX - 6, GROUND_Y - 34];             // Gesäß nach hinten (Hinge)
-      const lean = 62;                                  // vorgebeugter, gerader Rücken
-      const shoulder = addv(hip, dir(lean), BONE.torso);
-      const up = lerp(170, 228, t);                     // Arm hängt -> Ellbogen hinten-oben
-      const fore = lerp(170, 180, t);                   // Unterarm bleibt ~senkrecht
-      const P = rig({ hip, shoulder, ankle, kneeBend: -1, footAng: 92, headAng: lean - 8, armUp: up, armFore: fore });
+      const hip = [46, GROUND_Y - 8];                   // Po liegt am Boden
+      const torsoAng = lerp(22, -22, t);                // „Catch“ vorgelehnt -> „Finish“ zurück (über aufrecht)
+      const shoulder = addv(hip, dir(torsoAng), BONE.torso);
+      const P = rig({
+        hip, shoulder, headAng: lerp(20, -15, t),
+        thighAng: lerp(35, 78, t),                      // Knie zur Brust -> Beine ausstoßen
+        shinAng: lerp(110, 82, t), footAng: lerp(105, 78, t), // Füße bleiben in der Luft
+        armUp: lerp(78, 155, t),                        // Arme gestreckt vorn -> Ellbogen zurück
+        armFore: lerp(80, 55, t),                       // Hand zieht zur Brust (Riemenzug)
+      });
       const h = P.handN;                                // blaue Hantel (von vorn = Scheibe)
       P.props = [
-        { type: 'circle', x: h[0], y: h[1] + 1.5, r: 4.2, fill: '#4a80d0', front: true },
-        { type: 'circle', x: h[0], y: h[1] + 1.5, r: 1.4, fill: '#9db9e8', front: true },
+        { type: 'circle', x: h[0], y: h[1], r: 4.2, fill: '#4a80d0', front: true },
+        { type: 'circle', x: h[0], y: h[1], r: 1.4, fill: '#9db9e8', front: true },
       ];
       return P;
     },
@@ -862,43 +867,52 @@ export const EXERCISES = {
     },
   },
 
-  // Brücke, Knie zum gegenüberliegenden Ellenbogen: Grundposition wie Beckenheben
-  // (Schultern am Boden, Hüfte OBEN halten, fernes Bein bleibt stehen). Das nahe
-  // Knie zieht zur Brust, der ferne Arm hebt vom Boden ab und greift zum Knie.
+  // Brücke, Knie zum Ellenbogen: die „Brücke“ ist nach VORN gebeugt (hoher Stütz,
+  // Gesicht zum Boden). Hände bleiben unter den Schultern, das ferne Bein bleibt
+  // gestreckt; das nahe Knie zieht unter dem Körper zum Ellenbogen (knapp über
+  // dem Boden geführt), dann zurück. Seitenwechsel je Runde.
   mo_bridgeknee: {
-    duration: 1700,
+    duration: 1500,
     solve(t) {
-      const shoulder = [32, GROUND_Y - 3];              // Schultern fix am Boden
-      const hip = addv(shoulder, dir(58), BONE.torso);  // Hüfte bleibt oben (Brücke!)
+      const toe = [20, GROUND_Y - 1], ankle = [20, GROUND_Y - 7];
+      const bodyLen = BONE.thigh + BONE.shin + BONE.torso;
+      const shoulder = addv(ankle, dir(70), bodyLen);   // hoher Stütz (wie Liegestütz oben)
+      const hip = addv(ankle, dir(70), BONE.thigh + BONE.shin);
+      const lift = Math.sin(Math.PI * t);               // Transit: Knie knapp überm Boden
       return rig({
-        hip, shoulder, headAng: 270,                    // Kopf liegt am Boden
-        ankleF: [64, GROUND_Y - 1], kneeBendF: -1, footAngF: 95, // Standbein bleibt
-        armUpN: 100, armForeN: 100,                     // naher Arm bleibt flach am Boden
-        thighAngN: lerp(94, 8, t),                      // Knie hebt NACH OBEN zur Brust
-        shinAngN: lerp(205, 150, t), footAngN: lerp(95, 146, t), // Unterschenkel hängt nach vorn
-        armUpF: lerp(100, 38, t), armForeF: lerp(100, 30, t), // Arm greift zum Knie
+        hip, shoulder, headAng: 102,                    // Gesicht zeigt zum Boden
+        hand: [shoulder[0], GROUND_Y - 1], elbowBend: 1, // beide Hände unter der Schulter
+        ankleF: ankle, toeF: toe, kneeBendF: 1, footAngF: 172, // fernes Bein bleibt gestreckt
+        thighAngN: lerp(250, 95, t) - 10 * lift,        // Knie zieht zum Ellenbogen
+        shinAngN: lerp(250, 230, t) + 45 * lift,        // Ferse curlt hoch (kein Schleifen)
+        footAngN: lerp(172, 235, t) + 30 * lift,
       });
     },
   },
 
-  // Bauchlage, Arme kreisen: wie Superman-Halte, Brust leicht angehoben, Beine
-  // liegen gestreckt. Beide gestreckten Arme fahren vorne kleine Kreise
-  // (Winkel- + Radiusanteil ergeben die Kreisbahn der Hand).
+  // Bauchlage, Arme kreisen: Brust angehoben, die GESTRECKTEN Arme schwingen in
+  // einem großen Bogen von vorn (über dem Kopf) nach hinten (über den Rücken) und
+  // zurück – dabei wird die blaue Hantel vorn bzw. hinten von einer Hand in die
+  // andere gegeben; sie „kreist“ also mit den Händen mit.
   mo_armcircles: {
-    duration: 1600, loop: 'cycle',
+    duration: 2000,
     solve(t) {
-      const ph = 2 * Math.PI * t;
       const hip = [46, GROUND_Y - 4];
       const shoulder = addv(hip, dir(72), BONE.torso);  // Brust deutlich angehoben
-      const up = 84 + 18 * Math.sin(ph);                // Arme vor der Brust ...
-      const fore = up + 13 * Math.cos(ph);              // ... Hand fährt einen Kreis
-      const upF = 84 + 18 * Math.sin(ph + 1.2);
-      const foreF = upF + 13 * Math.cos(ph + 1.2);      // fern versetzt (Tiefe/Leben)
-      return rig({
-        hip, shoulder, headAng: 48,                     // Kopf klar über den Armen
+      const up = lerp(68, -65, t);                      // vorn -> über oben -> hinten
+      const fore = up + 6 * Math.sin(Math.PI * t);      // minimal weich im Übergang
+      const upF = lerp(72, -61, t);                     // fern minimal versetzt (Tiefe)
+      const P = rig({
+        hip, shoulder, headAng: 48,
         thighAng: 267, shinAng: 264, footAng: 262,      // Beine gestreckt am Boden
-        armUpN: up, armForeN: fore, armUpF: upF, armForeF: foreF,
+        armUpN: up, armForeN: fore, armUpF: upF, armForeF: upF + 6 * Math.sin(Math.PI * t),
       });
+      const h = P.handN;                                // Hantel wandert mit den Händen
+      P.props = [
+        { type: 'circle', x: h[0], y: h[1], r: 4.2, fill: '#4a80d0', front: true },
+        { type: 'circle', x: h[0], y: h[1], r: 1.4, fill: '#9db9e8', front: true },
+      ];
+      return P;
     },
   },
 
@@ -958,7 +972,7 @@ export const EXERCISES = {
         handF: [66, GROUND_Y - 1], elbowBend: 1,        // Stützarm unter der Schulter
         thighAngF: 168, shinAngF: 266, footAngF: 264,   // kniendes Bein am Boden
         armUpN: lerp(84, 200, t),                       // Arm vor -> Ellbogen unter die Brust
-        armForeN: lerp(86, 335, t),                     // Hand tuckt eng an die Brust
+        armForeN: lerp(86, 95, t),                      // Beugung nach VORN (echte Ellbogen-Flexion)
         thighAngN: lerp(272, 108, t),                   // Bein hinten -> Knie an den Ellbogen
         shinAngN: lerp(272, 252, t) + 34 * Math.sin(Math.PI * t), // Ferse curlt hoch
         footAngN: lerp(268, 247, t) + 30 * Math.sin(Math.PI * t),
@@ -966,28 +980,27 @@ export const EXERCISES = {
     },
   },
 
-  // Beine über Hantel rechts/links: die blaue Hantel liegt am Boden, beidbeinige
-  // seitliche Sprünge darüber (in der Ansicht als Links/Rechts gezeigt). Tiefe,
-  // weiche Landung mit gebeugten Knien; in der Flugphase Zehen gespitzt.
+  // Beine über Hantel rechts/links: rücklings SITZEND, die Hände hinter dem
+  // Körper aufgestützt. Die gestreckten Beine schweben über der Hantel und
+  // setzen abwechselnd links und rechts davon kurz auf (in der Seitenansicht
+  // als diesseits/jenseits gezeigt).
   mo_dbhops: {
-    duration: 1100, loop: 'cycle',
+    duration: 1300, loop: 'cycle',
     solve(t) {
       const ph = 2 * Math.PI * t;
-      const side = Math.cos(ph);                        // links <-> rechts
+      const side = Math.cos(ph);                        // diesseits <-> jenseits
       const air = Math.abs(Math.sin(ph));               // 1 = über der Hantel
-      const x = CX + 15 * side;
-      const ankle = [x, GROUND_Y - 1 - 14 * air];       // Füße heben über die Hantel
-      const hip = [x, GROUND_Y - 27 - 12 * air];        // tief gelandet -> hoch im Flug
-      const lean = -10 * Math.sin(ph);                  // leicht in Sprungrichtung
-      const shoulder = addv(hip, dir(lean), BONE.torso);
+      const hip = [38, GROUND_Y - 4];                   // Gesäß am Boden
+      const shoulder = addv(hip, dir(324), BONE.torso); // zurückgelehnt
       const P = rig({
-        hip, shoulder, headAng: lean * 0.6,
-        ankle, kneeBend: -1, footAng: lerp(92, 135, air),
-        armUp: 202 - 30 * air, armFore: 186 - 34 * air,  // Arme schwingen mit
+        hip, shoulder, headAng: 334,
+        ankle: [69 + 5 * side, GROUND_Y - 2 - 10 * air], // Beine schwenken über die Hantel
+        kneeBend: -1, footAng: lerp(98, 88, air),        // beim Überschwenken Zehen anziehen
+        hand: [24, GROUND_Y - 1], elbowBend: 1,          // Stützhände hinter dem Körper
       });
       P.props = [
-        { type: 'circle', x: CX, y: GROUND_Y - 5, r: 4.5, fill: '#4a80d0' },   // blaue Hantel
-        { type: 'circle', x: CX, y: GROUND_Y - 5, r: 1.4, fill: '#9db9e8' },
+        { type: 'circle', x: 69, y: GROUND_Y - 4.5, r: 4.5, fill: '#4a80d0' }, // blaue Hantel
+        { type: 'circle', x: 69, y: GROUND_Y - 4.5, r: 1.4, fill: '#9db9e8' },
       ];
       return P;
     },
