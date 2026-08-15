@@ -551,13 +551,13 @@ function updatePlanSummary() {
 // ================ INTERVALL-TIMER (reiner Timer ohne Übungen) ================
 const INTERVAL_PRESETS = {
   tabata: { unit: 'Intervall', work: 20, rest: 10, rounds: 8, showWorkRest: true, minutesField: false,
-            desc: '20 s Belastung · 10 s Pause · 8 Runden (≈ 4 min).' },
+            desc: 'Hochintensiv nach Prof. Izumi Tabata: 20 s Vollgas · 10 s Pause · 8 Runden (= 4 Minuten).' },
   emom:   { unit: 'Minute', work: 60, rest: 0, rounds: 10, showWorkRest: false, minutesField: true,
-            desc: 'Jede Minute startet ein Intervall – der Rest der Minute ist Pause.' },
+            desc: '„Every Minute On the Minute“ – jede volle Minute startet dein Satz, der Rest der Minute ist Pause.' },
   amrap:  { unit: 'AMRAP', work: 600, rest: 0, rounds: 10, showWorkRest: false, minutesField: true,
-            desc: 'Ein durchgehender Timer – so viele Runden wie möglich.' },
+            desc: '„As Many Rounds As Possible“ – durchgehender Timer: schaffe so viele Runden wie möglich.' },
   free:   { unit: 'Intervall', work: 40, rest: 20, rounds: 8, showWorkRest: true, minutesField: false,
-            desc: 'Eigene Werte: Belastung, Pause und Runden frei wählbar.' },
+            desc: 'Dein eigenes Schema: Belastung, Pause und Rundenzahl frei wählbar (z. B. 40/20 × 8).' },
 };
 
 function currentIntervalMode() {
